@@ -1,0 +1,81 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+  display: flex;
+}
+
+.sidebar {
+    width: 120px;
+    height: 100vh;
+    background: rebeccapurple;
+    color: white;
+    transition: width 0.3s;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.closed {
+    width: 60px;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.sidebar.closed .nav-link i{
+    padding-left: 10px;
+}
+
+.sidebar .nav-link i{
+    padding-right: 10px;
+}
+
+.nav{
+    flex-grow: 1;
+}
+
+.sidebar .nav-link{
+    color: white;
+    display: flex;
+    padding-right: 5px;
+    padding: 10px;
+    align-items: center;
+}
+
+.nav-link:last-child{
+    margin-top: auto;
+}
+
+.sidebar .nav-link div{
+    display: block;
+}
+
+.sidebar.closed .nav-link div{
+    display: none;
+}
+
+.toggle-btn{
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+}
