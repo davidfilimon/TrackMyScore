@@ -12,5 +12,16 @@ window.onload = function () {
     var registerError = document.getElementById("registerError");
     if (registerError && registerError.innerText.trim() !== "") {
         registerError.style.display = "block";
+    } else if (registerError) {
+        registerError.style.display = "none";
+    }
+};
+
+window.onload = function () {
+    var loginError = document.getElementById("loginError");
+    if (loginError && loginError.innerText.trim() !== "") {
+        loginError.style.display = "block";
+    } else if (loginError) {
+        loginError.style.display = "none";
     }
 };

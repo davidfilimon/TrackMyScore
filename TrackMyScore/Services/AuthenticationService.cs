@@ -17,7 +17,7 @@ namespace TrackMyScore.Services
 
         public async Task<User> Login(string email, string password)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            User user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             if(user == null || decrypt(user.Password) != password)
             {
@@ -33,9 +33,9 @@ namespace TrackMyScore.Services
             Decoder utf8Decode = encoder.GetDecoder();
             byte[] todecode_byte = Convert.FromBase64String(encoded);
             int charCount = utf8Decode.GetCharCount(todecode_byte, 0, todecode_byte.Length);
-            char[] decoded_char = new char[charCount];
-            utf8Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decoded_char, 0);
-            string result = new string(decoded_char);
+            char[] decodedChar = new char[charCount];
+            utf8Decode.GetChars(todecode_byte, 0, todecode_byte.Length, decodedChar, 0);
+            string result = new string(decodedChar);
             return result;
         }
 

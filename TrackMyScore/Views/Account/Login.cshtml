@@ -34,6 +34,12 @@
             </div>
         </div>
     </div>
+    @if (ViewData["LoginError"] != null)
+    {
+        <div class="alert alert-danger text-center" id="loginError">
+            @ViewData["LoginError"]
+        </div>
+    }
 </body>
 
 

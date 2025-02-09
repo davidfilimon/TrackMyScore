@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var username = Context.Session.GetString("username");
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -22,7 +26,7 @@
                 <div>Profile</div>
             </a>
 
-            @if(User.Identity.IsAuthenticated)
+            @if(username = null)
             {
                 <a asp-controller="Account" asp-action="Logout" class="nav-link">
                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -31,7 +35,7 @@
             } else {
                 <a asp-controller="Account" asp-action="Login" class="nav-link">
                     <i class="fa-solid fa-right-to-bracket"></i>
-                    <div>Logout</div>
+                    <div>Login</div>
                 </a>
             }  
         </nav>

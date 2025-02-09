@@ -13,7 +13,6 @@ namespace TrackMyScore.Services
         {
             return !string.IsNullOrEmpty(password) && password.Length >= 8;
         }
-
         
     }
 }
