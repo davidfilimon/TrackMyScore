@@ -10,6 +10,9 @@ namespace TrackMyScore.Controllers
     {
         private AppDbContext _context;
         private readonly IMemoryCache _cache;
+        private readonly CreateAccountService _createAccountService;
+        private readonly AuthenticationService _authenticationService;
+        private readonly ValidationService _validationService;
 
         private readonly string cacheKey = "accountCacheKey";
 
