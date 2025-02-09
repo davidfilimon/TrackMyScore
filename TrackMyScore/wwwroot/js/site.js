@@ -7,3 +7,10 @@ function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     sidebar.classList.toggle("closed");
 }
+
+window.onload = function () {
+    var registerError = document.getElementById("registerError");
+    if (registerError && registerError.innerText.trim() !== "") {
+        registerError.style.display = "block";
+    }
+};

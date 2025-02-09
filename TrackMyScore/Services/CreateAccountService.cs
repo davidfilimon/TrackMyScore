@@ -8,17 +8,24 @@ namespace TrackMyScore.Services
     public class CreateAccountService
     {
         private readonly AppDbContext _context;
+        private readonly ValidationService _validationService;
 
-        public CreateAccountService(AppDbContext context)
+        public CreateAccountService(AppDbContext context, ValidationService validationService)
         {
             _context = context;
+            _validationService = validationService;
         }
 
         public async Task<(bool success, string message)> Register(string username, string email, string password)
         {
             var existingUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-            if(existingUsername != null)
+            if (!_validationService.invalidEmail(email) || !_validationService.invalidPassword(password))
+            {
+                return (false, "Invalid email or password. Password must be at least 8 characters long.");
+            }
+
+            if (existingUsername != null)
             {
                 return (false, "Another account is already using this username.");
             }
