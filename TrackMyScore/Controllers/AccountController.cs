@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
@@ -8,7 +9,6 @@ using TrackMyScore.Services;
 namespace TrackMyScore.Controllers
 {
 
-    [Route("[controller]/[action]/{id?}")]
     public class AccountController : Controller
     {
         private AppDbContext _context;
@@ -26,9 +26,25 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
-        public IActionResult Profile(int id)
+        public async Task<IActionResult> Profile(int id)
         {
-            return View();
+            var email = HttpContext.Session.GetString("email");
+
+            if(email != null)
+            {
+                RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewData["UserId"] = user.Id;
+
+            return View(user);
         }
 
         [HttpGet]

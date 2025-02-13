@@ -1,5 +1,9 @@
-﻿@{
+﻿@using TrackMyScore.Services
+@inject UserService UserService;
+
+@{
     var username = Context.Session.GetString("username");
+    var user = await UserService.GetCurrentUserAsync();
 }
 
 <!DOCTYPE html>
@@ -21,12 +25,12 @@
                 <i class="fa-solid fa-house"></i>
                 <div>Home</div>
             </a>
-            <a asp-controller="Account" asp-action="Profile" class="nav-link">
+            <a asp-controller="Account" asp-action="Profile" asp-route-id="@user?.Id" class="nav-link">
                 <i class="fa-solid fa-user"></i>
                 <div>Profile</div>
             </a>
 
-            @if(username = null)
+            @if(username != null)
             {
                 <a asp-controller="Account" asp-action="Logout" class="nav-link">
                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -47,11 +51,7 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - TrackMyScore - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

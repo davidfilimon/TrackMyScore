@@ -12,6 +12,9 @@ string connectionString = builder.Configuration.GetConnectionString("DbConnectio
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<CreateAccountService>();
+builder.Services.AddScoped<UserService>();
+
+builder.Services.AddHttpContextAccessor();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

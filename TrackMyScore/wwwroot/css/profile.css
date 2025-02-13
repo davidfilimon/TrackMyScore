@@ -1,0 +1,12 @@
+﻿body {
+    background-color:#B3E5FC;
+    border-radius: 10px;
+}
+
+.profile-container{
+    width: 400px;
+    border: none;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
