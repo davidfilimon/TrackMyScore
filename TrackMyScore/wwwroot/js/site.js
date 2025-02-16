@@ -3,10 +3,7 @@
 
 // Write your JavaScript code.
 
-function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    sidebar.classList.toggle("closed");
-}
+
 
 window.onload = function () {
     var registerError = document.getElementById("registerError");

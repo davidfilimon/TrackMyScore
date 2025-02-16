@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
 using TrackMyScore.Services;
@@ -12,21 +11,19 @@ namespace TrackMyScore.Controllers
     public class AccountController : Controller
     {
         private AppDbContext _context;
-        private readonly IMemoryCache _cache;
         private readonly CreateAccountService _createAccountService;
         private readonly AuthenticationService _authenticationService;
 
 
-        public AccountController(AppDbContext context, IMemoryCache cache, AuthenticationService authenticationService, CreateAccountService createAccountSerivce)
+        public AccountController(AppDbContext context, AuthenticationService authenticationService, CreateAccountService createAccountSerivce)
         {
             _context = context;
-            _cache = cache;
             _authenticationService = authenticationService;
             _createAccountService = createAccountSerivce;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Profile(int id)
+        public async Task<IActionResult> Profile(int? id)
         {
             var email = HttpContext.Session.GetString("email");
 
@@ -35,11 +32,18 @@ namespace TrackMyScore.Controllers
                 RedirectToAction("Login", "Account");
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var userId = id ?? (await _context.Users.FirstOrDefaultAsync(u => u.Email == email))?.Id; // searches for logged user if there is no id given
 
-            if (user == null)
+            if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if(user == null)
+            {
+                return RedirectToAction("Index", "Home");
             }
 
             ViewData["UserId"] = user.Id;
@@ -116,9 +120,23 @@ namespace TrackMyScore.Controllers
         {
             HttpContext.Session.Clear();
             Response.Cookies.Delete("email");
-            Response.Cookies.Delete("username");
+            Response.Cookies.Delete("username");    
 
             return RedirectToAction("Index", "Home");
+        }
+
+        public async Task<IActionResult> Search(string query)
+        {
+            if(query.IsNullOrEmpty()){
+                return View("Results", new List<User>()); // returns an empty list
+            }
+
+            ViewData["SearchQuery"] = query;
+
+            var results = await _context.Users.Where(u => u.Username.Contains(query)).ToListAsync(); // list of results
+
+            return View("Results", results); // sends a list of results to the view
+
         }
     }
 }

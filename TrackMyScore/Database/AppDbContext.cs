@@ -11,6 +11,7 @@ namespace TrackMyScore.Database
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Game> Games { get; set; }
 
     }
 }

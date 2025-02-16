@@ -10,7 +10,6 @@ namespace TrackMyScore.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IMemoryCache _cache;
-        private readonly string cacheKey = "accountCacheKey";
 
         public HomeController(ILogger<HomeController> logger, IMemoryCache cache)
         {

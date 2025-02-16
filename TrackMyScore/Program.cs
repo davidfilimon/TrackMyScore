@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // connection string for the database taken from settings json
 string connectionString = builder.Configuration.GetConnectionString("DbConnection");
 
+// lowercase urls
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
 // adding validation services
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ValidationService>();

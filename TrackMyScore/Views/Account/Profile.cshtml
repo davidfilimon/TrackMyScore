@@ -7,36 +7,51 @@
 <link rel="stylesheet" href="~/css/profile.css" />
 <script src="~/js/site.js"></script>
 
-
-<div class="profile-container">
-    <div class="image">image here</div>
-
-    <div class="ml-3 w-100">
-        <h4 class="mb-0 mt-0">@Model.Username</h4>
-        <span>@Model.Email</span>
-
-        <div class="p-2 mt-2 bg-primary d-flex justify-content-between rounded text-white stats">
-            <div class="d-flex column">
-                
-                <span class="respect-points">Respect points</span>
-                <span class="number1">@Model.RespectPoints</span>
-
-            </div>
-            <div class="d-flex flex-column">
-
-                <span class="followers">placeholder</span>
-                <span class="number2">000</span>
-
-            </div>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <!-- <img src="" alt="Profile Picture"> -->
+            <h1>@Model.Username</h1>
         </div>
 
-        <div class="button mt-2 d-flex flex-row align-items-center">
+        <ul class="nav nav-tabs mt-3" id="profileTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="info-tab" data-bs-toggle="tab" href="#info">Info</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history">History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="stats-tab" data-bs-toggle="tab" href="#stats">Statistics</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="added-games-tab" data-bs-toggle="tab" href="#addedGames">Custom games</a>
+            </li>
+        </ul>
 
-            <button class="btn btn-sm btn-outline-primary w-100">Chat</button>
-            <button class="btn btn-sm btn-primary w-100 ml-2">Follow</button>
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="info">
+                <h3>Player Info</h3>
+                <p>Player since: @Model.AccountCreationDate</p>
+                <p>Respect points: @Model.RespectPoints</p>
+            </div>
 
+            <div class="tab-pane fade" id="history">
+                <h3>Match History</h3>
+                <p>istoric</p>
+            </div>
 
+            <div class="tab-pane fade" id="stats">
+                <h3>Statistics</h3>
+                <p>statistici</p>
+            </div>
+
+            <div class="tab-pane fade" id="addedGames">
+                <h3>Custom added games by @Model.Username </h3>
+                <p>jocuri adaugate</p>
+            </div>
         </div>
-
     </div>
-</div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>

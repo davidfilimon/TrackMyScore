@@ -3,13 +3,11 @@
     var username = Context.Session.GetString("username");
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
-
-
 @if (username != null)
 {
-    <p>Welcome, @username</p>
+    <h1>Good to see you, @username!</h1>
 }
+
+<div class="news-container">
+    <div>What's new?</div>
+</div>

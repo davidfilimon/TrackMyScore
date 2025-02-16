@@ -18,66 +18,22 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  padding-top: 60px;
   display: flex;
+  background-color: white;
 }
 
-.sidebar {
-    width: 120px;
-    height: 100vh;
-    background: rebeccapurple;
-    color: white;
-    transition: width 0.3s;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
+.search-button{
+    color: lightgray;
 }
 
-.sidebar.closed {
-    width: 60px;
-    overflow: hidden;
-    height: 100vh;
-    position: fixed;
+    .search-button:hover {
+        color:white;
+    }
+
+
+i{
+    color: lightgray;
 }
 
-.sidebar.closed .nav-link i{
-    padding-left: 10px;
-}
 
-.sidebar .nav-link i{
-    padding-right: 10px;
-}
-
-.nav{
-    flex-grow: 1;
-}
-
-.sidebar .nav-link{
-    color: white;
-    display: flex;
-    padding-right: 5px;
-    padding: 10px;
-    align-items: center;
-}
-
-.nav-link:last-child{
-    margin-top: auto;
-}
-
-.sidebar .nav-link div{
-    display: block;
-}
-
-.sidebar.closed .nav-link div{
-    display: none;
-}
-
-.toggle-btn{
-    background: none;
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 10px;
-}
