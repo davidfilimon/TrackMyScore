@@ -12,6 +12,7 @@ string connectionString = builder.Configuration.GetConnectionString("DbConnectio
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 // adding validation services
+builder.Services.AddScoped<FollowerService>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<CreateAccountService>();

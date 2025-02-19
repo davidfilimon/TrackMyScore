@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrackMyScore.Database;
 
@@ -11,9 +12,11 @@ using TrackMyScore.Database;
 namespace TrackMyScore.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250218134540_addedFollowers")]
+    partial class addedFollowers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,37 +25,37 @@ namespace TrackMyScore.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            //modelBuilder.Entity("TrackMyScore.Models.Follower", b =>
-            //    {
-            //        b.Property<int>("Id")
-            //            .ValueGeneratedOnAdd()
-            //            .HasColumnType("int");
+            modelBuilder.Entity("TrackMyScore.Models.Follower", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-            //        SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-            //        b.Property<DateTime>("FollowedAt")
-            //            .HasColumnType("datetime2");
+                    b.Property<DateTime>("FollowedAt")
+                        .HasColumnType("datetime2");
 
-            //        b.Property<int>("FollowerId")
-            //            .HasColumnType("int");
+                    b.Property<int>("FollowerId")
+                        .HasColumnType("int");
 
-            //        b.Property<int>("FollowerUserId")
-            //            .HasColumnType("int");
+                    b.Property<int>("FollowerUserId")
+                        .HasColumnType("int");
 
-            //        b.Property<int>("FollowingId")
-            //            .HasColumnType("int");
+                    b.Property<int>("FollowingId")
+                        .HasColumnType("int");
 
-            //        b.Property<int>("FollowingUserId")
-            //            .HasColumnType("int");
+                    b.Property<int>("FollowingUserId")
+                        .HasColumnType("int");
 
-            //        b.HasKey("Id");
+                    b.HasKey("Id");
 
-            //        b.HasIndex("FollowerUserId");
+                    b.HasIndex("FollowerUserId");
 
-            //        b.HasIndex("FollowingUserId");
+                    b.HasIndex("FollowingUserId");
 
-            //        b.ToTable("Followers");
-            //    });
+                    b.ToTable("Followers");
+                });
 
             modelBuilder.Entity("TrackMyScore.Models.Game", b =>
                 {

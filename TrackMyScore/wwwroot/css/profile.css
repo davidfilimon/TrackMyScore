@@ -44,3 +44,28 @@
     margin-top: 10px;
 }
 
+.follow-section{
+    align-content:start;
+    margin-top: 30px;
+    padding-right: 10px;
+}
+
+.follow-section{
+    text-decoration: none !important;
+    color: black;
+    font-weight: bold;
+}
+
+.follow-section a:active,
+.follow-section a:focus,
+.follow-section a:hover{
+    text-decoration: none;
+    color: gray;
+}
+
+.follower-item{
+    margin-bottom: 15px;
+}
+
+
+

@@ -4,7 +4,7 @@
 // Write your JavaScript code.
 
 
-
+// function for showing the register error
 window.onload = function () {
     var registerError = document.getElementById("registerError");
     if (registerError && registerError.innerText.trim() !== "") {
@@ -14,6 +14,7 @@ window.onload = function () {
     }
 };
 
+// function for showing the login error
 window.onload = function () {
     var loginError = document.getElementById("loginError");
     if (loginError && loginError.innerText.trim() !== "") {
@@ -22,3 +23,5 @@ window.onload = function () {
         loginError.style.display = "none";
     }
 };
+
+

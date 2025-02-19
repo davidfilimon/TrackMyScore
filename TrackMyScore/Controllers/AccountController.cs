@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
 using TrackMyScore.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace TrackMyScore.Controllers
 {
@@ -27,12 +28,18 @@ namespace TrackMyScore.Controllers
         {
             var email = HttpContext.Session.GetString("email");
 
-            if(email != null)
+            
+
+            if (email != null)
             {
                 RedirectToAction("Login", "Account");
             }
 
             var userId = id ?? (await _context.Users.FirstOrDefaultAsync(u => u.Email == email))?.Id; // searches for logged user if there is no id given
+
+            var loggedUserId = (await _context.Users.FirstOrDefaultAsync(u => u.Email == email)).Id;
+
+            ViewData["loggedUserId"] = loggedUserId;
 
             if (userId == null)
             {
@@ -93,13 +100,14 @@ namespace TrackMyScore.Controllers
         {
             User user = await _authenticationService.Login(email, password);
 
-            if(user == null)
+            if(user == null) 
             {
                 ViewData["LoginError"] = "Email or password error";
                 return View();
             }
 
-            var cookieOptions = new CookieOptions() // cookies for storing login info and not having to log in every single time
+            // cookies for storing login info and not having to log in every single time
+            var cookieOptions = new CookieOptions() 
             {
                 // Expires = DateTime.UtcNow.AddDays(7), // adding 7 days as an expiration date for the cookies, so you have to log in each week
                 Secure = true, // send only through https
@@ -107,9 +115,21 @@ namespace TrackMyScore.Controllers
                 IsEssential = true // gdpr
             };
 
+            // setting the cookies values
+            Response.Cookies.Append("userId", user.Id.ToString(), cookieOptions);
             Response.Cookies.Append("email", user.Email, cookieOptions);
             Response.Cookies.Append("username", user.Username, cookieOptions);
 
+            // setting viewdata for the views
+
+            ViewData["userId"] = Request.Cookies["userId"];
+            ViewData["username"] = Request.Cookies["username"];
+            ViewData["email"] = Request.Cookies["email"];
+
+
+            // setting up the values for the current session
+
+            HttpContext.Session.SetInt32("userId", user.Id);
             HttpContext.Session.SetString("email", user.Email);
             HttpContext.Session.SetString("username", user.Username);
 
@@ -118,6 +138,7 @@ namespace TrackMyScore.Controllers
 
         public IActionResult Logout()
         {
+            // deleting data
             HttpContext.Session.Clear();
             Response.Cookies.Delete("email");
             Response.Cookies.Delete("username");    
