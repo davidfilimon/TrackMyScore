@@ -2,8 +2,6 @@
 @{
     ViewData["Title"] = "Profile";
     int loggedUser = (int) ViewData["loggedUserId"];
-    
-
 }
 @model User;
 @inject FollowerService followerService;
@@ -97,7 +95,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="followersModalLabel">Followers</h5>
-                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">Close</button>
+                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">X</button>
                 </div>
                 <div class="modal-body">
                     <ul>
@@ -120,7 +118,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="followersModalLabel">Following</h5>
-                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">Close</button>
+                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">X</button>
                 </div>
                 <div class="modal-body">
                     <ul>

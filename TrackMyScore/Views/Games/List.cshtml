@@ -1,7 +1,61 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using TrackMyScore.Services
 @{
 }
+@model List<Game>
+@{
+    ViewData["Title"] = "Lista Jocurilor";
+}
+@inject UserService userService
 
-<div>Test</div>
+<link rel="stylesheet" href="~/css/gameslist.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <!-- font-awesome link -->
+
+<h2>Official Games</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Maximum Players</th>
+            <th>Difficulty</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            @foreach (var game in Model.Where(g => g.IsOfficial))
+            {
+                <tr class="games-list">
+                    <td>@game.Title</td>
+                    <td>@game.Description</td>
+                    <td>@game.MaxPlayers</td>
+                    <td>@game.Difficulty</td>
+                    <td>
+                        @if (await userService.IsGameFavorite(game.Id))
+                        {
+                            <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
+                                <i class="fa-regular fa-heart"></i> 
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
+                                <i class="heart-icons fa-solid fa-heart"></i>
+                            </a>
+                        }
+                        <button class="btn btn-dark">
+                            Details
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5">No games found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

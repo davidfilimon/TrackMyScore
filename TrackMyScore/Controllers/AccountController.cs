@@ -26,41 +26,41 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> Profile(int? id)
         {
-            var email = HttpContext.Session.GetString("email");
+            var email = HttpContext.Session.GetString("email");  
 
-            
-
-            if (email != null)
-            {
-                RedirectToAction("Login", "Account");
-            }
-
-            var userId = id ?? (await _context.Users.FirstOrDefaultAsync(u => u.Email == email))?.Id; // searches for logged user if there is no id given
-
-            var loggedUserId = (await _context.Users.FirstOrDefaultAsync(u => u.Email == email)).Id;
-
-            ViewData["loggedUserId"] = loggedUserId;
-
-            if (userId == null)
+            if (email == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var loggedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if(user == null)
+            if(loggedUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var loggedUserId = loggedUser.Id;
+            ViewData["loggedUserId"] = loggedUserId;
+
+            var profileUserId = id ?? loggedUserId; // searches for logged user if there is no id given
+
+            var profileUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == profileUserId); 
+
+            if (profileUser == null)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewData["UserId"] = user.Id;
+            ViewData["UserId"] = profileUser.Id;
 
-            return View(user);
+            return View(profileUser);
         }
 
         [HttpGet]
         public IActionResult Login()
         {
+            ViewData["LoginError"] = null;
             return View();
         }
 

@@ -28,5 +28,21 @@ namespace TrackMyScore.Services
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public async Task<bool> IsGameFavorite(int id)
+        {
+            var user = await GetCurrentUserAsync();
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            var favoriteGame = await _context.FavoriteGames
+                .FirstOrDefaultAsync(fg => fg.UserId == user.Id && fg.GameId == id);
+
+            return favoriteGame == null;
+
+        }
+
     }
 }
