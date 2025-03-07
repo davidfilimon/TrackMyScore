@@ -48,6 +48,13 @@
                             <i class="fa-solid fa-trophy"></i> Leaderboard
                         </a>
                     </li>
+                    @if(user != null && user.isAdmin){
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
+                                Admin Dashboard
+                            </a>
+                        </li>
+                    }   
                 </ul>
 
                 <!-- search bar -->

@@ -8,10 +8,11 @@
         public string Email { get; set; }
         public DateOnly AccountCreationDate { get; set; }
         public int RespectPoints { get; set; }
+        public bool isAdmin { get ; set; }
 
         public User()
         {
-            
+            isAdmin = false;
         }
 
         public User(string username, string password, string email, DateOnly currentDate)

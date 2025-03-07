@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using TrackMyScore.Database;
@@ -17,6 +18,7 @@ builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<CreateAccountService>();
 builder.Services.AddScoped<UserService>();
+
 
 builder.Services.AddHttpContextAccessor();
 
