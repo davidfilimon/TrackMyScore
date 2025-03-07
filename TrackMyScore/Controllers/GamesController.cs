@@ -24,23 +24,46 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult AddGame()
         {
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Game game)
+        public IActionResult AddGame(string name, string description, int maxPlayers, string difficulty)
         {
-            if (ModelState.IsValid)
+
+            if(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers == 0)
             {
-                _context.Games.Add(game);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(List));
+                ViewData["Error"] = "All fields are required to register a game.";
+                return View();
             }
 
-            return View(game);
+            string email = HttpContext.Session.GetString("email");
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var game = new Game
+            {
+                Title = name,
+                Description = description,
+                MaxPlayers = maxPlayers,
+                Difficulty = difficulty,
+                Author = user.Username,
+                IsOfficial = false
+            };
+
+            _context.Games.Add(game);
+            _context.SaveChanges();
+
+            return RedirectToAction("List", "Games");
+
         }
 
         public async Task<IActionResult> ToggleFavorite(int id)

@@ -54,7 +54,17 @@ namespace TrackMyScore.Controllers
 
             ViewData["UserId"] = profileUser.Id;
 
-            return View(profileUser);
+            var games = await _context.Games
+                .Where(g => g.Author == profileUser.Username)
+                .ToListAsync();
+
+            var model = new UserGamesModel
+            {
+                User = profileUser,
+                CustomGames = games
+            };
+
+            return View(model);
         }
 
         [HttpGet]

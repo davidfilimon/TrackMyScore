@@ -1,10 +1,13 @@
 ﻿@using TrackMyScore.Services
+@model TrackMyScore.Models.UserGamesModel;
 @{
     ViewData["Title"] = "Profile";
     int loggedUser = (int) ViewData["loggedUserId"];
+    var profileUser = Model.User;
+    var customGames = Model.CustomGames;
 }
-@model User;
 @inject FollowerService followerService;
+@inject UserService userService;
 
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 <link rel="stylesheet" href="~/css/profile.css" />
@@ -15,19 +18,19 @@
         <div class="profile-header">
             <!-- <img src="" alt="Profile Picture"> -->
             <div class="d-flex justify-content-between align-items-center">
-                <span class="fs-4">@Model.Username</span>
+                <span class="fs-4">@Model.User.Username</span>
                 <div class="ms-3 mt-2">
-                    @if (loggedUser != 0 && loggedUser != Model.Id)
+                    @if (loggedUser != 0 && loggedUser != Model.User.Id)
                     {
-                        @if (await followerService.IsFollowing(loggedUser, Model.Id))
+                        @if (await followerService.IsFollowing(loggedUser, Model.User.Id))
                         {
-                            <form class="follow-btn" asp-controller="Follower" asp-action="Unfollow" asp-route-followingId="@Model.Id" method="post" style="display:inline;">
+                            <form class="follow-btn" asp-controller="Follower" asp-action="Unfollow" asp-route-followingId="@Model.User.Id" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-dark">Unfollow</button>
                             </form>
                         }
                         else
                         {
-                            <form class="follow-btn" asp-controller="Follower" asp-action="Follow" asp-route-followingId="@Model.Id" method="post" style="display:inline;">
+                            <form class="follow-btn" asp-controller="Follower" asp-action="Follow" asp-route-followingId="@Model.User.Id" method="post" style="display:inline;">
                                 <button type="submit" class="btn btn-dark">Follow</button>
                             </form>
                         }
@@ -38,12 +41,12 @@
         <div class="d-flex justify-content-start">
             <div class="follow-section mb-2 me-3 d-flex align-items-center">
                 <a class="btn text-dark fw-bold p-0" href="#" data-bs-toggle="modal" data-bs-target="#followersModal">
-                    @await followerService.GetNumberFollowers(Model.Id) Followers
+                    @await followerService.GetNumberFollowers(Model.User.Id) Followers
                 </a>
             </div>
             <div class="follow-section mb-2 me-3 d-flex align-items-center">
                 <a class="btn text-dark fw-bold p-0" href="#" data-bs-toggle="modal" data-bs-target="#followingModal">
-                    @await followerService.GetNumberFollowing(Model.Id) Following
+                    @await followerService.GetNumberFollowing(Model.User.Id) Following
                 </a>
             </div>
         </div>
@@ -66,8 +69,8 @@
         <div class="tab-content mt-3">
             <div class="tab-pane fade show active" id="info">
                 <h3>Player Info</h3>
-                <p>Player since: @Model.AccountCreationDate</p>
-                <p>Respect points: @Model.RespectPoints</p>
+                <p>Player since: @Model.User.AccountCreationDate</p>
+                <p>Respect points: @Model.User.RespectPoints</p>
                 
 
             </div>
@@ -83,8 +86,44 @@
             </div>
 
             <div class="tab-pane fade" id="addedGames">
-                <h3>Custom added games by @Model.Username </h3>
-                <p>jocuri adaugate</p>
+                <h3>Custom added games by @Model.User.Username </h3>
+                <div>
+                    @if (Model.CustomGames.Any())
+                    {
+                        @foreach (var game in Model.CustomGames.Where(g => g.IsOfficial || !g.IsOfficial))
+                        {
+                            <tr class="games-list">
+                                <td>@game.Title</td>
+                                <td>@game.Description</td>
+                                <td>@game.MaxPlayers</td>
+                                <td>@game.Difficulty</td>
+                                <td>
+                                    @if (await userService.IsGameFavorite(game.Id))
+                                    {
+                                        <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
+                                            <i class="fa-regular fa-heart"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
+                                            <i class="heart-icons fa-solid fa-heart"></i>
+                                        </a>
+                                    }
+                                    <button class="btn btn-dark">
+                                        Details
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5">No games found.</td>
+                        </tr>
+                    }
+                </div>
             </div>
         </div>
     </div>
@@ -99,7 +138,7 @@
                 </div>
                 <div class="modal-body">
                     <ul>
-                        @foreach (var follower in await followerService.GetFollowers(Model.Id))
+                        @foreach (var follower in await followerService.GetFollowers(Model.User.Id))
                         {
                             <li class="d-flex justify-content-between align-items-center follower-item">
                                 <span>@follower.Username</span>
@@ -122,7 +161,7 @@
                 </div>
                 <div class="modal-body">
                     <ul>
-                        @foreach (var follower in await followerService.GetFollowing(Model.Id))
+                        @foreach (var follower in await followerService.GetFollowing(Model.User.Id))
                         {
                             <li class="d-flex justify-content-between align-items-center follower-item">
                                 <span>@follower.Username</span>
