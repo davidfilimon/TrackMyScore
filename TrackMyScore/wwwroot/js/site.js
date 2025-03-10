@@ -25,3 +25,50 @@ window.onload = function () {
 };
 
 
+// function for updating the list of liked games
+function toggleFavorite(gameId, element) {
+    fetch(`/Games/ToggleFavorite/${gameId}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(response => {
+            if (response.ok) {
+                let icon = element.querySelector("i");
+                if (icon.classList.contains("fa-solid")) {
+                    icon.classList.remove("fa-solid");
+                    icon.classList.add("fa-regular");
+                } else {
+                    icon.classList.remove("fa-regular");
+                    icon.classList.add("fa-solid");
+                }
+            } else {
+                alert("Eroare la schimbarea statusului de favorite.");
+            }
+        })
+        .catch(error => console.error("Eroare:", error));
+}
+
+// function for making a game offical or removing it
+function toggleOfficial(gameId, element) {
+    fetch(`/a/ToggleOfficial/${gameId}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+        .then(response => {
+            if (response.ok) {
+                let text = element.text;
+                if (text == "Change to official status") {
+                    element.innerText = "Remove official status";
+                } else {
+                    element.innerText = "Change to official status";
+                }
+                location.reload();
+            } else {
+                alert("Eroare la schimbarea statusului oficial");
+            }
+        })
+        .catch(error => console.error("Eroare:", error));
+}
+
+
+

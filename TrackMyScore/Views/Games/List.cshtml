@@ -7,10 +7,14 @@
 }
 @inject UserService userService
 
+<script src="~/js/site.js"></script>
 <link rel="stylesheet" href="~/css/gameslist.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <!-- font-awesome link -->
 
-<h2>Official Games</h2>
+<div>
+    <h2>Official Games</h2>
+    <a class="btn btn-dark" asp-action="AddGame" asp-controller="Games">Add Games</a>
+</div>
 <table class="table">
     <thead>
         <tr>
@@ -32,21 +36,19 @@
                     <td>@game.MaxPlayers</td>
                     <td>@game.Difficulty</td>
                     <td>
-                        @if (await userService.IsGameFavorite(game.Id))
-                        {
-                            <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
-                                <i class="fa-regular fa-heart"></i> 
-                            </a>
-                        }
-                        else
-                        {
-                            <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
-                                <i class="heart-icons fa-solid fa-heart"></i>
-                            </a>
-                        }
-                        <button class="btn btn-dark">
+                        <a onclick="toggleFavorite(@game.Id, this)">
+                            @if (!await userService.IsGameFavorite(@game.Id))
+                            {
+                                <i class="fa-solid fa-heart"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-regular fa-heart"></i>
+                            }
+                        </a>
+                        <a class="btn btn-dark" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
                             Details
-                        </button>
+                        </a>
                     </td>
                 </tr>
             }

@@ -99,8 +99,24 @@ namespace TrackMyScore.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("List");
+            string referer = Request.Headers["Referer"].ToString();
 
+            if(referer.Contains("List", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("List", "Games");
+            }
+
+            return RedirectToAction("Details", "Games", new { id });
+
+        }
+
+        [HttpGet]
+
+        public IActionResult Details(int id)
+        {
+            var game = _context.Games.FirstOrDefault(g => g.Id == id);
+
+            return View(game);
         }
 
     }

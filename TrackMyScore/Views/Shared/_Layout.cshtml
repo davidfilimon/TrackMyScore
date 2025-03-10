@@ -1,6 +1,5 @@
 ﻿@using TrackMyScore.Services
 @inject UserService UserService;
-
 @{
     var username = Context.Session.GetString("username");
     var user = await UserService.GetCurrentUserAsync();

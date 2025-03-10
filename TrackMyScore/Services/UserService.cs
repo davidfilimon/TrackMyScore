@@ -44,5 +44,16 @@ namespace TrackMyScore.Services
 
         }
 
+        public bool IsAdmin(string email)
+        {
+            if (email == null) return false;
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user.isAdmin && user != null) return true;
+
+            return false;
+        }
+
     }
 }
