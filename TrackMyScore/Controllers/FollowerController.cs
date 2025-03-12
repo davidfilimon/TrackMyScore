@@ -1,18 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using TrackMyScore.Models;
 using TrackMyScore.Services;
 
 namespace TrackMyScore.Controllers
 {
+    [Route("follower")]
     public class FollowerController : Controller
     {
 
         private readonly FollowerService _followerService;
 
+        
         public FollowerController(FollowerService followerService)
         {
             _followerService = followerService;
+        }
+
+        [HttpGet("test/{followingId}")]
+        public IActionResult Test(int followingId)
+        {
+            return Ok($"Test passed for {followingId}");
         }
 
         [HttpPost("follow/{followingId}")]
@@ -22,15 +29,14 @@ namespace TrackMyScore.Controllers
 
             if(userId == 0)
             {
-                return RedirectToAction("Login", "Account");
+                return Unauthorized();
             }
 
             await _followerService.FollowUser(userId, followingId);
 
-            return RedirectToAction("Profile", "Account", new { id = followingId });
+            return Ok();
 
         }
-
         [HttpPost("unfollow/{followingId}")]
         public async Task<IActionResult> Unfollow(int followingId)
         {
@@ -38,18 +44,14 @@ namespace TrackMyScore.Controllers
 
             if (userId == 0)
             {
-                return RedirectToAction("Login", "Account");
+                return Unauthorized();
             }
-
 
             await _followerService.UnfollowUser(userId, followingId);
 
-            return RedirectToAction("Profile", "Account", new {id = followingId});
+            return Ok();
 
         }
-
-        
-
 
     }
 }

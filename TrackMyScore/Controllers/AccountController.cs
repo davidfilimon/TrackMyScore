@@ -169,5 +169,7 @@ namespace TrackMyScore.Controllers
             return View("Results", results); // sends a list of results to the view
 
         }
+
+
     }
 }

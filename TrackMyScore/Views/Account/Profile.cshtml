@@ -24,15 +24,15 @@
                     {
                         @if (await followerService.IsFollowing(loggedUser, Model.User.Id))
                         {
-                            <form class="follow-btn" asp-controller="Follower" asp-action="Unfollow" asp-route-followingId="@Model.User.Id" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-dark">Unfollow</button>
-                            </form>
+                            <button type="submit" class="btn btn-dark follow-btn" id="unfollow-btn" onclick="unfollow(@Model.User.Id, this)" style="display:inline;">
+                                Unfollow
+                            </button>
                         }
                         else
                         {
-                            <form class="follow-btn" asp-controller="Follower" asp-action="Follow" asp-route-followingId="@Model.User.Id" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-dark">Follow</button>
-                            </form>
+                            <button type="submit" class="btn btn-dark follow-btn" id="follow-btn" onclick="follow(@Model.User.Id, this)" style="display:inline;">
+                                Follow
+                            </button>
                         }
                     }
                 </div> 
@@ -92,36 +92,42 @@
                     {
                         @foreach (var game in Model.CustomGames.Where(g => g.IsOfficial || !g.IsOfficial))
                         {
-                            <tr class="games-list">
-                                <td>@game.Title</td>
-                                <td>@game.Description</td>
-                                <td>@game.MaxPlayers</td>
-                                <td>@game.Difficulty</td>
-                                <td>
-                                    @if (await userService.IsGameFavorite(game.Id))
-                                    {
-                                        <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
-                                            <i class="fa-regular fa-heart"></i>
+                            <table>
+                                <tr class="games-list">
+                                    <td>@game.Title</td>
+                                    <td>@game.Description</td>
+                                    <td>@game.MaxPlayers</td>
+                                    <td>@game.Difficulty</td>
+                                    <td>
+                                        @if (await userService.IsGameFavorite(game.Id))
+                                        {
+                                            <a onclick="toggleFavorite(@game.Id, this)">
+                                                <i class="fa-regular fa-heart"></i>
+                                            </a>
+                                            
+                                        }
+                                        else
+                                        {
+                                            <a onclick="toggleFavorite(@game.Id, this)">
+                                                <i class="heart-icons fa-solid fa-heart"></i>
+                                            </a>
+                                            
+                                        }
+                                        <a class="btn btn-dark" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                            Details
                                         </a>
-                                    }
-                                    else
-                                    {
-                                        <a asp-controller="Games" asp-action="ToggleFavorite" asp-route-id="@game.Id">
-                                            <i class="heart-icons fa-solid fa-heart"></i>
-                                        </a>
-                                    }
-                                    <button class="btn btn-dark" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
-                                        Details
-                                    </button>
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
+                            </table>
                         }
                     }
                     else
                     {
-                        <tr>
-                            <td colspan="5">No games found.</td>
-                        </tr>
+                        <table>
+                            <tr>
+                                <td colspan="5">No games found.</td>
+                            </tr>
+                        </table>  
                     }
                 </div>
             </div>

@@ -25,50 +25,74 @@ window.onload = function () {
 };
 
 
-// function for updating the list of liked games
+// function for updating the list of liked games - ajax
 function toggleFavorite(gameId, element) {
-    fetch(`/Games/ToggleFavorite/${gameId}`, {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(response => {
-            if (response.ok) {
-                let icon = element.querySelector("i");
-                if (icon.classList.contains("fa-solid")) {
-                    icon.classList.remove("fa-solid");
-                    icon.classList.add("fa-regular");
-                } else {
-                    icon.classList.remove("fa-regular");
-                    icon.classList.add("fa-solid");
-                }
+    $.ajax({
+        type: 'POST',
+        url: '/Games/togglefavorite/' + gameId,
+        success: function (response) {
+            let icon = element.querySelector("i");
+            if (icon.classList.contains("fa-solid")) {
+                icon.classList.remove("fa-solid");
+                icon.classList.add("fa-regular");
             } else {
-                alert("Eroare la schimbarea statusului de favorite.");
+                icon.classList.remove("fa-regular");
+                icon.classList.add("fa-solid");
             }
-        })
-        .catch(error => console.error("Eroare:", error));
+        },
+        error: function () {
+            alert("Error on changing the favorite status of the game. Reload and try again!");
+        }
+    });
 }
 
-// function for making a game offical or removing it
+// function for making a game offical or removing it - ajax
 function toggleOfficial(gameId, element) {
-    fetch(`/a/ToggleOfficial/${gameId}`, {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-        .then(response => {
-            if (response.ok) {
-                let text = element.text;
-                if (text == "Change to official status") {
-                    element.innerText = "Remove official status";
-                } else {
-                    element.innerText = "Change to official status";
-                }
-                location.reload();
+    $.ajax({
+        type: 'POST',
+        url: '/a/toggleofficial/' + gameId,
+        success: function () {
+            let text = element.innerText;
+            if (text == "Change to official status") {
+                element.innerText = "Remove official status";
             } else {
-                alert("Eroare la schimbarea statusului oficial");
+                element.innerText = "Change to official status";
             }
-        })
-        .catch(error => console.error("Eroare:", error));
+            location.reload();
+        },
+        error: function () {
+            alert("Error on changing the official status of the game. Reload and try again!");
+        }
+    });
 }
 
+// ajax functions for following and unfollowing
+function follow(id, element) {
+    let url = '/follower/follow/' + id;
+    $.ajax({
+        type: 'POST',
+        url: url,
+        success: function () {
+            element.innerText = "Unfollow";
+            location.reload();
+        },
+        error: function () {
+            alert("Error on following the user, Reload and try again!")
+        }
+    })
+}
 
-
+function unfollow(id, element) {
+    let url = '/follower/unfollow/' + id;
+    $.ajax({
+        type: 'POST',
+        url: url,
+        success: function () {
+            element.innerText = "Follow";
+            location.reload();
+        },
+        error: function () {
+            alert("Error on unfollowing the user, Reload and try again!")
+        }
+    })
+}
