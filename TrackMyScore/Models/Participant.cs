@@ -9,6 +9,10 @@ namespace TrackMyScore.Models
         public string Role { get; set; }
 
         [Required]
+        [ForeignKey("UserId")]
+        public User User { get; set; }
+
+        [Required]
         [ForeignKey("MatchId")]
         public Match Match { get; set; }
 

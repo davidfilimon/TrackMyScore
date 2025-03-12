@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrackMyScore.Models
 {
@@ -8,6 +9,12 @@ namespace TrackMyScore.Models
         [Required]
         public string Name { get; set; }
         [Required]
+        [ForeignKey("ParticipantId")]
         public Participant Participant { get; set; }
+        public Team()
+        {
+            
+        }
+
     }
 }

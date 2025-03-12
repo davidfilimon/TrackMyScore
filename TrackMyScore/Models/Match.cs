@@ -17,6 +17,9 @@ namespace TrackMyScore.Models
         [Required]
         [ForeignKey("Id")]
         public Room Room { get; set; }
+        [Required]
+        [ForeignKey("ParticipantId")]
+        public Participant Participant { get; set; }
         
         public Team Teams { get; set; }
 
