@@ -1,0 +1,29 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="createGame">
+    <a class="btn-dark btn" asp-action="Create" asp-controller="Room">
+        Create a room
+    </a>
+</div>
+
+<div class="searchGame">
+    <a class="btn-dark btn" asp-action="Join" asp-controller="Room">
+        Join an existing room
+    </a>
+</div>
+
+<div class="createTournament">
+    <a class="btn-dark btn" asp-action="CreateTournament" asp-controller="Room">
+        Create a tournament
+    </a>
+</div>
+
+<div class="searchTournament">
+    <a class="btn-dark btn" asp-action="JoinTournament" asp-controller="Room">
+        Join an existing tournament
+    </a>
+</div>

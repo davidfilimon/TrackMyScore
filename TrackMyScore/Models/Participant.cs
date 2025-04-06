@@ -17,7 +17,7 @@ namespace TrackMyScore.Models
         public Match Match { get; set; }
 
         [ForeignKey("TeamId")]
-        public Team Team { get; set; }
+        public Team? Team { get; set; }
         public Participant()
         {
             

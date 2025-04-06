@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrackMyScore.Database;
 
@@ -11,9 +12,11 @@ using TrackMyScore.Database;
 namespace TrackMyScore.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250405173749_c")]
+    partial class c
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,7 +148,7 @@ namespace TrackMyScore.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("TeamId")
+                    b.Property<int>("TeamsId")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
@@ -158,7 +161,7 @@ namespace TrackMyScore.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.HasIndex("TeamId");
+                    b.HasIndex("TeamsId");
 
                     b.ToTable("Matches");
                 });
@@ -178,7 +181,7 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TeamId")
+                    b.Property<int>("TeamId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -399,7 +402,9 @@ namespace TrackMyScore.Migrations
 
                     b.HasOne("TrackMyScore.Models.Team", "Teams")
                         .WithMany()
-                        .HasForeignKey("TeamId");
+                        .HasForeignKey("TeamsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Participant");
 
@@ -418,7 +423,9 @@ namespace TrackMyScore.Migrations
 
                     b.HasOne("TrackMyScore.Models.Team", "Team")
                         .WithMany()
-                        .HasForeignKey("TeamId");
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("TrackMyScore.Models.User", "User")
                         .WithMany()
