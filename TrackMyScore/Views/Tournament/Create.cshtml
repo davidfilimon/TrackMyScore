@@ -1,0 +1,55 @@
+﻿@{
+    List<Game> games = ViewBag.Games;
+    List<Tournament> tournaments = ViewBag.Tournaments;
+}
+
+<h1>
+    Create Tournament
+</h1>
+
+<form method="post" asp-action="Create" asp-controller="Tournament">
+    <div>
+        <label>
+            Tournament Title:
+            <input type="text" name="name" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>
+            Maximum Players:
+            <input type="number" name="playerNumber" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>
+            Reward:
+            <input type="text" name="reward" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>
+            Start Date:
+            <input type="date" name="startDate" autocomplete="off" />
+            <input type="time" name="startTime" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>Game:</label>
+        @if (games != null && games.Any())
+        {
+            <select name="gameId">
+                @foreach (var game in games)
+                {
+                    <option value="@game.Id">@game.Title</option>
+                }
+            </select>
+        }
+        else
+        {
+            <p style="color: red;">Nu exista jocuri in lista de favorite.</p>
+        }
+    </div>
+    <div>
+        <button class="btn btn-dark" type="submit" @(games == null || !games.Any() ? "disabled" : "")>Create Room</button>
+    </div>
+</form>

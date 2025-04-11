@@ -1,0 +1,46 @@
+﻿@{
+    int joinedPlayers = ViewBag.JoinedPlayers;
+    var loggedUser = ViewBag.LoggedUser;
+    var userJoined = ViewBag.UserJoined;
+}
+@model Room;
+
+<script src="~/js/site.js"></script>
+
+<div>
+    <p>@Model.Name</p>
+    <p>@Model.Game.Title</p>
+    <p>Creator: @Model.Player.Username</p>
+    <p>@Model.Location</p>
+    <p>Numar jucatori: @(joinedPlayers + 1) / @Model.Game.MaxPlayers</p>
+    <p>@Model.StartDate</p>
+    <p>@Model.Type</p>
+
+    @if (loggedUser.Username != Model.Player.Username)
+    {
+        @if (userJoined)
+        {
+            <a class="btn btn-danger" onclick="leave(@Model.Id)">
+                Leave
+            </a>
+        }
+        else
+        {
+            <a class="btn btn-dark" onclick="join(@Model.Id)">
+                Join
+            </a>
+        }
+    }
+    else
+    {
+        <a class="btn btn-dark" asp-action="StartEarly" asp-controller="Room" asp-route-id="@Model.Id">
+            Start Early
+        </a>
+        <a class="btn btn-danger" asp-action="Delete" asp-controller="Room" asp-route-id="@Model.Id">
+            Delete
+        </a>
+    }
+
+
+    
+</div>

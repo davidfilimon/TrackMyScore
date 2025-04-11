@@ -6,6 +6,7 @@ using TrackMyScore.Services;
 
 namespace TrackMyScore.Controllers
 {
+    [Route("[controller]/[action]/{id?}")]
     public class RoomController : Controller
     {
 
@@ -18,9 +19,16 @@ namespace TrackMyScore.Controllers
             _userService = userService;
         }
 
-        public IActionResult Index()
+        private async Task<User> GetLoggedUserAsync()
         {
-            return View();
+            string email = HttpContext.Session.GetString("email");
+
+            if (email == null)
+            {
+                return null;
+            }
+
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         [HttpGet]
@@ -30,16 +38,43 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> RoomList()
+        {
+            var usedRoomIds = await _context.Matches
+                .Select(m => m.Room.Id)
+                .ToListAsync();
+
+            var roomList = await _context.Rooms
+                .Where(r => !usedRoomIds.Contains(r.Id))
+                .Include(r => r.Player)
+                .Include(g => g.Game)
+                .ToListAsync();
+
+            var joinedPlayers = await _context.JoinRooms
+                .GroupBy(j => j.Room.Id)
+                .Select(group => new
+                {
+                    RoomId = group.Key,
+                    Count = group.Count()
+                }).ToDictionaryAsync(g => g.RoomId, g => g.Count);
+
+
+            ViewBag.JoinedPlayers = joinedPlayers;
+            ViewBag.RoomList = roomList;
+
+            return View();
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
 
-            string email = HttpContext.Session.GetString("email");
+            var user = await GetLoggedUserAsync();
 
-            if(email == null)
+            if(user == null)
             {
-                RedirectToAction("Account", "Login");
+                return RedirectToAction("Login", "Account");
             }
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             var games = await _context.FavoriteGames
                                 .Where(f => f.UserId == user.Id)
@@ -48,10 +83,106 @@ namespace TrackMyScore.Controllers
                                     game => game.Id,
                                     (favorite, game) => game)  
                                 .ToListAsync();
+
             ViewBag.User = user;
             ViewBag.Games = games;
 
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CurrentRoom(int id)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Player)
+                .Include(r => r.Game)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            var joinedPlayers = await _context.JoinRooms
+                .Where(j => j.Room.Id == id)
+                .CountAsync();
+
+            ViewBag.JoinedPlayers = joinedPlayers;
+
+            var user = await GetLoggedUserAsync();
+
+            if (user != null)
+            {
+                ViewBag.LoggedUser = user;
+
+                var userJoined = await _context.JoinRooms
+                    .AnyAsync(u => u.User.Id == user.Id && u.Room.Id == id);
+
+                ViewBag.userJoined = userJoined;
+
+            }
+            else
+            {
+                return RedirectToAction("Login", "Account"); 
+            }
+
+            return View(room);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Join(int id)
+        {
+            var user = await GetLoggedUserAsync();
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == id);
+
+            if(room != null)
+            {
+                var joinRoom = new JoinRoom
+                {
+                    Room = room,
+                    User = user
+                };
+
+                await _context.JoinRooms.AddAsync(joinRoom);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Successfully joined the room!" });
+            }
+
+            return Json(new { success = false, message = "Failed to join the room." });
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Leave(int id)
+        {
+            var user = await GetLoggedUserAsync();
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == id);
+
+            if (room != null)
+            {
+                var joinRoom = await _context.JoinRooms
+                    .FirstOrDefaultAsync(j => j.Room.Id == id && j.User.Id == user.Id);
+
+                if(joinRoom != null)
+                {
+                    _context.JoinRooms.Remove(joinRoom);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Successfully left the room!" });
+
+                }
+
+            }
+
+            return Json(new { success = false, message = "Failed to leave the room." });
+
         }
 
         [HttpPost]
@@ -60,16 +191,9 @@ namespace TrackMyScore.Controllers
 
             Room room;
 
-            string email = HttpContext.Session.GetString("email");
+            var user = await GetLoggedUserAsync();
 
-            if(email == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            
-            if(user == null)
+            if (user == null)
             {
                 return RedirectToAction("Login", "Account");
             }
@@ -96,7 +220,7 @@ namespace TrackMyScore.Controllers
             await _context.Rooms.AddAsync(room);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Create", "Room");
+            return RedirectToAction("CurrentRoom", "Room", new {id = room.Id});
 
         }
     }

@@ -96,3 +96,40 @@ function unfollow(id, element) {
         }
     })
 }
+
+// function for joining a room
+function join(roomId) {
+    $.ajax({
+        type: 'POST',
+        url: "/Room/Join/" + roomId,
+        success: function (response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function () {
+            alert("There was an error trying to join the room");
+        }
+    });
+}
+
+// function for leaving a room
+
+function leave(roomId) {
+    $.ajax({
+        type: 'POST',
+        url: "/Room/Leave/" + roomId,
+        success: function (response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function () {
+            alert("There was an error trying to leave the room");
+        }
+    });
+}
