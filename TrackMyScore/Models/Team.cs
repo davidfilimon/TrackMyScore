@@ -8,9 +8,6 @@ namespace TrackMyScore.Models
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }
-        [Required]
-        [ForeignKey("ParticipantId")]
-        public Participant Participant { get; set; }
         public Team()
         {
             

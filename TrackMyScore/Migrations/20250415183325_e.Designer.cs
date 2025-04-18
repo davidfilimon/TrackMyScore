@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrackMyScore.Database;
 
@@ -11,9 +12,11 @@ using TrackMyScore.Database;
 namespace TrackMyScore.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250415183325_e")]
+    partial class e
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,7 +135,7 @@ namespace TrackMyScore.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("RoomId")
+                    b.Property<int>("ParticipantId")
                         .HasColumnType("int");
 
                     b.Property<string>("Score")
@@ -146,9 +149,12 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("isWinner")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomId");
+                    b.HasIndex("ParticipantId");
 
                     b.ToTable("Matches");
                 });
@@ -161,15 +167,12 @@ namespace TrackMyScore.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsWinner")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MatchId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("TeamId")
                         .HasColumnType("int");
@@ -179,7 +182,7 @@ namespace TrackMyScore.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MatchId");
+                    b.HasIndex("RoomId");
 
                     b.HasIndex("TeamId");
 
@@ -246,15 +249,11 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Mode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Stage")
+                    b.Property<int>("PlayerId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -267,16 +266,13 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("TournamentId");
+                    b.HasIndex("PlayerId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("TournamentId");
 
                     b.ToTable("Rooms");
                 });
@@ -378,20 +374,20 @@ namespace TrackMyScore.Migrations
 
             modelBuilder.Entity("TrackMyScore.Models.Match", b =>
                 {
-                    b.HasOne("TrackMyScore.Models.Room", "Room")
+                    b.HasOne("TrackMyScore.Models.Participant", "Participant")
                         .WithMany()
-                        .HasForeignKey("RoomId")
+                        .HasForeignKey("ParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Room");
+                    b.Navigation("Participant");
                 });
 
             modelBuilder.Entity("TrackMyScore.Models.Participant", b =>
                 {
-                    b.HasOne("TrackMyScore.Models.Match", "Match")
+                    b.HasOne("TrackMyScore.Models.Room", "Room")
                         .WithMany()
-                        .HasForeignKey("MatchId")
+                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -405,7 +401,7 @@ namespace TrackMyScore.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Match");
+                    b.Navigation("Room");
 
                     b.Navigation("Team");
 
@@ -439,15 +435,15 @@ namespace TrackMyScore.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TrackMyScore.Models.User", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TrackMyScore.Models.Tournament", "Tournament")
                         .WithMany()
                         .HasForeignKey("TournamentId");
-
-                    b.HasOne("TrackMyScore.Models.User", "Player")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Game");
 

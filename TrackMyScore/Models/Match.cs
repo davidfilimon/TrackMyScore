@@ -12,20 +12,13 @@ namespace TrackMyScore.Models
         public string Score { get; set; }
         [Required]
         public DateTime StartDate { get; set; }
-        [Required]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
         [Required]
         [ForeignKey("RoomId")]
-        public Room Room { get; set; }
-        [Required]
-        [ForeignKey("ParticipantId")]
-        public Participant Participant { get; set; }
-        [ForeignKey("TeamId")]
-        public Team? Teams { get; set; }
+        public Room Room { get; set; }     
 
         public Match()
         {
-            
         }
     }
 }

@@ -18,9 +18,11 @@ namespace TrackMyScore.Models
 
         [ForeignKey("TeamId")]
         public Team? Team { get; set; }
+
+        public bool IsWinner { get; set; } = false;
         public Participant()
         {
-            
+            IsWinner = false;
         }
     }
 }

@@ -16,6 +16,11 @@ namespace TrackMyScore.Models
         [Required]
         public DateTime StartDate { get; set; }
         [Required]
+        public int Stage { get; set; }
+        [Required]
+        public string Mode { get; set; }
+        [Required]
+        [ForeignKey("UserId")]
         public User Player { get; set; }
 
         [Required]
@@ -27,7 +32,6 @@ namespace TrackMyScore.Models
 
         public Room()
         {
-            
         }
 
     }

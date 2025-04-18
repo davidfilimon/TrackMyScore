@@ -40,14 +40,13 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> RoomList()
         {
-            var usedRoomIds = await _context.Matches
-                .Select(m => m.Room.Id)
-                .ToListAsync();
+
+            User loggedUser = await GetLoggedUserAsync();
 
             var roomList = await _context.Rooms
-                .Where(r => !usedRoomIds.Contains(r.Id))
+                .Where(r => r.Stage == -1 && r.Tournament == null)
                 .Include(r => r.Player)
-                .Include(g => g.Game)
+                .Include(r => r.Game)
                 .ToListAsync();
 
             var joinedPlayers = await _context.JoinRooms
@@ -58,7 +57,20 @@ namespace TrackMyScore.Controllers
                     Count = group.Count()
                 }).ToDictionaryAsync(g => g.RoomId, g => g.Count);
 
+            var myRooms = await _context.Rooms
+             .Where(r => r.Player == loggedUser)
+             .Include(r => r.Game)
+             .ToListAsync();
 
+            var joinedRooms = await _context.JoinRooms
+                .Where(r => r.User == loggedUser)
+                .Include(r => r.Room)
+                .Include(r => r.User)
+                .Include(r => r.Room.Game)
+                .ToListAsync();
+
+            ViewBag.JoinedRooms = joinedRooms;
+            ViewBag.MyRooms = myRooms;
             ViewBag.JoinedPlayers = joinedPlayers;
             ViewBag.RoomList = roomList;
 
@@ -71,17 +83,17 @@ namespace TrackMyScore.Controllers
 
             var user = await GetLoggedUserAsync();
 
-            if(user == null)
+            if (user == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
             var games = await _context.FavoriteGames
                                 .Where(f => f.UserId == user.Id)
-                                .Join(_context.Games,  
+                                .Join(_context.Games,
                                     favorite => favorite.GameId,
                                     game => game.Id,
-                                    (favorite, game) => game)  
+                                    (favorite, game) => game)
                                 .ToListAsync();
 
             ViewBag.User = user;
@@ -93,36 +105,57 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> CurrentRoom(int id)
         {
-            var room = await _context.Rooms
+            Room room = await _context.Rooms
                 .Include(r => r.Player)
                 .Include(r => r.Game)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            var joinedPlayers = await _context.JoinRooms
-                .Where(j => j.Room.Id == id)
-                .CountAsync();
+            if (room == null)
+            {
+                return NotFound();
+            }
 
-            ViewBag.JoinedPlayers = joinedPlayers;
+            List<User> joinedPlayersList = await _context.JoinRooms
+                .Where(j => j.Room == room)
+                .Include(j => j.User)
+                .Select(j => j.User)
+                .ToListAsync();
 
             var user = await GetLoggedUserAsync();
-
-            if (user != null)
+            if (user == null)
             {
-                ViewBag.LoggedUser = user;
-
-                var userJoined = await _context.JoinRooms
-                    .AnyAsync(u => u.User.Id == user.Id && u.Room.Id == id);
-
-                ViewBag.userJoined = userJoined;
-
-            }
-            else
-            {
-                return RedirectToAction("Login", "Account"); 
+                return RedirectToAction("Login", "Account");
             }
 
-            return View(room);
+            var userJoined = await _context.JoinRooms
+                .AnyAsync(u => u.User.Id == user.Id && u.Room.Id == id);
+
+            var currentMatch = await _context.Matches
+                .FirstOrDefaultAsync(m => m.Room.Id == room.Id) ?? null;
+
+            List<Participant> participants = new List<Participant>();
+
+            if(currentMatch != null)
+            {
+                participants = await _context.Participants
+                    .Where(p => p.Match.Id == currentMatch.Id)
+                    .Include(p => p.Team)
+                    .ToListAsync();
+            }
+
+            var model = new CurrentRoomModel
+            {
+                Room = room,
+                Players = joinedPlayersList,
+                LoggedUser = user,
+                UserJoined = userJoined,
+                CurrentMatch = currentMatch,
+                Participants = participants
+            };
+
+            return View(model);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Join(int id)
@@ -136,7 +169,7 @@ namespace TrackMyScore.Controllers
 
             var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == id);
 
-            if(room != null)
+            if (room != null)
             {
                 var joinRoom = new JoinRoom
                 {
@@ -171,7 +204,7 @@ namespace TrackMyScore.Controllers
                 var joinRoom = await _context.JoinRooms
                     .FirstOrDefaultAsync(j => j.Room.Id == id && j.User.Id == user.Id);
 
-                if(joinRoom != null)
+                if (joinRoom != null)
                 {
                     _context.JoinRooms.Remove(joinRoom);
                     await _context.SaveChangesAsync();
@@ -213,6 +246,8 @@ namespace TrackMyScore.Controllers
                 Type = type,
                 Location = location,
                 StartDate = s,
+                Stage = -1,
+                Mode = "pending",
                 Player = user,
                 Game = game
             };
@@ -220,8 +255,217 @@ namespace TrackMyScore.Controllers
             await _context.Rooms.AddAsync(room);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("CurrentRoom", "Room", new {id = room.Id});
+            return RedirectToAction("CurrentRoom", "Room", new { id = room.Id });
 
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Start(int roomId, Dictionary<int, string> teamAssignments, Dictionary<int, string> roles)
+        {
+
+            Room room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room == null)
+            {
+                return Json(new { success = false, message = "Room not found." });
+            }
+
+            room.Stage = 0;
+            room.Mode = "team";
+
+            Match match = new Match
+            {
+                StartDate = DateTime.Now,
+                EndDate = null,
+                Score = "score",
+                Room = room,
+                Type = room.Type,
+            };
+
+            await _context.Matches.AddAsync(match);
+
+            foreach (var assignment in teamAssignments)
+            {
+                var playerId = assignment.Key;
+
+                User player = await _context.Users.FirstOrDefaultAsync(u => u.Id == playerId);
+
+                var teamName = assignment.Value;
+                var role = roles.ContainsKey(playerId) ? roles[playerId] : string.Empty;
+
+                if (room != null && player != null && teamName != null)
+                {
+
+                    Team team = new Team
+                    {
+                        Name = teamName,
+                    };
+
+                    Participant participant = new Participant
+                    {
+                        Role = role,
+                        Match = match,
+                        User = player,
+                        Team = team,
+                        IsWinner = false,
+                    };
+
+                    await _context.Teams.AddAsync(team);
+                    await _context.Participants.AddAsync(participant);
+
+                }
+
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Match started." });
+
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> StartIndividual(int roomId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Player)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room == null || room.Player == null)
+                return Json(new { success = false });
+
+            var joinedPlayers = await _context.JoinRooms
+                .Where(r => r.Room.Id == roomId)
+                .Include(j => j.User)
+                .ToListAsync();
+
+            if (!joinedPlayers.Any())
+                return RedirectToAction("RoomList", "Room");
+
+            var playerIds = joinedPlayers.Select(j => j.User.Id).Append(room.Player.Id).ToList();
+            var players = await _context.Users
+                .Where(u => playerIds.Contains(u.Id))
+                .ToListAsync();
+
+            room.Stage = 0;
+            room.Mode = "single";
+
+            var match = new Match
+            {
+                StartDate = DateTime.Now,
+                EndDate = null,
+                Score = string.Empty,
+                Room = room,
+                Type = room.Type
+            };
+
+            await _context.Matches.AddAsync(match);
+
+
+            foreach (var p in players)
+            {
+                var participant = new Participant
+                {
+                    User = p,
+                    Match = match,
+                    Role = string.Empty,
+                    Team = null,
+                    IsWinner = false
+                };
+                await _context.Participants.AddAsync(participant);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Match started." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> End(int roomId, int winnerId)
+        {
+            var room = await _context.Rooms
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if(room == null)
+            {
+                return Json(new { success = false, message = "Room not found" });
+
+            }
+
+            var match = await _context.Matches
+                    .Include(r => r.Room)
+                    .FirstOrDefaultAsync(r => r.Room.Id == roomId);
+
+            if (match == null)
+            {
+                return Json(new { success = false, message = "Match not found" });
+            }
+
+            if (room.Mode == "single")
+            {
+                var winner = await _context.Participants
+                .FirstOrDefaultAsync(p => p.User.Id == winnerId);
+
+                if (winner == null)
+                {
+                    return Json(new { success = false, message = "Participant not found" });
+                }
+
+                winner.IsWinner = true;
+            }
+            else if (room.Mode == "team")
+            {
+                var teamWinners = await _context.Participants
+                    .Where(p => p.Team.Id == winnerId && p.Match.Id == match.Id)
+                    .ToListAsync();
+
+                if (!teamWinners.Any())
+                {
+                    return Json(new { success = false, message = "Team not found" });
+                }
+
+                foreach (var participant in teamWinners)
+                {
+                    participant.IsWinner = true;
+                }
+
+            }     
+            match.EndDate = DateTime.Now;
+            match.Room.Stage = -2;
+
+            await _context.SaveChangesAsync();
+            var url = Url.Action("CurrentRoom", "Room", new { roomId });
+            return Json(new
+            {
+                success = true,
+                url
+            });
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int roomId)
+        {
+
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
+            if (room != null)
+            {
+                var joinedPlayers = await _context.JoinRooms
+                    .Where(j => j.Room.Id == roomId)
+                    .ToListAsync();
+                if (joinedPlayers.Any() && joinedPlayers != null)
+                {
+                    foreach (var player in joinedPlayers)
+                    {
+                        _context.JoinRooms.Remove(player);
+                    }
+                }
+                _context.Rooms.Remove(room);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("RoomList", "Room");
+        }
+
     }
 }
