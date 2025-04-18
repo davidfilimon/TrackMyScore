@@ -277,7 +277,6 @@ namespace TrackMyScore.Controllers
             {
                 StartDate = DateTime.Now,
                 EndDate = null,
-                Score = "score",
                 Room = room,
                 Type = room.Type,
             };
@@ -354,7 +353,6 @@ namespace TrackMyScore.Controllers
             {
                 StartDate = DateTime.Now,
                 EndDate = null,
-                Score = string.Empty,
                 Room = room,
                 Type = room.Type
             };

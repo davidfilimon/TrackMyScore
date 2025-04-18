@@ -8,8 +8,6 @@ namespace TrackMyScore.Models
         public int Id { get; set; }
         [Required]
         public string Type { get; set; }
-        [Required]        
-        public string Score { get; set; }
         [Required]
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
