@@ -1,0 +1,161 @@
+﻿@model CurrentRoomModel
+@{
+    int joinedPlayers = Model.Players.Count;
+    var loggedUser = Model.LoggedUser;
+    var userJoined = Model.UserJoined;
+    var players = Model.Players;
+    var participants = Model.Participants;
+}
+
+<div>
+    <p>@Model.Room.Name</p>
+    <p>@Model.Room.Game.Title</p>
+    <p>Creator: @Model.Room.Player.Username</p>
+    <p>@Model.Room.Location</p>
+    <p>Numar jucatori: @(joinedPlayers + 1) / @Model.Room.Game.MaxPlayers</p>
+    <p>@Model.Room.StartDate</p>
+    <p>@Model.Room.Type</p>
+    @if(Model.Room.Stage == -1){
+        <div>
+            Waiting for the host to start the game.
+        </div>
+    } else
+    {
+        <div>
+            There is an ongoing match.
+        </div>
+    }
+    @if(Model.Room.Stage != -2){
+        @if (loggedUser.Username != Model.Room.Player.Username && Model.Room.Stage == -1)
+    {
+        @if (userJoined)
+        {
+            <a class="btn btn-danger" onclick="leave(@Model.Room.Id)">Leave</a>
+        }
+        else
+        {
+            <a class="btn btn-dark" onclick="join(@Model.Room.Id)">Join</a>
+        }
+    }
+    else
+    {
+        if(Model.Room.Stage == -1 && Model.Room.Tournament == null){
+            <button id="startButton" class="btn btn-dark" data-room-id="@Model.Room.Id" onclick="checkAndOpenModal(@Model.Room.Id)">Start Early</button>
+            <form method="post" asp-action="Delete" asp-controller="Room" asp-route-roomId="@Model.Room.Id">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        }
+        else if (Model.Room.Stage == 0 && loggedUser.Username == Model.Room.Player.Username)
+        {
+            <button id="endMatchButton" class="btn btn-danger" style="display:block;" onclick="openWinnerContainer()">End Match</button>
+        }
+        
+    }
+@if (loggedUser.Username == Model.Room.Player.Username && Model.Room.Stage == -1)
+{
+    <div>
+        <label>Mode:</label>
+        <input type="radio" name="mode" value="single" checked onclick="toggleMode('single')" /> Single Mode
+        <input type="radio" name="mode" value="team" onclick="toggleMode('team')" /> Team Mode
+    </div>
+}
+    }
+</div>
+
+<div>
+    <!-- winner selection modal -->
+    <div id="winnerSelectionModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Choose a winner:</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <select name="winnerId" class="form-control" required>
+                            @if (Model.Room.Mode == "team")
+                            {
+                                @if (participants != null && participants.Any())
+                                {
+                                    @foreach (var participant in participants)
+                                    {
+                                        <option value="@participant.Team.Id">@participant.Team.Name</option>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <option value="">--Alege castigatorul--</option>
+                                <option value="@Model.Room.Player.Id">@Model.Room.Player.Username</option>
+                                @foreach (var player in Model.Players)
+                                {
+                                    <option value="@player.Id">@player.Username</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="endMatch(@Model.Room.Id)">End Match</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Team Setup Modal -->
+<div class="modal fade" id="startEarlyModal" tabindex="-1" aria-labelledby="startEarlyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="teamAssignmentForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="startEarlyModalLabel">Create the teams</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="addTeam()">Add Team</button>
+                    </div>
+                    <div id="teamsContainer" class="row">
+                        <!-- Teams will be added here dynamically -->
+                    </div>
+                    <hr />
+                    <h5>Assign players to their teams and roles.</h5>
+                    <div class="mb-2">
+                        <label>@Model.Room.Player.Username</label>
+                        <select name="teamAssignments[@Model.Room.Player.Id]" class="form-select team-select">
+                            <option value="">--Selecteaza o echipa--</option>
+                        </select>
+                        <input type="text" name="roles[@Model.Room.Player.Id]" class="form-control mt-2" placeholder="Role" />
+                    </div>
+                    @if (players == null || !players.Any())
+                    {
+                        <p>No players have joined yet.</p>
+                    }
+                    else
+                    {
+                        @foreach (var player in players)
+                        {
+                            <div class="mb-2">
+                                <label>@player.Username</label>
+                                <select name="teamAssignments[@player.Id]" class="form-select team-select">
+                                    <option value="">--Selecteaza o echipa--</option>
+                                </select>
+                                <input type="text" name="roles[@player.Id]" class="form-control mt-2" placeholder="Role" />
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" onclick="startGame(@Model.Room.Id)" class="btn btn-primary">Confirm Start</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

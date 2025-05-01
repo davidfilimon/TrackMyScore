@@ -1,0 +1,33 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+<h2>Add Game (Admin)</h2>
+
+<form method="post">
+    <div>
+        <label for="name">Game Name:</label>
+        <input class="form-control" type="text" id="name" name="name" required autocomplete="off" />
+    </div>
+    <div>
+        <label for="description">Description</label>
+        <input class="form-control" type="text" id="description" name="description" required autocomplete="off" />
+    </div>
+    <div>
+        <label for="maxPlayers">Maximum number of players: </label>
+        <input class="form-control" type="number" id="maxPlayers" name="maxPlayers" required autocomplete="off" />
+    </div>
+    <div>
+        <label for="difficulty">Difficulty</label>
+        <select class="form-control" id="difficulty" name="difficulty" required>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-dark">Add Game</button>
+</form>

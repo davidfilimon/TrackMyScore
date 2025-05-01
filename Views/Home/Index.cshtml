@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    var username = Context.Session.GetString("username");
+}
+
+<style>
+    body {
+        background-color: #FFFFFF;
+        color: #00241B;
+    }
+
+    .custom-card {
+        background-color: #00241B;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        margin: 20px;
+        padding: 20px;
+    }
+
+        .custom-card .card-header {
+            background-color: #00241B;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .custom-card .list-group-item {
+            background-color: #4E878C;
+            color: #00241B;
+            border: none;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+            .custom-card .list-group-item:hover {
+                background-color: #B5FFE1;
+                cursor: pointer;
+            }
+
+    .welcome-alert {
+        background-color: #B5FFE1;
+        color: #00241B;
+        border: none;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        padding: 15px;
+    }
+</style>
+
+<div class="container mt-5">
+    @if (username != null)
+    {
+        <div class="alert welcome-alert text-center fs-4 shadow">
+            👋 Good to see you, <strong>@username</strong>!
+        </div>
+    }
+
+    <div class="card custom-card shadow-lg mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">📰 What's New?</h5>
+        </div>
+        <div class="card-body">
+            <p>Stay up to date with the latest updates, features, and announcements.</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">✅ New feature: Invite your friends to matches!</li>
+                <li class="list-group-item">⚙️ Improved performance on match loading.</li>
+                <li class="list-group-item">🎨 Updated UI for game rooms.</li>
+            </ul>
+        </div>
+    </div>
+</div>

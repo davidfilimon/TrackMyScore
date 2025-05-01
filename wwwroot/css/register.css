@@ -1,0 +1,55 @@
+﻿body {
+}
+
+
+.register-container {
+    margin-top: 5%;
+    margin-bottom: 5%;
+    text-align: center;
+}
+
+.register-form-1 {
+    padding: 5%;
+    box-shadow: 0 5px 8px 0 rgba(0, 0, 0, 0.2), 0 9px 26px 0 rgba(0, 0, 0, 0.19);
+    text-align: center;
+}
+
+    .register-form-1 h3 {
+        text-align: center;
+        color: #333;
+    }
+
+.register-container form {
+    padding: 10%;
+    text-align: center;
+}
+
+.register-container input {
+    padding: 10px;
+}
+
+.btnSubmit {
+    width: 50%;
+    border-radius: 1rem;
+    padding: 1.5%;
+    border: none;
+    cursor: pointer;
+}
+
+.register-form-1 .btnSubmit {
+    font-weight: 600;
+    color: #fff;
+    background-color: #2c2f36;
+}
+
+.a1 {
+    color: #2c2f36; 
+}
+
+i {
+    color: lightgray;
+}
+
+#registerError{
+    display: none;
+}

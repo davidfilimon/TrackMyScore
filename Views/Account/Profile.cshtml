@@ -1,0 +1,300 @@
+﻿@using TrackMyScore.Services
+@model TrackMyScore.Models.UserGamesModel;
+@{
+    ViewData["Title"] = "Profile";
+    int loggedUser = (int) ViewData["loggedUserId"];
+    var profileUser = Model.User;
+    var customGames = Model.CustomGames;
+    var matches = Model.Matches;
+}
+@inject FollowerService followerService;
+@inject UserService userService;
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/profile.css" />
+<script src="~/js/site.js"></script>
+
+<style>
+    .admin-button{
+        color: #000000;
+        transition: transform 0.7s ease-in-out;
+    }
+        .admin-button:hover{
+            transform:rotate(360deg);
+        }
+
+    .admin-button-container{
+        top: 25px;
+        right: 0px;
+        position:absolute;
+    }
+
+    .profile-header{
+        position:relative;
+    }
+    
+    .follow-container{
+        top: 65px;
+        left: 50px;
+        position:absolute;
+    }
+
+    .follow-btn{
+        background-color: #00241B;
+        color: #FFFFFF;
+    }
+    .tab-button{
+        background-color: #00241B;
+        color: #FFFFFF;
+        border:none;
+        padding:8px 15px;
+        cursor: pointer;
+    }
+
+    #profile-tabs{
+        background-color: #00241B;
+        color: #FFFFFF;
+        border-bottom:none;
+    }
+
+    .details-btn{
+        background-color: #65B891;
+        color: #000000;
+    }
+
+    .nav-tabs .nav-link{
+        border:none;
+        margin-bottom: -1px;
+    }
+        .nav-tabs .nav-link.active.tab-button{
+            background-color: #00241B;
+            color: #FFFFFF;
+        }
+
+    
+
+    .tabs{
+        background-color: #00241B !important;
+        color: #FFFFFF;
+    }
+
+        .tab-pane.active.show {
+            background-color: #00241B;
+            color: #FFFFFF;
+        }
+
+    .games {
+        display: flex;
+        justify-content: space-between;
+        align-items: center; 
+    }
+
+        .games td {
+            padding: 0.5rem;
+        }
+
+    .view-details {
+        margin-left:auto;
+    }
+
+</style>
+
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <!-- <img src="" alt="Profile Picture"> -->
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fs-4 mt-3 mx-5">@Model.User.Username</span>
+                <div class="mt-3 me-3 fs-5 admin-button-container ms-auto">
+                    @if (Model.User.isAdmin == true && loggedUser == Model.User.Id)
+                    {
+                        <a asp-controller="Admin" asp-action="Dashboard" title="Admin Dashboard">
+                            <i class="fa-solid fa-gear admin-button fs-5"></i>
+                        </a>
+                    }
+                </div>
+            </div>     
+            <div class="ms-3 mt-2 follow-container">
+                @if (loggedUser != 0 && loggedUser != Model.User.Id)
+                {
+                    @if (await followerService.IsFollowing(loggedUser, Model.User.Id))
+                    {
+                        <button type="submit" class="btn follow-btn" id="unfollow-btn" onclick="unfollow(@Model.User.Id, this)" style="display:inline;">
+                            Unfollow
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn follow-btn" id="follow-btn" onclick="follow(@Model.User.Id, this)" style="display:inline;">
+                            Follow
+                        </button>
+                    }
+                }
+            </div>
+        </div>   
+
+        <div class="d-flex justify-content-start">
+            <div class="follow-section mb-2 me-3 d-flex align-items-center">
+                <a class="btn text-dark fw-bold p-0" href="#" data-bs-toggle="modal" data-bs-target="#followersModal">
+                    @await followerService.GetNumberFollowers(Model.User.Id) Followers
+                </a>
+            </div>
+            <div class="follow-section mb-2 me-3 d-flex align-items-center">
+                <a class="btn text-dark fw-bold p-0" href="#" data-bs-toggle="modal" data-bs-target="#followingModal">
+                    @await followerService.GetNumberFollowing(Model.User.Id) Following
+                </a>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs mt-3" id="profileTabs">
+            <li class="nav-item">
+                <a class="nav-link active tab-button" id="info-tab" data-bs-toggle="tab" href="#info">Info</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link tab-button" id="history-tab" data-bs-toggle="tab" href="#history">History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link tab-button" id="stats-tab" data-bs-toggle="tab" href="#stats">Statistics</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link tab-button" id="added-games-tab" data-bs-toggle="tab" href="#addedGames">Custom games</a>
+            </li>
+        </ul>
+
+        
+
+        <div class="tab-content tabs">
+            <div class="tab-pane fade show active" id="info">
+                <h3>Player Info</h3>
+                <p>Player since: @Model.User.AccountCreationDate</p>
+                <p>Respect points: @Model.User.RespectPoints</p>        
+            </div>
+
+            <div class="tab-pane fade" id="history">
+                <h3>Match History</h3>
+                @if(Model.Matches.Any()){
+                    @foreach(var match in matches){
+                        <table>
+                            <tr class="games">
+                                @if(match.Match.Room.Stage == -2){
+                                    <td>Match: @match.Match.Room.Name</td>
+                                    <td>Game: @match.Match.Room.Game.Title</td>
+                                    <td>Date: @match.Match.StartDate</td>
+                                    <td>Mode: @match.Match.Room.Mode</td>
+                                    @if (@match.Match.Winner != string.Empty)
+                                    {
+                                        <td>Winner: @match.Match.Winner</td>
+                                    }
+                                    <td class="view-details">
+                                        <a class="btn btn-dark" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@match.Match.Room.Id">
+                                            View Details
+                                        </a>
+                                    </td>
+                                }  
+                            </tr>
+                        </table>
+                    }
+                }
+            </div>
+
+            <div class="tab-pane fade" id="stats">
+                <h3>Statistics</h3>
+                <p>statistici</p>
+            </div>
+
+            <div class="tab-pane fade" id="addedGames">
+                <h3>Custom added games by @Model.User.Username </h3>
+                <div>
+                    @if (Model.CustomGames.Any())
+                    {
+                        @foreach (var game in Model.CustomGames.Where(g => g.IsOfficial || !g.IsOfficial))
+                        {
+                            <table>
+                                <tr class="games-list">
+                                    <td>@game.Title</td>
+                                    <td>@game.Description</td>
+                                    <td>@game.MaxPlayers</td>
+                                    <td>@game.Difficulty</td>
+                                    <td>
+                                        @if (await userService.IsGameFavorite(game.Id))
+                                        {
+                                            <a onclick="toggleFavorite(@game.Id, this)">
+                                                <i class="fa-regular fa-heart"></i>
+                                            </a>
+                                            
+                                        }
+                                        else
+                                        {
+                                            <a onclick="toggleFavorite(@game.Id, this)">
+                                                <i class="heart-icons fa-solid fa-heart"></i>
+                                            </a>
+                                            
+                                        }
+                                        <a class="btn details-btn" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                            Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        }
+                    }
+                    else
+                    {
+                        <table>
+                            <tr>
+                                <td colspan="5">No games found.</td>
+                            </tr>
+                        </table>  
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="followersModal" tabindex="-1" aria-labelledby="followersModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">X</button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        @foreach (var follower in await followerService.GetFollowers(Model.User.Id))
+                        {
+                            <li class="d-flex justify-content-between align-items-center follower-item">
+                                <span>@follower.Username</span>
+                                <a href="@Url.Action("Profile", "Account", new { id = follower.Id })" class="btn btn-dark btn-sm text-end">View Profile</a>
+                            </li>
+                            
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="followingModal" tabindex="-1" aria-labelledby="followingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="followersModalLabel">Following</h5>
+                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">X</button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        @foreach (var follower in await followerService.GetFollowing(Model.User.Id))
+                        {
+                            <li class="d-flex justify-content-between align-items-center follower-item">
+                                <span>@follower.Username</span>
+                                <a href="@Url.Action("Profile", "Account", new { id = follower.Id })" class="btn btn-dark btn-sm text-end">View Profile</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>

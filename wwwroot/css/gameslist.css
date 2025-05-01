@@ -1,0 +1,10 @@
+﻿body {
+}
+
+.heart-icons {
+    color: #2c2f36;
+}
+
+.heart-icons:hover{
+    color: lightgray;
+}

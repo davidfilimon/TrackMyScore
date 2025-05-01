@@ -1,0 +1,233 @@
+﻿@using TrackMyScore.Services
+@inject UserService UserService;
+@{
+    var username = Context.Session.GetString("username");
+    var user = await UserService.GetCurrentUserAsync();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TrackMyScore</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TrackMyScore.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <!-- font-awesome link -->
+
+    <style>
+
+        *{
+            font-family: Arial;
+        }
+
+        body {
+            background-color: #FFFFFF;
+            color: #00241B;
+        }
+
+        .navbar {
+            background-color: #00241B;
+        }
+
+            .navbar .navbar-brand {
+                color: #B5FFE1;
+            }
+
+        .navbar-nav .nav-link {
+            color: #B5FFE1;
+        }
+
+            .navbar-nav .nav-link:hover {
+                color: #65B891;
+            }
+
+        .navbar-toggler-icon {
+            background-color: #B5FFE1;
+        }
+
+        .navbar-nav .nav-item .nav-link i {
+            margin-right: 5px;
+        }
+
+        .search-bar {
+            border-radius: 20px !important;
+            padding: 5px 15px !important;
+        }
+
+        .search-button {
+            font-size: 1.2rem;
+        }
+
+        .nav-item a {
+            border-radius: 5px;
+            padding: 8px 15px;
+            transition: all 0.3s ease;
+        }
+
+            .nav-item a:hover {
+                background-color: #65B891;
+                color: #00241B;
+            }
+
+        .welcome-alert {
+            background-color: #B5FFE1;
+            color: #00241B;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        .custom-card {
+            background-color: #65B891;
+            border-radius: 10px;
+            color: white;
+            margin: 20px;
+            padding: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .custom-card .card-header {
+                background-color: #4E878C;
+                border-radius: 10px 10px 0 0;
+            }
+
+            .custom-card .list-group-item {
+                background-color: #93E5AB;
+                color: #00241B;
+                border: none;
+                border-radius: 5px;
+                margin: 5px 0;
+            }
+
+                .custom-card .list-group-item:hover {
+                    background-color: #B5FFE1;
+                    cursor: pointer;
+                }
+
+        .navbar .navbar-brand {
+            color: #B5FFE1 !important;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: #00241B;
+            transition: none;
+        }
+
+            .navbar .navbar-brand:hover {
+                background-color: #00241B;
+                color: #B5FFE1; 
+            }
+
+        #trackmyscore {
+                color: #FFFFFF !important; /* Folosim !important pentru a suprascrie alte stiluri */
+                font-family:Arial;
+        }
+
+            #trackmyscore:hover {
+                    color: #B5FFE1 !important;
+                    background-color: transparent !important;
+                    font-family: Arial;
+            }
+
+        .navbar .navbar-brand {
+            color: #B5FFE1 !important;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: #00241B;
+            transition: none;
+        }
+    </style>
+
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-brand">
+                <a id="trackmyscore" class="nav-link" asp-controller="Home" asp-action="Index">
+                    TrackMyScore
+                </a>             
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Games" asp-action="List">
+                            <i class="fa-solid fa-gamepad"></i> Games
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Room" asp-action="Play">
+                            <i class="fa-solid fa-play"></i> Play
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Tournament" asp-action="Play">
+                            <i class="fa-solid fa-trophy"></i> Tournaments
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- search bar -->
+                <form class="d-flex me-auto" asp-controller="Account" asp-action="Search" method="get">
+                    <input class="form-control me-2 search-bar" type="search" name="query" placeholder="Search" aria-label="Search" autocomplete="off">
+                    <button class="btn" type="submit">
+                        <i class="fa-solid fa-magnifying-glass search-button"></i>
+                    </button>
+                </form>
+                
+                <div class="nav-item m-2">
+                    <a class="nav-link" asp-controller="Account" asp-action="Profile" asp-route-id="@user?.Id">
+                        <i class="fa-solid fa-user"></i> 
+                    </a>
+                </div>
+
+
+                <ul class="navbar-nav">
+                    @if (username != null)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Logout">
+                                <i class="fa-solid fa-right-from-bracket"></i> 
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                <i class="fa-solid fa-right-to-bracket"></i> Login
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

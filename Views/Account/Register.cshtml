@@ -1,0 +1,49 @@
+﻿@*
+*@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/css/register.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <!-- font-awesome link -->
+    <script src="~/js/site.js"></script>
+</head>
+<body>
+    <div class="container register-container">
+        <div class="d-flex justify-content-center">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fa-solid fa-house a1"></i>
+            </a>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-6 register-form-1">
+                <h3>Sign up:</h3>
+                <form method="post">
+                    <div class="pb-3">
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Username *" value="" />
+                    </div>
+                    <div class="pb-3">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="Email *" value="" />
+                    </div>
+                    <div class="pb-3">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Password *" value="" />
+                    </div>
+                    <div class="pb-3">
+                        <input type="password" id="confirm-password" name="confirmPassword" class="form-control" placeholder=" Confirm Password *" value="" />
+                    </div>
+                    <div class="form-group d-flex justify-content-center p-3">
+                        <input type="submit" class="btnSubmit" value="Register" />
+                    </div>
+                    <a class="loginRedirect" asp-controller="Account" asp-action="Login">Already have an account? Log in here!</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    @if(ViewData["RegisterError"] != null){
+        <div class="alert alert-danger text-center" id="registerError">
+            @ViewData["RegisterError"]
+        </div>
+    }
+</body>

@@ -1,0 +1,175 @@
+﻿@{
+    List<Room> roomList = ViewBag.RoomList;
+    Dictionary<int, int> joinedPlayers = ViewBag.JoinedPlayers;
+    List<Room> myRooms = ViewBag.MyRooms;
+    List<JoinRoom> joinedRooms = ViewBag.JoinedRooms;
+}
+
+<h1>
+    Lista Camere:
+</h1>
+
+<div>
+    @if(roomList != null && roomList.Any()){
+        @foreach(var room in roomList){
+            <div>
+                Nume camera: @room.Name
+            </div>
+            <div>
+                Nume gazda: @room.Player.Username
+            </div>
+            <div>
+                Numar jucatori: @(joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
+            </div>
+            <div>
+                Nume Joc: @room.Game.Title
+            </div>
+            <div>
+                Descriere camera: @room.Game.Description
+            </div>
+            @if (room.Stage == -1)
+            {
+                <div>
+                    Waiting for the host to start the game.
+                </div>
+            }
+            else if (room.Stage == -2)
+            {
+                <div>
+                    Match already ended.
+                </div>
+            }
+            else if (room.Stage == 0)
+            {
+                <div>
+                    There is an ongoing match.
+                </div>
+            }       
+            <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
+                View Details
+            </a>
+        }
+    }
+    else 
+    {
+        <div>
+            No rooms available.
+        </div>
+    }
+</div>
+
+
+<h1>
+    Hosted Rooms:
+</h1>
+<div>
+    @if (myRooms != null && myRooms.Any())
+    {
+        @foreach (var room in myRooms)
+        {
+            @if (room.Stage != -2)
+            {
+                <div>
+                    Nume camera: @room.Name
+                </div>
+                <div>
+                    Nume gazda: @room.Player.Username
+                </div>
+                <div>
+                    Numar jucatori: @(joinedPlayers != null && joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
+                </div>
+                <div>
+                    Nume Joc: @room.Game.Title
+                </div>
+                <div>
+                    Descriere camera: @room.Game.Description
+                </div>
+                @if (room.Stage == -1)
+                {
+                    <div>
+                        Waiting for the host to start the game.
+                    </div>
+                }
+                else if (room.Stage == -2)
+                {
+                    <div>
+                        Match already ended.
+                    </div>
+                }
+                else if (room.Stage == 0)
+                {
+                    <div>
+                        There is an ongoing match.
+                    </div>
+                }
+                <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
+                    View Details
+                </a>
+            }
+        }
+    }
+
+    else
+    {
+        <div>
+            No rooms created or no rooms available.
+        </div>
+    }
+</div>
+<h1>
+    Joined Rooms:
+</h1>
+<div>
+    @if (joinedRooms != null && joinedRooms.Any())
+    {
+        @foreach (var joinedRoom in joinedRooms)
+        {
+            @if(joinedRoom.Room.Stage != -2){
+                <div>
+                    Nume camera: @joinedRoom.Room.Name
+                </div>
+                <div>
+                    Nume gazda: @joinedRoom.Room.Player.Username
+                </div>
+                <div>
+                    Numar jucatori: @(joinedPlayers != null && joinedPlayers.ContainsKey(joinedRoom.Room.Id) ? joinedPlayers[joinedRoom.Room.Id] + 1 : 1) / @joinedRoom.Room.Game.MaxPlayers
+                </div>
+                <div>
+                    Nume Joc: @joinedRoom.Room.Game.Title
+                </div>
+                <div>
+                    Descriere camera: @joinedRoom.Room.Game.Description
+                </div>
+            
+                @if (joinedRoom.Room.Stage == -1)
+                {
+                    <div>
+                        Waiting for the host to start the game.
+                    </div>
+                }
+                else if (joinedRoom.Room.Stage == -2)
+                {
+                    <div>
+                        Match already ended.
+                    </div>
+                }
+                else if (joinedRoom.Room.Stage == 0)
+                {
+                    <div>
+                        There is an ongoing match.
+                    </div>
+                }
+                <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@joinedRoom.Room.Id">
+                    View Details
+                </a>
+            }
+        }
+    }
+    else
+    {
+        <div>
+            No rooms joined.
+        </div>
+    }
+</div>
+

@@ -1,0 +1,78 @@
+﻿@{
+    List<Game> games = ViewBag.Games;
+    List<Tournament> tournaments = ViewBag.Tournaments;
+}
+
+<h1>
+    Create Tournament
+</h1>
+
+<form method="post" asp-action="Create" asp-controller="Tournament">
+    <div>
+        <label>
+            Tournament Title:
+            <input type="text" name="name" autocomplete="off" />
+        </label>
+    </div>
+    <div id="playerNumberDiv" style="display: none;">
+        <label>
+            Maximum Players per Team:
+            <input type="number" name="playerNumber" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>
+            Reward:
+            <input type="text" name="reward" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>
+            Room Count:
+            <select name="roomCount">
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="8">8</option>
+                <option value="16">16</option>
+                <option value="32">32</option>
+            </select>
+        </label>
+    </div>
+    <div>
+        <label>
+            Start Date:
+            <input type="date" name="startDate" autocomplete="off" />
+            <input type="time" name="startTime" autocomplete="off" />
+        </label>
+    </div>
+    <div>
+        <label>Game:</label>
+        @if (games != null && games.Any())
+        {
+            <select name="gameId">
+                @foreach (var game in games)
+                {
+                    <option value="@game.Id">@game.Title</option>
+                }
+            </select>
+        }
+        else
+        {
+            <p style="color: red;">There are no games added in your games list.</p>
+        }
+    </div>
+    <div>
+        <div>
+            <label>Mode:</label>
+            <div>
+                <input type="radio" name="mode" value="single" checked onclick="toggleTournamentMode('single')" /> Single Mode
+                <input type="radio" name="mode" value="team" onclick="toggleTournamentMode('team')" /> Team Mode
+            </div>
+        </div>
+    </div>
+    <div>
+        <button class="btn btn-dark" type="submit" @(games == null || !games.Any() ? "disabled" : "")>Create Tournament</button>
+    </div>
+</form>
+
+<script src="~/js/site.js"></script>
