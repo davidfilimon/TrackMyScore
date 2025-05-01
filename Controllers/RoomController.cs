@@ -314,10 +314,8 @@ namespace TrackMyScore.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Match started." });
-
-
         }
-
+        
         [HttpPost]
         public async Task<IActionResult> StartIndividual(int roomId)
         {

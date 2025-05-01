@@ -71,6 +71,7 @@ namespace TrackMyScore.Controllers
             }
 
             if(mode == "single"){
+
                 var newTournament = new Tournament
                 {
                     Name = name,
@@ -87,6 +88,20 @@ namespace TrackMyScore.Controllers
                 };
 
                 await _context.Tournaments.AddAsync(newTournament);
+
+                for(int i = 1; i<= roomCount; i++){
+                    var newRoom = new Room{
+                        Name = "Room " + i + " - Tournament: " + name,
+                        Player = host,
+                        Game = game,
+                        Tournament = newTournament,
+                        Stage = -1,
+                        Mode = "single",
+                        Type = mode,
+                    };
+                    await _context.Rooms.AddAsync(newRoom);
+                }
+
                 currentTournamentId = newTournament.Id;
 
             } else if (mode == "team"){
@@ -104,6 +119,21 @@ namespace TrackMyScore.Controllers
                     Host = host,
                     Winner = ""
                 };
+
+                for(int i = 1; i<= roomCount; i++){
+                    var newRoom = new Room{
+                        Name = "Room " + i + " - Tournament: " + name,
+                        Player = host,
+                        Game = game,
+                        Tournament = newTournament,
+                        Stage = -1,
+                        Mode = "team",
+                        Type = mode,
+                        StartDate = startDateTime,
+                        Location = "-"
+                    };               
+                    await _context.Rooms.AddAsync(newRoom);
+                }
             await _context.Tournaments.AddAsync(newTournament);
             currentTournamentId = newTournament.Id;
             }
