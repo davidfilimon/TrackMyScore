@@ -70,7 +70,7 @@ namespace TrackMyScore.Controllers
                 Description = description,
                 MaxPlayers = maxPlayers,
                 Difficulty = difficulty,
-                Author = user.Username,
+                Author = user,
                 IsOfficial = true
             };
 

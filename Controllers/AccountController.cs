@@ -54,7 +54,7 @@ namespace TrackMyScore.Controllers
             ViewData["UserId"] = profileUser.Id;
 
             var games = await _context.Games
-                .Where(g => g.Author == profileUser.Username)
+                .Where(g => g.Author == profileUser)
                 .ToListAsync();
 
             var matches = await _context.Participants

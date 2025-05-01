@@ -12,7 +12,7 @@ namespace TrackMyScore.Database
 
         public DbSet<User> Users { get; set; }
         public DbSet<Game> Games { get; set; }
-        public DbSet<Follower> Followers { get; set; }
+        public DbSet<Followers> Followers { get; set; }
         public DbSet<FavoriteGame> FavoriteGames { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Match> Matches { get; set; }
@@ -20,7 +20,7 @@ namespace TrackMyScore.Database
         public DbSet<JoinRoom> JoinRooms { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<Participant> Participants { get; set; }
-        public DbSet<Players> Players { get; set; }
+        public DbSet<Player> Players { get; set; }
 
     }
 }

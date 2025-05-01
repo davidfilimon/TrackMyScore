@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrackMyScore.Models
 {
-    public class Players
+    public class Player
     {
  
         public int Id { get; set; }
@@ -19,7 +19,7 @@ namespace TrackMyScore.Models
         public Team? Team { get; set; }
         [Required]
         public int RespectPoints { get; set; }
-        public Players()
+        public Player()
         {
             
         }

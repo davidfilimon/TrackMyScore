@@ -55,7 +55,7 @@ namespace TrackMyScore.Controllers
                 Description = description,
                 MaxPlayers = maxPlayers,
                 Difficulty = difficulty,
-                Author = user.Username,
+                Author = user,
                 IsOfficial = false
             };
 
@@ -85,7 +85,7 @@ namespace TrackMyScore.Controllers
             }
 
             var favoriteGame = await _context.FavoriteGames
-                .FirstOrDefaultAsync(fg => fg.UserId == userId && fg.GameId == game.Id);
+                .FirstOrDefaultAsync(fg => fg.User.Id == userId && fg.Game.Id == game.Id);
 
             if(favoriteGame != null)
             {
@@ -93,7 +93,10 @@ namespace TrackMyScore.Controllers
             }
             else
             {
-                favoriteGame = new FavoriteGame(user.Id, game.Id);
+                favoriteGame = new FavoriteGame{
+                    User = user,
+                    Game = game
+                    };
                 _context.FavoriteGames.Add(favoriteGame);
             }
 

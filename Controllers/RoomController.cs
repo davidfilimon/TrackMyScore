@@ -89,17 +89,13 @@ namespace TrackMyScore.Controllers
             }
 
             var games = await _context.FavoriteGames
-                                .Where(f => f.UserId == user.Id)
-                                .Join(_context.Games,
-                                    favorite => favorite.GameId,
-                                    game => game.Id,
-                                    (favorite, game) => game)
+                                .Where(f => f.User.Id == user.Id)
+                                .Select(f => f.Game)
                                 .ToListAsync();
 
             ViewBag.User = user;
-            ViewBag.Games = games;
 
-            return View();
+            return View(games);
         }
 
         [HttpGet]

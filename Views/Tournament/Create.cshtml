@@ -1,8 +1,6 @@
 ﻿@{
-    List<Game> games = ViewBag.Games;
-    List<Tournament> tournaments = ViewBag.Tournaments;
 }
-
+@model List<Game>
 <h1>
     Create Tournament
 </h1>
@@ -30,11 +28,11 @@
         <label>
             Room Count:
             <select name="roomCount">
-                <option value="2">2</option>
-                <option value="4">4</option>
-                <option value="8">8</option>
-                <option value="16">16</option>
-                <option value="32">32</option>
+                <option value=2>2</option>
+                <option value=4>4</option>
+                <option value=8>8</option>
+                <option value=16>16</option>
+                <option value=32>32</option>
             </select>
         </label>
     </div>
@@ -47,10 +45,10 @@
     </div>
     <div>
         <label>Game:</label>
-        @if (games != null && games.Any())
+        @if (Model != null && Model.Any())
         {
             <select name="gameId">
-                @foreach (var game in games)
+                @foreach (var game in Model)
                 {
                     <option value="@game.Id">@game.Title</option>
                 }
@@ -71,7 +69,7 @@
         </div>
     </div>
     <div>
-        <button class="btn btn-dark" type="submit" @(games == null || !games.Any() ? "disabled" : "")>Create Tournament</button>
+        <button class="btn btn-dark" type="submit">Create Tournament</button>
     </div>
 </form>
 

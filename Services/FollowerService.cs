@@ -20,34 +20,34 @@ namespace TrackMyScore.Services
             if (followerId == followingId) return;
 
             // verifies if both parties exist
-            var followerExists = await _context.Users.AnyAsync(u => u.Id == followerId);
-            var followingExists = await _context.Users.AnyAsync(u => u.Id == followingId);
-
-            if(!followerExists || !followingExists)
-            {
-                Console.WriteLine($"One of the users does not exist, Follower: {followerId}, Following: {followingId}.");
-            }
+            var follower = await _context.Users.FirstOrDefaultAsync(u => u.Id == followerId);
+            var following = await _context.Users.FirstOrDefaultAsync(u => u.Id == followingId);
 
             // searches for any existing follow relation towards the followed person
-            var exists = await _context.Followers.AnyAsync(f => f.FollowerId == followerId && f.FollowingId == followingId); // bool value
+            var exists = await _context.Followers.AnyAsync(f => f.Follower.Id == followerId && f.Following.Id == followingId); // bool value
             if (!exists)
             {
-                _context.Followers.Add(new Follower
+                if(follower != null && following != null){
+                _context.Followers.Add(new Followers
                 {
-                    FollowerId = followerId,
-                    FollowingId = followingId,
-                    FollowedAt = DateTime.UtcNow
-                    
+                    Follower = follower,
+                    Following = following,
+                    FollowedAt = DateTime.UtcNow              
                 });
-
+                } else {
+                    Console.WriteLine($"One of the users does not exist, Follower: {followerId}, Following: {followingId}.");
+                }
+            
                 await _context.SaveChangesAsync();
             }
         }
 
         public async Task UnfollowUser(int followerId, int followingId)
         {
+            var follower = await _context.Users.FirstOrDefaultAsync(u => u.Id == followerId);
+            var following = await _context.Users.FirstOrDefaultAsync(u => u.Id == followingId);
             // searches for the follow relation
-            var follow = await _context.Followers.FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowingId == followingId); // follower object value
+            var follow = await _context.Followers.FirstOrDefaultAsync(f => f.Follower == follower && f.Following == following); // follower object value
 
             // if it exists it is removed
             if (follow != null)
@@ -59,43 +59,42 @@ namespace TrackMyScore.Services
 
         public async Task<List<User>> GetFollowers(int userId)
         {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             return await _context.Followers
-                .Where(f => f.FollowingId == userId) // searches for matching users that follow the user
-                .Join(
-                _context.Users,
-                f => f.FollowerId,
-                u => u.Id,
-                (f, u) => u)
+                .Where(f => f.Following == user) // searches for matching users that follow the user
+                .Select(f => f.Follower)
                 .ToListAsync();
         }
 
         public async Task<List<User>> GetFollowing(int userId)
         {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             return await _context.Followers
-                .Where(f => f.FollowerId == userId) // searches for matching users that follow the user
-                .Join(
-                _context.Users,
-                f => f.FollowingId,
-                u => u.Id,
-                (f, u) => u)
+                .Where(f => f.Follower == user) // searches for matching users that follow the user
+                .Select(f => f.Following) 
                 .ToListAsync();
         }
 
 
         public async Task<int> GetNumberFollowers(int userId)
         {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
             return await _context.Followers
-                .CountAsync(f => f.FollowingId == userId);
+                .CountAsync(f => f.Following == user);
         }
         public async Task<int> GetNumberFollowing(int userId)
         {
-            return await _context.Followers.CountAsync(f => f.FollowerId == userId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            return await _context.Followers.CountAsync(f => f.Follower == user);
         }
 
         public async Task<bool> IsFollowing(int userId, int followingId)
         {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var followingUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == followingId);   
             return await _context.Followers
-                .AnyAsync(f => f.FollowerId == userId && f.FollowingId == followingId); // returning true if it is following
+                .AnyAsync(f => f.Follower == user && f.Following == followingUser); // returning true if it is following
         }
 
     }

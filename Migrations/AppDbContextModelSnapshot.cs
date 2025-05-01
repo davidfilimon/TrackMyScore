@@ -38,10 +38,14 @@ namespace TrackMyScore.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("UserId");
+
                     b.ToTable("FavoriteGames");
                 });
 
-            modelBuilder.Entity("TrackMyScore.Models.Follower", b =>
+            modelBuilder.Entity("TrackMyScore.Models.Followers", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,6 +64,10 @@ namespace TrackMyScore.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FollowerId");
+
+                    b.HasIndex("FollowingId");
+
                     b.ToTable("Followers");
                 });
 
@@ -70,10 +78,6 @@ namespace TrackMyScore.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Author")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -93,7 +97,12 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Games");
                 });
@@ -184,7 +193,7 @@ namespace TrackMyScore.Migrations
                     b.ToTable("Participants");
                 });
 
-            modelBuilder.Entity("TrackMyScore.Models.Players", b =>
+            modelBuilder.Entity("TrackMyScore.Models.Player", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -373,6 +382,55 @@ namespace TrackMyScore.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TrackMyScore.Models.FavoriteGame", b =>
+                {
+                    b.HasOne("TrackMyScore.Models.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrackMyScore.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TrackMyScore.Models.Followers", b =>
+                {
+                    b.HasOne("TrackMyScore.Models.User", "Follower")
+                        .WithMany()
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrackMyScore.Models.User", "Following")
+                        .WithMany()
+                        .HasForeignKey("FollowingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Follower");
+
+                    b.Navigation("Following");
+                });
+
+            modelBuilder.Entity("TrackMyScore.Models.Game", b =>
+                {
+                    b.HasOne("TrackMyScore.Models.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
             modelBuilder.Entity("TrackMyScore.Models.JoinRoom", b =>
                 {
                     b.HasOne("TrackMyScore.Models.Room", "Room")
@@ -428,7 +486,7 @@ namespace TrackMyScore.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TrackMyScore.Models.Players", b =>
+            modelBuilder.Entity("TrackMyScore.Models.Player", b =>
                 {
                     b.HasOne("TrackMyScore.Models.Team", "Team")
                         .WithMany()

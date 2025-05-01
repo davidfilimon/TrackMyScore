@@ -19,17 +19,7 @@ namespace TrackMyScore.Models
 
         public User()
         {
-            isAdmin = false;
-            RespectPoints = 0;
-        }
-
-        public User(string username, string password, string email, DateOnly currentDate)
-        {
-            Username = username;
-            Password = password;
-            Email = email;
-            AccountCreationDate = currentDate;
-        }
+        }   
 
     }
 }

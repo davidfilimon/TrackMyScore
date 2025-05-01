@@ -19434,6 +19434,11 @@
       "FileKind": "mvc"
     },
     {
+      "FilePath": "d:\\facultate\\licenta\\TrackMyScore\\TrackMyScore\\Views\\Tournament\\CurrentTournament.cshtml",
+      "TargetPath": "Views\\Tournament\\CurrentTournament.cshtml",
+      "FileKind": "mvc"
+    },
+    {
       "FilePath": "d:\\facultate\\licenta\\TrackMyScore\\TrackMyScore\\Views\\Account\\Register.cshtml",
       "TargetPath": "Views\\Account\\Register.cshtml",
       "FileKind": "mvc"

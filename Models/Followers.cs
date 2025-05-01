@@ -1,17 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrackMyScore.Models
 {
-    public class Follower
+    public class Followers
     {
         public int Id { get; set; }
         [Required]
-        public int FollowerId { get; set; }
+        [ForeignKey("FollowerId")]
+        public User Follower { get; set; }
         [Required]
-        public int FollowingId { get; set; }
+        [ForeignKey("FollowingId")]
+        public User Following { get; set; }
         public DateTime FollowedAt { get; set; } = DateTime.UtcNow;
 
-        public Follower()
+        public Followers()
         {
             
         }

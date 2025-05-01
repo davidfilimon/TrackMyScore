@@ -1,7 +1,7 @@
 ﻿@{
-    List<Game> games = ViewBag.Games;
     List<Tournament> tournaments = ViewBag.Tournaments;
 }
+@model List<Game>
 
 <form method="post" asp-action="Create" asp-controller="Room">
     <div>
@@ -32,10 +32,10 @@
 
     <div>
         <label>Game:</label>
-        @if (games != null && games.Any())
+        @if (Model != null && Model.Any())
         {
             <select name="gameId">
-                @foreach (var game in games)
+                @foreach (var game in Model)
                 {
                     <option value="@game.Id">@game.Title</option>
                 }
@@ -48,7 +48,7 @@
     </div>
 
     <div>
-        <button type="submit" @(games == null || !games.Any() ? "disabled" : "")>Create Room</button>
+        <button type="submit" @(Model == null || !Model.Any() ? "disabled" : "")>Create Room</button>
     </div>
 
 

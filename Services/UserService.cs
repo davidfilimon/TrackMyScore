@@ -38,7 +38,7 @@ namespace TrackMyScore.Services
             }
 
             var favoriteGame = await _context.FavoriteGames
-                .FirstOrDefaultAsync(fg => fg.UserId == user.Id && fg.GameId == id);
+                .FirstOrDefaultAsync(fg => fg.User.Id == user.Id && fg.Game.Id == id);
 
             return favoriteGame == null;
 
