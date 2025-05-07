@@ -26,6 +26,8 @@ namespace TrackMyScore.Models
         [ForeignKey("HostId")]
         public User Host { get; set; }
         [Required]
+        public string Location { get; set; }
+        [Required]
         [ForeignKey("GameId")]
         public Game Game { get; set; }
         public string? Winner { get; set; }

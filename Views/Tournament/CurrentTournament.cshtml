@@ -2,9 +2,57 @@
 
 <div>
     <h1>@Model.Tournament.Name</h1>
-    <p>@Model.Tournament.Reward</p>
-    <p>@Model.Tournament.StartDate</p>
-    <p>@Model.Tournament.RoomCount</p>
-    <p>@Model.Tournament.Type</p>
+    <p>@Model.Tournament.Reward, @Model.Tournament.Game.Title, @Model.Tournament.StartDate, @Model.Tournament.RoomCount, @Model.Tournament.MaxPlayers, @Model.Tournament.Code, @Model.Tournament.Type, @Model.Tournament.Host.Username, @Model.Tournament.Winner</p>
     <p>@Model.Tournament.Winner</p>
+    <div>
+        @foreach(var team in Model.Teams)
+        {
+            <p>@team.Key.Name</p>    
+        }
+    </div>
+
+    @if(@Model.LoggedUser == @Model.Tournament.Host){
+        <button onclick="startTournament()">Start Tournament</button>
+        <button onclick="deleteTournament()">Delete Tournament</button>
+    }
 </div>
+
+<script>
+    function startTournament() {
+        $.ajax({
+            url: '/Tournament/Start',
+            type: 'POST',
+            data: { id: @Model.Tournament.Id },
+            success: function (data) {
+                if (data.success) {
+                    alert('Tournament started successfully!');
+                    window.location.href = '/Tournament/CurrentTournament/' + @Model.Tournament.Id;
+                } else {
+                    alert('Failed to start tournament: ' + data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error starting tournament:', error);
+            }
+        });
+    }
+
+    function deleteTournament() {
+        $.ajax({
+            url: '/Tournament/Delete',
+            type: 'POST',
+            data: { id: @Model.Tournament.Id },
+            success: function (data) {
+                if (data.success) {
+                    alert('Tournament deleted successfully!');
+                    window.location.href = '/';
+                } else {
+                    alert('Failed to delete tournament: ' + data.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error deleting tournament:', error);
+            }
+        });
+    }
+</script>

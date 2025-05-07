@@ -1,0 +1,27 @@
+﻿@model TournamentListView
+
+<h1>
+    Join Tournament
+</h1>
+
+<div>
+    <h2>My Tournaments</h2>
+    <ul>
+        @foreach (var tournament in Model.MyTournaments)
+        {
+            <li>@tournament.Name</li>
+            <a asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@tournament.Id">View Details</a>
+        }
+    </ul>
+</div>
+
+<div>
+    <h2>Tournaments</h2>
+    <ul>
+        @foreach (var tournament in Model.Tournaments)
+        {
+            <li>@tournament.Name</li>
+            <a asp-controller="Tournament" asp-action="Join" asp-route-id="@tournament.Id">Join</a>
+        }
+    </ul>
+</div>

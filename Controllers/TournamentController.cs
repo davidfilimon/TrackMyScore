@@ -54,7 +54,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(string name, int playerNumber, int roomCount, string reward, DateOnly startDate, TimeOnly startTime, int gameId, string mode)
+        public async Task<IActionResult> Create(string name, int playerNumber, int roomCount, string reward, string location, DateOnly startDate, TimeOnly startTime, int gameId, string mode)
         { // method for creating tournaments
 
             var startDateTime = startDate.ToDateTime(startTime); // converting date and time to datetime
@@ -84,6 +84,7 @@ namespace TrackMyScore.Controllers
                     Game = game,
                     Type = mode,
                     Host = host,
+                    Location = location,
                     Winner = ""
                 };
 
@@ -95,13 +96,13 @@ namespace TrackMyScore.Controllers
                         Player = host,
                         Game = game,
                         Tournament = newTournament,
+                        Location = location,
                         Stage = -1,
                         Mode = "single",
                         Type = mode,
                     };
                     await _context.Rooms.AddAsync(newRoom);
                 }
-
                 currentTournamentId = newTournament.Id;
 
             } else if (mode == "team"){ // team mode tournament
@@ -117,7 +118,8 @@ namespace TrackMyScore.Controllers
                     IsActive = true,
                     Type = mode,
                     Host = host,
-                    Winner = ""
+                    Winner = "",
+                    Location = location
                 };
 
                 await _context.Tournaments.AddAsync(newTournament);
@@ -132,11 +134,10 @@ namespace TrackMyScore.Controllers
                         Mode = "team",
                         Type = mode,
                         StartDate = startDateTime,
-                        Location = "-"
+                        Location = location
                     };               
                     await _context.Rooms.AddAsync(newRoom);
                 }
-            await _context.Tournaments.AddAsync(newTournament);
             currentTournamentId = newTournament.Id;
             }
 
@@ -149,9 +150,26 @@ namespace TrackMyScore.Controllers
             return RedirectToAction("CurrentTournament", "Tournament", new {currentTournamentId}); // redirecting to newly created tournament view
         }
 
-        public IActionResult Join()
+        [HttpGet]
+        public async Task<IActionResult> List()
         {
-            return View();
+
+            var user = await GetLoggedUserAsync();
+            var tournaments = await _context.Tournaments
+                .Include(t => t.Host)
+                .Include(t => t.Game)
+                .Where(t => t.Host.Id != user.Id)
+                .ToListAsync();
+
+            var myTournaments = await _context.Tournaments
+                .Include(t => t.Host)
+                .Include(t => t.Game)
+                .Where(t => t.Host.Id == user.Id)
+                .ToListAsync();
+
+            TournamentListView tournamentList = new TournamentListView(tournaments, myTournaments);
+
+            return View(tournamentList);
         }
 
 
@@ -162,46 +180,34 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CurrentTournament(int id){ // method for tournament view
+        public async Task<IActionResult> CurrentTournament(int id) {
             var user = await GetLoggedUserAsync();
-            var tournament = await _context.Tournaments.FirstOrDefaultAsync(t => t.Id == id);
-            Dictionary<Team?, List<User>> teams = new Dictionary<Team?, List<User>>();
-
-            if(tournament == null){
+            var tournament = await _context.Tournaments
+                .Include(t => t.Host)
+                .Include(t => t.Game)
+                .FirstOrDefaultAsync(t => t.Id == id);
+    
+            if(tournament == null) {
                 return NotFound();
             }
 
-            if(tournament.Type == "team"){
-                var teamPlayers = await _context.Players
-                    .Where(t => t.Tournament.Id == id)
-                    .GroupBy(t => t.Team)
-                    .Select(g => new {
-                        Team = g.Key,
-                        Players = g.ToList()
-                    })
-                    .ToListAsync();
-    
-                foreach(var teamGroup in teamPlayers){
-                    if(teamGroup.Team != null && teamGroup.Players.Count > 0){
-                        teams.Add(teamGroup.Team,
-                        teamGroup.Players
-                        .Select(p => p.User).ToList());
-                    }
-                }
+            var teams = await _context.Players
+                .Where(p => p.Tournament.Id == id)
+                .Include(p => p.User)
+                .Include(p => p.Team)
+                .GroupBy(p => p.Team)
+                .ToDictionaryAsync(g => g.Key!, g => g.ToList());
 
-            }
-
-            List<User> players = await _context.Players
+            var players = await _context.Players
                 .Where(p => p.Tournament.Id == id)
                 .Select(p => p.User)
                 .ToListAsync();
-            
-            List<Room> rooms = await _context.Rooms
+    
+            var rooms = await _context.Rooms
                 .Where(r => r.Tournament.Id == id)
                 .ToListAsync();
 
-            TournamentModel model = new TournamentModel(user, tournament, players, rooms, teams);
-
+            var model = new TournamentModel(user, tournament, players, rooms, teams);
             return View(model);
         }
 
@@ -227,7 +233,9 @@ namespace TrackMyScore.Controllers
 
                         var player = new Player{
                             User = user,
-                            Tournament = tournament
+                            Tournament = tournament,
+                            Eliminated = false,
+                            RespectPoints = 1
                         };
 
                         await _context.Players.AddAsync(player);
@@ -241,13 +249,14 @@ namespace TrackMyScore.Controllers
                             .GroupBy(t => t.Team)
                             .CountAsync();
 
+                        if(joinedTeamsCount >= tournament.RoomCount * 2){
+                            return Json(new {success = false, message = "Tournament has reached maximum team capacity (2 teams per room)."});
+                        }
+
                         if(tournament.MaxPlayers < teammates.Count){
                             return Json(new {success = false, message = "The team is too big."});
                         }
 
-                        if(tournament.Game.MaxPlayers * tournament.RoomCount == joinedTeamsCount){
-                            return Json(new {success = false, message = "Tournament is full."});
-                        }
 
                         teammates.Add(user);
 
@@ -259,7 +268,9 @@ namespace TrackMyScore.Controllers
                             var player = new Player{
                                 User = teammate,
                                 Tournament = tournament,
-                                Team = team
+                                Team = team,
+                                Eliminated = false,
+                                RespectPoints = 1
                             };
                             await _context.Players.AddAsync(player);
                         }
@@ -331,7 +342,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(int id){
+        public async Task<IActionResult> Delete(int id){ // delete tournament
 
             var user = await GetLoggedUserAsync();
 
@@ -377,7 +388,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Start(int id){
+        public async Task<IActionResult> Start(int id){ // start tournament
 
             var tournament = await _context.Tournaments
                 .Include(t => t.Host)
@@ -400,6 +411,7 @@ namespace TrackMyScore.Controllers
 
                 var players = await _context.Players
                     .Where(p => p.Tournament.Id == id)
+                    .Include(p => p.User)
                     .ToListAsync();
 
                 foreach(var room in rooms){
@@ -425,45 +437,42 @@ namespace TrackMyScore.Controllers
 
 
             } else if (tournament.Type == "team") {
-                int teamNumber = 0;
-
                 var rooms = await _context.Rooms
                     .Where(r => r.Tournament.Id == id)
                     .ToListAsync();
 
-                Dictionary<Team?, List<User>> teams = new Dictionary<Team?, List<User>>();
-
-                teams = await _context.Players
+                var teams = await _context.Players
                     .Where(p => p.Tournament.Id == id)
+                    .Include(p => p.Team)
+                    .Include(p => p.User)
                     .GroupBy(p => p.Team)
-                    .ToDictionaryAsync(g => g.Key,
-                        g => g.ToList().Select(p => p.User).ToList());
-
+                    .ToListAsync();
+    
                 foreach(var room in rooms){
-                    teamNumber = 0;
+                    int teamsInRoom = 0;
                     foreach(var team in teams){
-                        if(room.Game.MaxPlayers <= teamNumber){
+                        if(teamsInRoom >= 2){ // max 2 teams per room
                             break;
                         }
-                        foreach(var u in team.Value){
-                            await _context.JoinRooms
-                                .AddAsync(
-                                    new JoinRoom{
-                                        User = u,
-                                        Room = room
-                                    }
-                                );
-                        }
-                        teamNumber++;
-                    } // Room is full
-                }
-            }
 
-            await _context.SaveChangesAsync();
+                        foreach(var player in team){
+                            await _context.JoinRooms.AddAsync(
+                                new JoinRoom{
+                                    User = player.User,
+                                    Room = room
+                                }
+                            );
+                        }
+                        teamsInRoom++;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
 
             return Json(new {success = true, message = "Tournament started."});
         }
 
-        // tournament start, end, brackets = room / 2, location for tournament (optional)
+        // tournament start, end, brackets = room / 2, location for tournament (optional) // dont edit this
     }
 }
