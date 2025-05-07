@@ -302,6 +302,7 @@ namespace TrackMyScore.Controllers
                         Match = match,
                         User = player,
                         Team = team,
+                        Score = 0
                     };
 
                     await _context.Teams.AddAsync(team);
@@ -361,6 +362,7 @@ namespace TrackMyScore.Controllers
                     Match = match,
                     Role = string.Empty,
                     Team = null,
+                    Score = 0
                 };
                 await _context.Participants.AddAsync(participant);
             }
@@ -371,7 +373,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> End(int roomId, int winnerId)
+        public async Task<IActionResult> End(int roomId)
         {
             var room = await _context.Rooms
                 .FirstOrDefaultAsync(r => r.Id == roomId);
@@ -394,8 +396,10 @@ namespace TrackMyScore.Controllers
             if (room.Mode == "single")
             {
                 var winner = await _context.Participants
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.User.Id == winnerId && p.Match.Id == match.Id);
+                    .Include(p => p.User)
+                    .Where(p => p.Match.Id == match.Id)
+                    .OrderByDescending(p => p.Score)
+                    .FirstOrDefaultAsync();
 
                 if (winner == null)
                 {
@@ -405,8 +409,16 @@ namespace TrackMyScore.Controllers
             }
             else if (room.Mode == "team")
             {
-                var winningTeam = await _context.Teams
-                    .FirstOrDefaultAsync(t => t.Id == winnerId);
+                var winningTeam = await _context.Participants
+                    .Where(p => p.Match.Id == match.Id)
+                    .OrderByDescending(p => p.Score)
+                    .Select(p => p.Team)
+                    .FirstOrDefaultAsync();
+
+                if (winningTeam == null)
+                {
+                    return Json(new { success = false, message = "Team not found" });
+                }
 
                 match.Winner = winningTeam.Name;
             }     
