@@ -8,21 +8,24 @@
 }
 
 <div>
-    <p>@Model.Room.Name</p>
-    <p>@Model.Room.Game.Title</p>
+    <p>Room Name: @Model.Room.Name</p>
+    <p>Game: @Model.Room.Game.Title</p>
     <p>Creator: @Model.Room.Player.Username</p>
-    <p>@Model.Room.Location</p>
+    <p>Location: @Model.Room.Location</p>
     <p>Numar jucatori: @(joinedPlayers + 1) / @Model.Room.Game.MaxPlayers</p>
-    <p>@Model.Room.StartDate</p>
-    <p>@Model.Room.Type</p>
+    <p>Start Date: @Model.Room.StartDate</p>
+    <p>Room Type: @Model.Room.Type</p>
     @if(Model.Room.Stage == -1){
         <div>
             Waiting for the host to start the game.
         </div>
-    } else
-    {
+    } else if(Model.Room.Stage == 0){
         <div>
             There is an ongoing match.
+        </div>
+    } else if(Model.Room.Stage == -2){
+        <div>
+            The game has ended.
         </div>
     }
     @if(Model.Room.Stage != -2){
@@ -47,7 +50,7 @@
         }
         else if (Model.Room.Stage == 0 && loggedUser.Username == Model.Room.Player.Username)
         {
-            <button id="endMatchButton" class="btn btn-danger" style="display:block;" onclick="openWinnerContainer()">End Match</button>
+            <button id="endMatchButton" class="btn btn-danger" style="display:block;" onclick="endMatch(@Model.CurrentMatch.Id)">End Match</button>
         }
         
     }
@@ -62,49 +65,76 @@
     }
 </div>
 
-<div>
-    <!-- winner selection modal -->
-    <div id="winnerSelectionModal" class="modal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form method="post">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Choose a winner:</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <select name="winnerId" class="form-control" required>
-                            @if (Model.Room.Mode == "team")
-                            {
-                                @if (participants != null && participants.Any())
-                                {
-                                    @foreach (var participant in participants)
-                                    {
-                                        <option value="@participant.Team.Id">@participant.Team.Name</option>
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                <option value="">--Alege castigatorul--</option>
-                                <option value="@Model.Room.Player.Id">@Model.Room.Player.Username</option>
-                                @foreach (var player in Model.Players)
-                                {
-                                    <option value="@player.Id">@player.Username</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="endMatch(@Model.Room.Id)">End Match</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+<div class="player-list" style="display: block;">
+    <ul>
+        @if(@Model.Room.Mode == "single"){
+            <table>
+                <th>
+                    Player
+                </th>
+                <th>
+                    Score
+                </th>
+                <th>
+                    Add point
+                </th>
+                <th>
+                    Remove point
+                </th>
+                @foreach (var participant in Model.Participants)
+                {
+                    <tr>
+                        <td>
+                            @participant.User.Username
+                        </td>
+                        <td>
+                            @participant.Score
+                        </td>
+                        @if(Model.Room.Stage == 0){   
+                            <td>
+                                <button class="btn" onclick="addPoint(@Model.CurrentMatch.Id, @participant.Id)">Add Point</button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" onclick="removePoint(@Model.CurrentMatch.Id, @participant.Id)">Remove Point</button>
+                            </td>
+                        }                           
+                    </tr>
+                }
+            </table>
+        }
+        @if(@Model.Room.Mode == "team"){
+                <table>
+                <th>
+                    Team
+                </th>
+                <th>
+                    Score
+                </th>
+                <th>
+                    Add point
+                </th>
+                <th>
+                    Remove point
+                </th>
+                @foreach (var team in Model.Teams)
+                {
+                    <tr>
+                        <td>
+                            @team.Name
+                        </td>
+                        @if(Model.Room.Stage == 0){   
+                            <td>
+                                <button class="btn" onclick="addPoint(@Model.CurrentMatch.Id, @team.Id)">Add Point</button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" onclick="removePoint(@Model.CurrentMatch.Id, @team.Id)">Remove Point</button>
+                            </td>
+                        }                           
+                    </tr>
+                }
+            </table>
+        }
+    </ul>
 </div>
 
 
@@ -159,3 +189,60 @@
         </div>
     </div>
 </div>
+
+<script>
+    function endMatch(matchId){
+        $.ajax({
+            url: '/Room/End',
+            type: 'POST',
+            data: { 
+                matchId: matchId
+            },
+            success: function(response) {
+                if(response.success){
+                    alert(response.message);
+                    window.location.href = response.url;
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('An error occurred while ending the match.');
+            }
+        });
+    }
+
+    function addPoint(matchId, participantId){
+        $.ajax({
+            url: "/Room/AddPoint",
+            type: "POST",
+            data: {
+                matchId: matchId,
+                participantId: participantId
+            },
+            success: function(){
+                location.reload();
+            },
+            error: function(xhr, status, error){
+                alert('An error occurred while adding a point.');
+            }
+        })
+    }
+
+    function removePoint(matchId, participantId){
+        $.ajax({
+            url: "/Room/RemovePoint",
+            type: "POST",
+            data: {
+                matchId: matchId,
+                participantId: participantId
+            },
+            success: function(){
+                location.reload();
+            },
+            error: function(xhr, status, error){
+                alert('An error occurred while removing a point.');
+            }
+        })
+    }
+</script>

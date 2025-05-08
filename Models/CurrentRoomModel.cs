@@ -8,4 +8,5 @@ public class CurrentRoomModel
     public bool UserJoined { get; set; }
     public Match? CurrentMatch { get; set; }
     public List<Participant>? Participants { get; set; }
+    public Dictionary<Team, int>? Teams { get; set; }
 }

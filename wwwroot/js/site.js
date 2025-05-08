@@ -240,39 +240,6 @@ function startGame(roomId) {
         }
     });
 }
-function openWinnerContainer() {
-    $('#winnerSelectionModal').modal('show');
-}
-function endMatch(roomId) {
-    var winnerId = $('select[name="winnerId"]').val();
-
-    console.log("roomId:", roomId);
-    console.log("winnerId:", winnerId);
-
-    if (!winnerId) {
-        alert('Please select a winner.');
-        return;
-    }
-
-    $.ajax({
-        type: "POST",
-        url: "/Room/End",
-        data: {
-            roomId: roomId,
-            winnerId: winnerId
-        },
-        success: function (response) {
-            if (response.success) {
-                location.reload();
-            } else {
-                alert(response.message || "Eroare");
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Error:", error);
-        }
-    });
-}
 
 let tournamentMode = 'single';
 

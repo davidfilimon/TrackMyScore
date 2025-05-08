@@ -6,26 +6,26 @@
 }
 
 <h1>
-    Lista Camere:
+    Room List:
 </h1>
 
 <div>
     @if(roomList != null && roomList.Any()){
         @foreach(var room in roomList){
             <div>
-                Nume camera: @room.Name
+                Room Name: @room.Name
             </div>
             <div>
-                Nume gazda: @room.Player.Username
+                Host Name: @room.Player.Username
             </div>
             <div>
-                Numar jucatori: @(joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
+                Number of players: @(joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
             </div>
             <div>
-                Nume Joc: @room.Game.Title
+                Game Name: @room.Game.Title
             </div>
             <div>
-                Descriere camera: @room.Game.Description
+                Room Description: @room.Game.Description
             </div>
             @if (room.Stage == -1)
             {
@@ -63,58 +63,57 @@
     Hosted Rooms:
 </h1>
 <div>
-    @if (myRooms != null && myRooms.Any())
+    @foreach (var room in myRooms)
     {
-        @foreach (var room in myRooms)
+        @if (room.Stage != -2)
         {
-            @if (room.Stage != -2)
+            <div>
+                Room Name: @room.Name
+            </div>
+            <div>
+                Host Name: @room.Player.Username
+            </div>
+            <div>
+                Number of players: @(joinedPlayers != null && joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
+            </div>
+            <div>
+                Game Name: @room.Game.Title
+            </div>
+            <div>
+                Room Description: @room.Game.Description
+            </div>
+            @if (room.Stage == -1)
             {
                 <div>
-                    Nume camera: @room.Name
+                    Waiting for the host to start the game.
                 </div>
-                <div>
-                    Nume gazda: @room.Player.Username
-                </div>
-                <div>
-                    Numar jucatori: @(joinedPlayers != null && joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
-                </div>
-                <div>
-                    Nume Joc: @room.Game.Title
-                </div>
-                <div>
-                    Descriere camera: @room.Game.Description
-                </div>
-                @if (room.Stage == -1)
-                {
-                    <div>
-                        Waiting for the host to start the game.
-                    </div>
-                }
-                else if (room.Stage == -2)
-                {
-                    <div>
-                        Match already ended.
-                    </div>
-                }
-                else if (room.Stage == 0)
-                {
-                    <div>
-                        There is an ongoing match.
-                    </div>
-                }
-                <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
-                    View Details
-                </a>
             }
+            else if (room.Stage == -2)
+            {
+                <div>
+                    Match already ended.
+                </div>
+            }
+            else if (room.Stage == 0)
+            {
+                <div>
+                    There is an ongoing match.
+                </div>
+            }
+            <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
+                View Details
+            </a>
+        }
+        else
+        {
+            <div>
+                No rooms created or no rooms available.
+            </div>
+            break;
         }
     }
 
-    else
-    {
-        <div>
-            No rooms created or no rooms available.
-        </div>
-    }
+    
 </div>
 <h1>
     Joined Rooms:
@@ -126,21 +125,20 @@
         {
             @if(joinedRoom.Room.Stage != -2){
                 <div>
-                    Nume camera: @joinedRoom.Room.Name
+                    Room Name: @joinedRoom.Room.Name
                 </div>
                 <div>
-                    Nume gazda: @joinedRoom.Room.Player.Username
+                    Host Name: @joinedRoom.Room.Player.Username
                 </div>
                 <div>
-                    Numar jucatori: @(joinedPlayers != null && joinedPlayers.ContainsKey(joinedRoom.Room.Id) ? joinedPlayers[joinedRoom.Room.Id] + 1 : 1) / @joinedRoom.Room.Game.MaxPlayers
+                    Number of players: @(joinedPlayers != null && joinedPlayers.ContainsKey(joinedRoom.Room.Id) ? joinedPlayers[joinedRoom.Room.Id] + 1 : 1) / @joinedRoom.Room.Game.MaxPlayers
                 </div>
                 <div>
-                    Nume Joc: @joinedRoom.Room.Game.Title
+                    Game Name: @joinedRoom.Room.Game.Title
                 </div>
                 <div>
-                    Descriere camera: @joinedRoom.Room.Game.Description
+                    Room Description: @joinedRoom.Room.Game.Description
                 </div>
-            
                 @if (joinedRoom.Room.Stage == -1)
                 {
                     <div>
