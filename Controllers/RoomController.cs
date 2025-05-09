@@ -40,29 +40,16 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> RoomList()
         {
-
             User loggedUser = await GetLoggedUserAsync();
 
             var roomList = await _context.Rooms
                 .Where(r => r.Stage == -1 && r.Tournament == null)
+                .Where(r => r.Player != loggedUser) 
+                .Where(r => !_context.JoinRooms.Any(jr => jr.Room == r && jr.User == loggedUser)) 
                 .Include(r => r.Player)
                 .Include(r => r.Game)
                 .Include(r => r.Tournament)
                 .ToListAsync();
-
-            var joinedPlayers = await _context.JoinRooms
-                .GroupBy(j => j.Room.Id)
-                .Select(group => new
-                {
-                    RoomId = group.Key,
-                    Count = group.Count()
-                }).ToDictionaryAsync(g => g.RoomId, g => g.Count);
-
-            var myRooms = await _context.Rooms
-             .Where(r => r.Player == loggedUser && r.Tournament == null)
-             .Include(r => r.Game)
-             .Include(r => r.Tournament)
-             .ToListAsync();
 
             var joinedRooms = await _context.JoinRooms
                 .Where(r => r.User == loggedUser && r.Room.Tournament == null)
@@ -71,13 +58,23 @@ namespace TrackMyScore.Controllers
                 .Include(r => r.Room.Game)
                 .Include(r => r.Room.Tournament)
                 .ToListAsync();
+            
+            var joinedPlayers = new Dictionary<Room, List<User>>();
 
-            ViewBag.JoinedRooms = joinedRooms;
-            ViewBag.MyRooms = myRooms;
-            ViewBag.JoinedPlayers = joinedPlayers;
-            ViewBag.RoomList = roomList;
+            foreach(var room in joinedRooms){
+                var players = await _context.JoinRooms
+                    .Where(r => r.Room.Id == room.Room.Id)
+                    .Include(r => r.User)
+                    .Select(r => r.User)
+                    .ToListAsync();
+                
+                joinedPlayers.Add(room.Room, players);
+            }
+            
 
-            return View();
+            var roomListModel = new RoomListModel(joinedRooms, roomList, joinedPlayers, joinedPlayers.Count);
+
+            return View(roomListModel);
         }
 
         [HttpGet]
@@ -147,16 +144,13 @@ namespace TrackMyScore.Controllers
                 teams = await _context.Participants
                     .Where(p => p.Match.Id == currentMatch.Id)
                     .GroupBy(p => p.Team)
+                    .Where(g => g.Key != null)
                     .Select(g => new {
                         Team = g.Key,
                         Score = g.First().Score
                     })
-                    .ToDictionaryAsync(x => x.Team, x => x.Score);
-            }
-
-            
-            
-            
+                    .ToDictionaryAsync(x => x.Team!, x => x.Score);
+            }      
 
             var model = new CurrentRoomModel
             {
@@ -268,7 +262,14 @@ namespace TrackMyScore.Controllers
                 Game = game
             };
 
+            var joinRoom = new JoinRoom
+            {
+                Room = room,
+                User = user
+            };
+
             await _context.Rooms.AddAsync(room);
+            await _context.JoinRooms.AddAsync(joinRoom);
             await _context.SaveChangesAsync();
 
             return RedirectToAction("CurrentRoom", "Room", new { id = room.Id });
@@ -278,62 +279,59 @@ namespace TrackMyScore.Controllers
         [HttpPost]
         public async Task<IActionResult> Start(int roomId, Dictionary<int, string> teamAssignments, Dictionary<int, string> roles)
         {
-
-            Room room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == roomId);
+            var room = await _context.Rooms
+                .Include(r => r.Game)
+                .Include(r => r.Player)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
 
             if (room == null)
-            {
                 return Json(new { success = false, message = "Room not found." });
-            }
+
+            if (room.Player == null)
+                return Json(new { success = false, message = "Room host not found." });
+
+            if (teamAssignments == null || roles == null)
+                return Json(new { success = false, message = "Team assignments or roles not provided." });
 
             room.Stage = 0;
             room.Mode = "team";
 
-            Match match = new Match
+            var match = new Match
             {
                 StartDate = DateTime.Now,
-                EndDate = null,
                 Room = room,
-                Type = room.Type,
+                Type = room.Mode
             };
 
             await _context.Matches.AddAsync(match);
 
             foreach (var assignment in teamAssignments)
             {
-                var playerId = assignment.Key;
+                if (string.IsNullOrEmpty(assignment.Value)) continue;
 
-                User player = await _context.Users.FirstOrDefaultAsync(u => u.Id == playerId);
+                var player = await _context.Users.FindAsync(assignment.Key);
+                if (player == null) continue;
 
-                var teamName = assignment.Value;
-                var role = roles.ContainsKey(playerId) ? roles[playerId] : string.Empty;
+                string role = roles.TryGetValue(assignment.Key, out var r) ? r : "Player";
 
-                if (room != null && player != null && teamName != null)
+                Team team = new Team
                 {
+                    Name = assignment.Value
+                };
 
-                    Team team = new Team
-                    {
-                        Name = teamName,
-                    };
-
-                    Participant participant = new Participant
-                    {
-                        Role = role,
-                        Match = match,
-                        User = player,
-                        Team = team,
-                        Score = 0
-                    };
-
-                    await _context.Teams.AddAsync(team);
-                    await _context.Participants.AddAsync(participant);
-
-                }
-
+                Participant participant = new Participant
+                {
+                    Role = role,
+                    Match = match,
+                    User = player,
+                    Team = team,
+                    Score = 0
+                };
+                await _context.Teams.AddAsync(team);
+                await _context.Participants.AddAsync(participant);
             }
 
             await _context.SaveChangesAsync();
-
             return Json(new { success = true, message = "Match started." });
         }
         
@@ -396,78 +394,69 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> End(int matchId)
         {
             var match = await _context.Matches
-                .FirstOrDefaultAsync(r => r.Id == matchId);
+                .Include(m => m.Room)
+                .FirstOrDefaultAsync(m => m.Id == matchId);
 
-            if(match == null)
+            if (match?.Room == null)
             {
                 return Json(new { success = false, message = "Match not found" });
             }
 
-            var room = match.Room;
-
-            if (room == null)
+            if (match.Room.Mode == "single")
             {
-                return Json(new { success = false, message = "Room not found." });
-            }
-
-            if (room.Mode == "single")
-            {
-
                 var maxScore = await _context.Participants
                     .Where(p => p.Match.Id == match.Id)
                     .Select(p => p.Score)
                     .MaxAsync();
 
                 var winners = await _context.Participants
-                    .Include(p => p.User)
                     .Where(p => p.Match.Id == match.Id && p.Score == maxScore)
+                    .Include(p => p.User)
                     .ToListAsync();
 
-                if (winners == null)
+                if (winners == null || winners.Count == 0)
                 {
-                    return Json(new { success = false, message = "Participant not found." });
+                    return Json(new { success = false, message = "No winners found" });
                 }
 
-                if(winners.Count > 1){
-                    return Json(new { success = false, message = "There is a tie between two players." });
+                if (winners.Count > 1)
+                {
+                    return Json(new { success = false, message = "There is a tie between players." });
                 }
 
-                match.Winner = winners[0].User.Username;
+                match.Winner = winners[0].User?.Username;
             }
-            else if (room.Mode == "team")
+            else if (match.Room.Mode == "team")
             {
                 var maxScore = await _context.Participants
                     .Where(p => p.Match.Id == match.Id)
                     .Select(p => p.Score)
                     .MaxAsync();
 
-                var winningTeam = await _context.Participants
-                    .Where(p => p.Match.Id == match.Id && p.Score == maxScore)
+                var winningTeams = await _context.Participants
+                    .Where(p => p.Match.Id == match.Id && p.Score == maxScore && p.Team != null)
                     .Select(p => p.Team)
+                    .Distinct()
                     .ToListAsync();
 
-                if (winningTeam == null)
+                if (winningTeams == null || winningTeams.Count == 0)
                 {
-                    return Json(new { success = false, message = "Team not found" });
+                    return Json(new { success = false, message = "No winning team found" });
                 }
 
-                if(winningTeam.Count > 1){
-                    return Json(new { success = false, message = "There is a tie between the teams." });
+                if (winningTeams.Count > 1)
+                {
+                    return Json(new { success = false, message = "There is a tie between teams." });
                 }
 
-                match.Winner = winningTeam[0].Name;
-            }     
+                match.Winner = winningTeams[0].Name;
+            }
+
             match.EndDate = DateTime.Now;
             match.Room.Stage = -2;
 
             await _context.SaveChangesAsync();
-            var url = $"Room/CurrentRoom/{match.Room.Id}";
-            return Json(new
-            {
-                success = true,
-                url
-            });
-
+            return RedirectToAction("CurrentRoom", "Room", new { id = match.Room.Id });
         }
 
         [HttpPost]
@@ -495,59 +484,119 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPoint(int matchId, int participantId){
+        public async Task<IActionResult> AddPoint(int matchId, int participantId)
+        {
+            var match = await _context.Matches
+                .Include(m => m.Room)
+                .FirstOrDefaultAsync(m => m.Id == matchId);
         
-        var participant = await _context.Participants
-            .Where(p => p.Match.Id == matchId)
-            .Include(p => p.Match)
-            .FirstOrDefaultAsync(p => p.Id == participantId);
-
-        if(participant == null)
-            return Json(new { success = false, message = "Participant not found." });
-
-        var match = await _context.Matches
-            .FirstOrDefaultAsync(m => m.Id == matchId);
-
-        if(match == null)
-            return Json(new { success = false, message = "Match not found." });
-
-        if(match.Room.Mode == "single"){
-            participant.Score++;
-        } else if(match.Room.Mode == "team"){
-
-            var team = await _context.Participants
-                .FirstOrDefaultAsync(p => p.Team.Id == participantId);
-
-            var teamMembers = await _context.Participants
-                .Where(p => p.Team.Id == team.Team.Id)
-                .ToListAsync();
-
-            foreach(var member in teamMembers){
-                member.Score++;
+            if (match?.Room == null)
+                return Json(new { success = false, message = "Match not found." });
+        
+            if (match.Room.Mode == "single")
+            {
+                var participant = await _context.Participants
+                    .Include(p => p.User)
+                    .FirstOrDefaultAsync(p => p.Id == participantId && p.Match.Id == matchId);
+        
+                if (participant == null)
+                    return Json(new { success = false, message = "Participant not found." });
+        
+                participant.Score++;
             }
+        
+        
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Point added successfully." });
         }
 
-        await _context.SaveChangesAsync();
-
-        return Json(new { success = true, message = "Point added successfully." });
-    }
-
         [HttpPost]
-        public async Task<IActionResult> RemovePoint(int matchId, int participantId){
+        public async Task<IActionResult> RemovePoint(int matchId, int participantId)
+        {
+            var match = await _context.Matches
+                .Include(m => m.Room)
+                .FirstOrDefaultAsync(m => m.Id == matchId);
 
-            var participant = await _context.Participants
-                .Where(p => p.Match.Id == matchId)
-                .Include(p => p.Match)
-                .FirstOrDefaultAsync(p => p.Id == participantId);
+            if (match?.Room == null)
+                return Json(new { success = false, message = "Match not found." });
 
-            if(participant == null)
-                return Json(new { success = false, message = "Participant not found." });
+            if (match.Room.Mode == "single")
+            {
+                var participant = await _context.Participants
+                    .FirstOrDefaultAsync(p => p.Id == participantId && p.Match.Id == matchId);
 
-            participant.Score--;
+                if (participant == null)
+                    return Json(new { success = false, message = "Participant not found." });
+
+                if (participant.Score > 0)
+                    participant.Score--;
+            }
+            
             await _context.SaveChangesAsync();
-
             return Json(new { success = true, message = "Point removed successfully." });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> AddPointTeam(int matchId, int teamId)
+        {
+            var match = await _context.Matches
+                .Include(m => m.Room)
+                .FirstOrDefaultAsync(m => m.Id == matchId);
+
+            if (match?.Room == null)
+                return Json(new { success = false, message = "Match not found." });
+
+            if (match.Room.Mode != "team")
+                return Json(new { success = false, message = "Match is not in team mode." });
+
+            var teamMembers = await _context.Participants
+                .Where(p => p.Match.Id == matchId && 
+                       p.Team != null && 
+                       p.Team.Id == teamId)
+                .ToListAsync();
+
+            if (!teamMembers.Any())
+                return Json(new { success = false, message = "No team members found." });
+
+            foreach (var member in teamMembers)
+            {
+                member.Score++;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Points added to team successfully." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemovePointTeam(int matchId, int teamId)
+        {
+            var match = await _context.Matches
+                .Include(m => m.Room)
+                .FirstOrDefaultAsync(m => m.Id == matchId);
+
+            if (match?.Room == null)
+                return Json(new { success = false, message = "Match not found." });
+
+            if (match.Room.Mode != "team")
+                return Json(new { success = false, message = "Match is not in team mode." });
+
+            var teamMembers = await _context.Participants
+                .Where(p => p.Match.Id == matchId && 
+               p.Team != null && 
+               p.Team.Id == teamId &&
+               p.Score > 0)
+            .ToListAsync();
+
+            if (!teamMembers.Any())
+                return Json(new { success = false, message = "No team members found with points to remove." });
+
+            foreach (var member in teamMembers)
+            {
+                member.Score--;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Points removed from team successfully." });
+        }
     }
 }

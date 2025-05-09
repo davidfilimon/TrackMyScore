@@ -12,7 +12,7 @@
     <p>Game: @Model.Room.Game.Title</p>
     <p>Creator: @Model.Room.Player.Username</p>
     <p>Location: @Model.Room.Location</p>
-    <p>Numar jucatori: @(joinedPlayers + 1) / @Model.Room.Game.MaxPlayers</p>
+    <p>Numar jucatori: @joinedPlayers / @Model.Room.Game.MaxPlayers</p>
     <p>Start Date: @Model.Room.StartDate</p>
     <p>Room Type: @Model.Room.Type</p>
     @if(Model.Room.Stage == -1){
@@ -75,12 +75,14 @@
                 <th>
                     Score
                 </th>
+                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Player.Username){
                 <th>
                     Add point
                 </th>
                 <th>
                     Remove point
                 </th>
+                }
                 @foreach (var participant in Model.Participants)
                 {
                     <tr>
@@ -90,7 +92,7 @@
                         <td>
                             @participant.Score
                         </td>
-                        @if(Model.Room.Stage == 0){   
+                        @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Player.Username){   
                             <td>
                                 <button class="btn" onclick="addPoint(@Model.CurrentMatch.Id, @participant.Id)">Add Point</button>
                             </td>
@@ -110,24 +112,29 @@
                 <th>
                     Score
                 </th>
+                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Player.Username){
                 <th>
                     Add point
                 </th>
                 <th>
                     Remove point
                 </th>
+                }
                 @foreach (var team in Model.Teams)
                 {
                     <tr>
                         <td>
-                            @team.Name
+                            @team.Key.Name
                         </td>
-                        @if(Model.Room.Stage == 0){   
+                        <td>
+                            @team.Value
+                        </td>
+                        @if(Model.Room.Stage == 0 && Model.Room.Player.Username == Model.LoggedUser.Username){   
                             <td>
-                                <button class="btn" onclick="addPoint(@Model.CurrentMatch.Id, @team.Id)">Add Point</button>
+                                <button class="btn" onclick="addPointTeam(@Model.CurrentMatch.Id, @team.Key.Id)">Add Point</button>
                             </td>
                             <td>
-                                <button class="btn btn-danger" onclick="removePoint(@Model.CurrentMatch.Id, @team.Id)">Remove Point</button>
+                                <button class="btn btn-danger" onclick="removePointTeam(@Model.CurrentMatch.Id, @team.Key.Id)">Remove Point</button>
                             </td>
                         }                           
                     </tr>
@@ -156,13 +163,6 @@
                     </div>
                     <hr />
                     <h5>Assign players to their teams and roles.</h5>
-                    <div class="mb-2">
-                        <label>@Model.Room.Player.Username</label>
-                        <select name="teamAssignments[@Model.Room.Player.Id]" class="form-select team-select">
-                            <option value="">--Selecteaza o echipa--</option>
-                        </select>
-                        <input type="text" name="roles[@Model.Room.Player.Id]" class="form-control mt-2" placeholder="Role" />
-                    </div>
                     @if (players == null || !players.Any())
                     {
                         <p>No players have joined yet.</p>
@@ -200,8 +200,7 @@
             },
             success: function(response) {
                 if(response.success){
-                    alert(response.message);
-                    window.location.href = response.url;
+                    location.reload();
                 } else {
                     alert(response.message);
                 }
@@ -236,6 +235,40 @@
             data: {
                 matchId: matchId,
                 participantId: participantId
+            },
+            success: function(){
+                location.reload();
+            },
+            error: function(xhr, status, error){
+                alert('An error occurred while removing a point.');
+            }
+        })
+    }
+
+    function addPointTeam(matchId, teamId){
+        $.ajax({
+            url: "/Room/AddPointTeam",
+            type: "POST",
+            data: {
+                matchId: matchId,
+                teamId: teamId
+            },
+            success: function(){
+                location.reload();
+            },
+            error: function(xhr, status, error){
+                alert('An error occurred while adding a point.');
+            }
+        })
+    }
+
+    function removePointTeam(matchId, teamId){
+        $.ajax({
+            url: "/Room/RemovePointTeam",
+            type: "POST",
+            data: {
+                matchId: matchId,
+                teamId: teamId
             },
             success: function(){
                 location.reload();

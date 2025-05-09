@@ -1,8 +1,7 @@
-﻿@{
-    List<Room> roomList = ViewBag.RoomList;
-    Dictionary<int, int> joinedPlayers = ViewBag.JoinedPlayers;
-    List<Room> myRooms = ViewBag.MyRooms;
-    List<JoinRoom> joinedRooms = ViewBag.JoinedRooms;
+﻿@model RoomListModel
+
+@{
+    int playerCount = Model.playerCount;
 }
 
 <h1>
@@ -10,8 +9,8 @@
 </h1>
 
 <div>
-    @if(roomList != null && roomList.Any()){
-        @foreach(var room in roomList){
+    @if(Model.roomList != null && Model.roomList.Any()){
+        @foreach(var room in Model.roomList){
             <div>
                 Room Name: @room.Name
             </div>
@@ -19,7 +18,7 @@
                 Host Name: @room.Player.Username
             </div>
             <div>
-                Number of players: @(joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
+                Number of players: @(Model.joinedPlayers.ContainsKey(room) ? Model.joinedPlayers[room].Count : 0) / @room.Game.MaxPlayers
             </div>
             <div>
                 Game Name: @room.Game.Title
@@ -56,72 +55,14 @@
             No rooms available.
         </div>
     }
-</div>
-
-
+</div>    
 <h1>
-    Hosted Rooms:
+    Joined or Hosted Rooms:
 </h1>
 <div>
-    @foreach (var room in myRooms)
+    @if (Model.joinedRooms != null && Model.joinedRooms.Any())
     {
-        @if (room.Stage != -2)
-        {
-            <div>
-                Room Name: @room.Name
-            </div>
-            <div>
-                Host Name: @room.Player.Username
-            </div>
-            <div>
-                Number of players: @(joinedPlayers != null && joinedPlayers.ContainsKey(room.Id) ? joinedPlayers[room.Id] + 1 : 1) / @room.Game.MaxPlayers
-            </div>
-            <div>
-                Game Name: @room.Game.Title
-            </div>
-            <div>
-                Room Description: @room.Game.Description
-            </div>
-            @if (room.Stage == -1)
-            {
-                <div>
-                    Waiting for the host to start the game.
-                </div>
-            }
-            else if (room.Stage == -2)
-            {
-                <div>
-                    Match already ended.
-                </div>
-            }
-            else if (room.Stage == 0)
-            {
-                <div>
-                    There is an ongoing match.
-                </div>
-            }
-            <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
-                View Details
-            </a>
-        }
-        else
-        {
-            <div>
-                No rooms created or no rooms available.
-            </div>
-            break;
-        }
-    }
-
-    
-</div>
-<h1>
-    Joined Rooms:
-</h1>
-<div>
-    @if (joinedRooms != null && joinedRooms.Any())
-    {
-        @foreach (var joinedRoom in joinedRooms)
+        @foreach (var joinedRoom in Model.joinedRooms)
         {
             @if(joinedRoom.Room.Stage != -2){
                 <div>
@@ -131,7 +72,7 @@
                     Host Name: @joinedRoom.Room.Player.Username
                 </div>
                 <div>
-                    Number of players: @(joinedPlayers != null && joinedPlayers.ContainsKey(joinedRoom.Room.Id) ? joinedPlayers[joinedRoom.Room.Id] + 1 : 1) / @joinedRoom.Room.Game.MaxPlayers
+                    Number of players: @(Model.joinedPlayers.ContainsKey(joinedRoom.Room) ? Model.joinedPlayers[joinedRoom.Room].Count : 0) / @joinedRoom.Room.Game.MaxPlayers
                 </div>
                 <div>
                     Game Name: @joinedRoom.Room.Game.Title
