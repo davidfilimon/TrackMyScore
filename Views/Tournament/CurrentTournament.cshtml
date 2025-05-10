@@ -5,16 +5,70 @@
     <p>@Model.Tournament.Reward, @Model.Tournament.Game.Title, @Model.Tournament.StartDate, @Model.Tournament.RoomCount, @Model.Tournament.MaxPlayers, @Model.Tournament.Code, @Model.Tournament.Type, @Model.Tournament.Host.Username, @Model.Tournament.Winner</p>
     <p>@Model.Tournament.Winner</p>
     <div>
-        @foreach(var team in Model.Teams)
-        {
-            <p>@team.Key.Name</p>    
+        @if(Model.Tournament.Type == "single"){
+            @foreach(var team in Model.Teams)
+            {
+                <p>@team.Value</p>    
+            }
+        } else if(Model.Tournament.Type == "team"){
+            @foreach(var team in Model.Teams)
+            {
+                <p>@team.Key.Name</p>    
+            }
         }
     </div>
+
+    <button onclick="openJoinModal()">Join Tournament</button>
 
     @if(@Model.LoggedUser == @Model.Tournament.Host){
         <button onclick="startTournament()">Start Tournament</button>
         <button onclick="deleteTournament()">Delete Tournament</button>
     }
+</div>
+
+<div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="joinModalLabel">Join Tournament</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            @if(Model.Tournament.Type == "single"){
+                <div class="modal-body">
+                    <form id="joinFormSingle" onsubmit="joinTournamentSingle(@Model.Tournament.Id, $('#code').val());">
+                        <div class="mb-3">
+                            <label for="code" class="form-label">Tournament Code</label>
+                            <input type="text" class="form-control" id="code" name="code" required autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Join</button>
+                    </form>
+                </div>
+            }
+            @if(Model.Tournament.Type == "team"){
+                <div class="modal-body">
+                    <form id="joinFormTeam" onsubmit="joinTournamentTeam(@Model.Tournament.Id, $('#code').val(), $('#teammates').val(), $('#teamName').val());">
+                        <div class="mb-3">
+                            <label for="code" class="form-label">Tournament Code</label>
+                            <input type="text" class="form-control" id="code" name="code" required autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="teamName" class="form-label">Team Name</label>
+                            <input type="text" class="form-control" id="teamName" name="teamName" required autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="teammates" class="form-label">Teammates</label>
+                            <select class="form-select" id="teammates" name="teammates" multiple required>
+                                @foreach(var user in Model.MutualFollowers){
+                                    <option value="@user.Id">@user.Username</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Team</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 <script>
@@ -55,4 +109,55 @@
             }
         });
     }
+
+    function openJoinModal() {
+        $('#joinModal').modal('show');
+    }
+
+    function joinTournamentSingle(id, code){
+        $.ajax({
+            url: '/Tournament/JoinSingle',
+            type: 'POST',
+            data: {
+                id: id,
+                code: code
+            },
+            success: function(data){
+                if(data.success){
+                    alert(data.message);
+                    window.location.href = '/Tournament/CurrentTournament/' + id;
+                } else {
+                    alert(data.message);
+                }
+            },
+            error: function(xhr, status, error){
+                console.error('Error joining tournament:', error);
+            }
+        })
+    }
+
+    function joinTournamentTeam(id, code, teammates, teamName){
+        $.ajax({
+            url: '/Tournament/JoinTeam',
+            type: 'POST',
+            data: {
+                id: id,
+                code: code,
+                teammates: teammates,
+                teamName: teamName
+            },
+            success: function(data){
+                if(data.success){
+                    alert(data.message);
+                    window.location.href = '/Tournament/CurrentTournament/' + id;
+                } else {
+                    alert(data.message);
+                }
+            },
+            error: function(xhr, status, error){
+                console.error('Error joining tournament:', error);
+            }
+        })
+    }
+
 </script>
