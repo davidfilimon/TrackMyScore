@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
 
@@ -182,6 +183,9 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> CurrentTournament(int id) {
             var user = await GetLoggedUserAsync();
+            var mutualFollowers = await GetMutualFollowersAsync(user);
+            List<Team> teams = null;
+
             var tournament = await _context.Tournaments
                 .Include(t => t.Host)
                 .Include(t => t.Game)
@@ -191,23 +195,24 @@ namespace TrackMyScore.Controllers
                 return NotFound();
             }
 
-            var teams = await _context.Players
-                .Where(p => p.Tournament.Id == id && p.Team != null)
-                .Include(p => p.User)
-                .Include(p => p.Team)
-                .GroupBy(p => p.Team)
-                .ToDictionaryAsync(g => g.Key!, g => g.Select(p => p.User).ToList());
-
             var players = await _context.Players
-                .Where(p => p.Tournament.Id == id && p.Team == null)
-                .Select(p => p.User)
+                .Where(p => p.Tournament.Id == id)
+                .Include(p => p.Team)
                 .ToListAsync();
+
+            if(tournament.Type == "team"){
+                foreach(var player in players){
+                    teams = await _context.Players
+                        .Where(p => p.User.Id == player.Id && p.Tournament.Id == id)
+                        .Select(p => p.Team)
+                        .Distinct()
+                        .ToListAsync();
+                }
+            }
     
             var rooms = await _context.Rooms
                 .Where(r => r.Tournament.Id == id)
                 .ToListAsync();
-
-            var mutualFollowers = await GetMutualFollowersAsync(user);
 
             var model = new TournamentModel(user, tournament, players, rooms, teams, mutualFollowers);
             return View(model);
@@ -372,7 +377,7 @@ namespace TrackMyScore.Controllers
                 foreach(var p in teamPlayers){
                     _context.Players.Remove(p);
                 }
-
+                
                 _context.Teams.Remove(team);
                 await _context.SaveChangesAsync();
 
