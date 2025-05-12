@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
+using TrackMyScore.Services;
 
 namespace TrackMyScore.Controllers
 {
@@ -13,15 +14,17 @@ namespace TrackMyScore.Controllers
         private readonly AppDbContext _context;
         private static readonly char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
         private static readonly Random random = new Random();
+        private readonly UserService _userService;
 
         private string GenerateTournamentCode(){ // method for generating a new code of 6 characters for tournaments
             return new string(Enumerable.Repeat(chars, 6)
             .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        public TournamentController(AppDbContext context)
+        public TournamentController(AppDbContext context, UserService userService)
         {
             _context = context;
+            _userService = userService;
         }
 
         private async Task<User> GetLoggedUserAsync() // getting logged user
@@ -104,7 +107,9 @@ namespace TrackMyScore.Controllers
                     };
                     await _context.Rooms.AddAsync(newRoom);
                 }
-                currentTournamentId = newTournament.Id;
+                await _context.SaveChangesAsync();
+                return RedirectToAction("CurrentTournament", "Tournament", new {id = newTournament.Id});
+
 
             } else if (mode == "team"){ // team mode tournament
                 var newTournament = new Tournament
@@ -139,16 +144,12 @@ namespace TrackMyScore.Controllers
                     };               
                     await _context.Rooms.AddAsync(newRoom);
                 }
-            currentTournamentId = newTournament.Id;
+                await _context.SaveChangesAsync(); // saving changes
+
+                return RedirectToAction("CurrentTournament", "Tournament", new {id = newTournament.Id}); // redirecting to newly created tournament view
             }
 
-            if(currentTournamentId == -1){ // check if tournament was created
-                return NotFound();
-            }
-            
-            await _context.SaveChangesAsync(); // saving changes
-
-            return RedirectToAction("CurrentTournament", "Tournament", new {currentTournamentId}); // redirecting to newly created tournament view
+            return NotFound(); // returns not found if doesnt create the tournament
         }
 
         [HttpGet]
@@ -456,14 +457,13 @@ namespace TrackMyScore.Controllers
                     .ToListAsync();
 
                 var players = await _context.Players
-                    .Where(p => p.Tournament.Id == id)
                     .Include(p => p.User)
                     .ToListAsync();
 
                 foreach(var room in rooms){
                     playerNumber = 0;
                     foreach(var player in players){
-                        if(room.Game.MaxPlayers == playerNumber){
+                        if(playerNumber == 2){
                             break;
                         }
 
@@ -476,7 +476,7 @@ namespace TrackMyScore.Controllers
                             );
 
                         playerNumber++;
-                    } // Room is full
+                    }
 
                     await _context.SaveChangesAsync();
                 }
@@ -519,6 +519,78 @@ namespace TrackMyScore.Controllers
             return Json(new {success = true, message = "Tournament started."});
         }
 
-        // tournament start, end, brackets = room / 2, location for tournament (optional) // dont edit this
+        [HttpPost]
+        public async Task<IActionResult> EndBracket(int roomId)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Tournament)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room == null)
+            {
+                return Json(new { success = false, message = "Room not found." });
+            }
+
+            var tournament = room.Tournament;
+            var match = await _context.Matches
+                .FirstOrDefaultAsync(m => m.Room.Id == roomId);
+
+            if (match == null)
+            {
+                return Json(new { success = false, message = "Match not found." });
+            }
+
+            RoomController roomController = new RoomController(_context, _userService);
+            await roomController.End(match.Id);
+
+            var winner = match.Winner;
+
+            // Find all rooms in the current stage
+            var currentStageRooms = await _context.Rooms
+                .Where(r => r.Tournament.Id == tournament.Id && r.Stage == room.Stage)
+                .ToListAsync();
+
+            // Check if all rooms in current stage have completed
+            bool allRoomsCompleted = currentStageRooms.All(r => 
+                _context.Matches.Any(m => m.Room.Id == r.Id && m.Room.Stage == -2));
+
+            if (!allRoomsCompleted)
+            {
+                // Wait for other matches in this stage to complete
+                return Json(new { success = true, message = "Match ended. Waiting for other matches in this stage to complete." });
+            }
+
+            // If this is the final stage (stage 0), set tournament winner
+            if (tournament.IsActive == false)
+            {
+                tournament.Winner = winner;
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Tournament ended. Winner: " + winner });
+            }
+
+            // Create rooms for next stage (half as many rooms)
+            int nextStage = room.Stage - 1;
+            int roomsToCreate = currentStageRooms.Count / 2;
+
+            for (int i = 0; i < roomsToCreate; i++)
+            {
+                var newRoom = new Room
+                {
+                    Name = "Room " + i + " - " + tournament.Name,
+                    Tournament = tournament,
+                    Stage = nextStage,
+                    Game = tournament.Game,
+                    Player = tournament.Host
+                };
+                await _context.Rooms.AddAsync(newRoom);
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Next stage rooms created." });
+        }
+       
     }
+
+    // tournament start, end, brackets = room / 2, location for tournament (optional) // dont edit this
 }
+

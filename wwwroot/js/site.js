@@ -241,14 +241,3 @@ function startGame(roomId) {
     });
 }
 
-let tournamentMode = 'single';
-
-function toggleTournamentMode(mode){
-    tournamentMode = mode;
-
-    if(mode == 'team'){
-        $('#playerNumberDiv').show();
-    } else {
-        $('#playerNumberDiv').hide();
-    }
-}

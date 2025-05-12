@@ -35,6 +35,24 @@
         <button class="btn btn-dark" onclick="startTournament()">Start Tournament</button>
         <button class="btn btn-danger" onclick="deleteTournament()">Delete Tournament</button>
     }
+
+    <div>
+        @foreach(var room in Model.Rooms){
+            <p>
+                @room.Name
+                <a class="btn btn-dark" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
+                    View Details
+                </a>
+                @if(room.Stage == -1 && room.Mode == "single"){
+                    <button class="btn btn-dark" onclick="startIndividualRoom(@room.Id)">Start Single Match</button>
+                } else if(room.Stage == -1 && room.Mode == "team"){
+                    <button class="btn btn-dark" onclick="startTeamRoom(@room.Id)">Start Team Match</button>
+                } else if(room.Stage == 0){
+                    <button class="btn btn-danger" onclick="endRoom(@room.Id)">End Match</button>
+                }
+            </p>
+        }
+    </div>
 </div>
 
 <div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
@@ -81,17 +99,18 @@
         </div>
     </div>
 </div>
-
 <script>
     function startTournament() {
         $.ajax({
             url: '/Tournament/Start',
             type: 'POST',
-            data: { id: @Model.Tournament.Id },
+            data: {
+                id: @Model.Tournament.Id
+            },
             success: function (data) {
                 if (data.success) {
                     alert('Tournament started successfully!');
-                    window.location.href = '/Tournament/CurrentTournament/' + @Model.Tournament.Id;
+                    location.reload();
                 } else {
                     alert('Failed to start tournament: ' + data.message);
                 }
@@ -188,6 +207,48 @@
             },
             error: function(xhr, status, error){
                 console.error('Error leaving tournament:', error);
+            }
+        })
+    }
+
+    function startIndividualRoom(roomId){
+        $.ajax({
+            url: "Room/StartIndividual",
+            type: "POST",
+            data: {
+                roomId : roomId
+            },
+            success: function(data){
+                if(data.success){
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            },
+            error: function(xhr, status, error){
+                console.error('Error starting room:', error);
+            }
+        })
+    }
+    
+    function endRoom(roomId){
+        $.ajax({
+            url: "Tournament/EndBracket",
+            type: "POST",
+            data: {
+                roomId : roomId
+            },
+            success: function(data){
+                if(data.success){
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            },
+            error: function(xhr, status, error){
+                console.error('Error ending room:', error);
             }
         })
     }
