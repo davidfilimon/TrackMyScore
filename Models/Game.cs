@@ -16,7 +16,7 @@ namespace TrackMyScore.Models
         [Required]
         public string Difficulty { get; set; }
         [Required]
-        [ForeignKey("UserId")]
+        public int AuthorId { get; set; }
         public User Author { get; set; }
         public bool IsOfficial {  get; set; }
 

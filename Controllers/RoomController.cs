@@ -38,15 +38,15 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RoomList()
+        public async Task<IActionResult> List()
         {
             User loggedUser = await GetLoggedUserAsync();
 
             var roomList = await _context.Rooms
                 .Where(r => r.Stage == -1 && r.Tournament == null)
-                .Where(r => r.Player != loggedUser) 
+                .Where(r => r.Host != loggedUser) 
                 .Where(r => !_context.JoinRooms.Any(jr => jr.Room == r && jr.User == loggedUser)) 
-                .Include(r => r.Player)
+                .Include(r => r.Host)
                 .Include(r => r.Game)
                 .Include(r => r.Tournament)
                 .ToListAsync();
@@ -102,7 +102,7 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> CurrentRoom(int id)
         {
             Room room = await _context.Rooms
-                .Include(r => r.Player)
+                .Include(r => r.Host)
                 .Include(r => r.Game)
                 .Include(r => r.Tournament)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -258,7 +258,7 @@ namespace TrackMyScore.Controllers
                 StartDate = s,
                 Stage = -1,
                 Mode = "pending",
-                Player = user,
+                Host = user,
                 Game = game
             };
 
@@ -281,13 +281,13 @@ namespace TrackMyScore.Controllers
         {
             var room = await _context.Rooms
                 .Include(r => r.Game)
-                .Include(r => r.Player)
+                .Include(r => r.Host)
                 .FirstOrDefaultAsync(r => r.Id == roomId);
 
             if (room == null)
                 return Json(new { success = false, message = "Room not found." });
 
-            if (room.Player == null)
+            if (room.Host == null)
                 return Json(new { success = false, message = "Room host not found." });
 
             if (teamAssignments == null || roles == null)
@@ -339,10 +339,10 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> StartIndividual(int roomId)
         {
             var room = await _context.Rooms
-                .Include(r => r.Player)
+                .Include(r => r.Host)
                 .FirstOrDefaultAsync(r => r.Id == roomId);
 
-            if (room == null || room.Player == null)
+            if (room == null || room.Host == null)
                 return Json(new { success = false });
 
             var joinedPlayers = await _context.JoinRooms
@@ -351,9 +351,9 @@ namespace TrackMyScore.Controllers
                 .ToListAsync();
 
             if (!joinedPlayers.Any())
-                return RedirectToAction("RoomList", "Room");
+                return RedirectToAction("List", "Room");
 
-            var playerIds = joinedPlayers.Select(j => j.User.Id).Append(room.Player.Id).ToList();
+            var playerIds = joinedPlayers.Select(j => j.User.Id).Append(room.Host.Id).ToList();
             var players = await _context.Users
                 .Where(u => playerIds.Contains(u.Id))
                 .ToListAsync();
@@ -480,7 +480,7 @@ namespace TrackMyScore.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction("RoomList", "Room");
+            return RedirectToAction("List", "Room");
         }
 
         [HttpPost]

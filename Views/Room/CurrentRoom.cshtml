@@ -10,7 +10,7 @@
 <div>
     <p>Room Name: @Model.Room.Name</p>
     <p>Game: @Model.Room.Game.Title</p>
-    <p>Creator: @Model.Room.Player.Username</p>
+    <p>Creator: @Model.Room.Host.Username</p>
     <p>Location: @Model.Room.Location</p>
     <p>Numar jucatori: @joinedPlayers / @Model.Room.Game.MaxPlayers</p>
     <p>Start Date: @Model.Room.StartDate</p>
@@ -29,7 +29,7 @@
         </div>
     }
     @if(Model.Room.Stage != -2){
-        @if (loggedUser.Username != Model.Room.Player.Username && Model.Room.Stage == -1)
+        @if (loggedUser.Username != Model.Room.Host.Username && Model.Room.Stage == -1)
     {
         @if (userJoined)
         {
@@ -48,13 +48,13 @@
                 <button type="submit" class="btn btn-danger">Delete</button>
             </form>
         }
-        else if (Model.Room.Stage == 0 && loggedUser.Username == Model.Room.Player.Username)
+        else if (Model.Room.Stage == 0 && loggedUser.Username == Model.Room.Host.Username)
         {
             <button id="endMatchButton" class="btn btn-danger" style="display:block;" onclick="endMatch(@Model.CurrentMatch.Id)">End Match</button>
         }
         
     }
-@if (loggedUser.Username == Model.Room.Player.Username && Model.Room.Stage == -1)
+@if (loggedUser.Username == Model.Room.Host.Username && Model.Room.Stage == -1)
 {
     <div>
         <label>Mode:</label>
@@ -75,7 +75,7 @@
                 <th>
                     Score
                 </th>
-                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Player.Username){
+                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Host.Username){
                 <th>
                     Add point
                 </th>
@@ -92,7 +92,7 @@
                         <td>
                             @participant.Score
                         </td>
-                        @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Player.Username){   
+                        @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Host.Username){   
                             <td>
                                 <button class="btn" onclick="addPoint(@Model.CurrentMatch.Id, @participant.Id)">Add Point</button>
                             </td>
@@ -112,7 +112,7 @@
                 <th>
                     Score
                 </th>
-                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Player.Username){
+                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Host.Username){
                 <th>
                     Add point
                 </th>
@@ -129,7 +129,7 @@
                         <td>
                             @team.Value
                         </td>
-                        @if(Model.Room.Stage == 0 && Model.Room.Player.Username == Model.LoggedUser.Username){   
+                        @if(Model.Room.Stage == 0 && Model.Room.Host.Username == Model.LoggedUser.Username){   
                             <td>
                                 <button class="btn" onclick="addPointTeam(@Model.CurrentMatch.Id, @team.Key.Id)">Add Point</button>
                             </td>

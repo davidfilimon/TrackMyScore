@@ -7,13 +7,15 @@ namespace TrackMyScore.Models
     {
 
         public int Id { get; set; }
+
         [Required]
-        [ForeignKey("UserId")]
+        public int UserId { get; set; }
         public User User { get; set; }
-        
+
         [Required]
-        [ForeignKey("RoomId")]
+        public int RoomId { get; set; }
         public Room Room { get; set; }
+        
         public JoinRoom()
         {
             

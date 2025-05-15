@@ -8,15 +8,18 @@ namespace TrackMyScore.Models
  
         public int Id { get; set; }
         [Required]
-        [ForeignKey("UserId")]
+        public int UserId { get; set; }
         public User User { get; set; }
+        
         [Required]
-        [ForeignKey("TournamentId")]
+        public int TournamentId{ get; set; }
         public Tournament Tournament { get; set; }
         [Required]
         public bool Eliminated { get; set; }
-        [ForeignKey("TeamId")]
+        
+        public int? TeamId { get; set; }
         public Team? Team { get; set; }
+
         [Required]
         public int RespectPoints { get; set; }
         public Player()

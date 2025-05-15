@@ -79,6 +79,9 @@ namespace TrackMyScore.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -97,12 +100,9 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AuthorId");
 
                     b.ToTable("Games");
                 });
@@ -241,6 +241,9 @@ namespace TrackMyScore.Migrations
                     b.Property<int>("GameId")
                         .HasColumnType("int");
 
+                    b.Property<int>("HostId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -266,16 +269,13 @@ namespace TrackMyScore.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("TournamentId");
+                    b.HasIndex("HostId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("TournamentId");
 
                     b.ToTable("Rooms");
                 });
@@ -334,6 +334,9 @@ namespace TrackMyScore.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RoomCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Stage")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -431,7 +434,7 @@ namespace TrackMyScore.Migrations
                 {
                     b.HasOne("TrackMyScore.Models.User", "Author")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -526,19 +529,19 @@ namespace TrackMyScore.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TrackMyScore.Models.User", "Host")
+                        .WithMany()
+                        .HasForeignKey("HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TrackMyScore.Models.Tournament", "Tournament")
                         .WithMany()
                         .HasForeignKey("TournamentId");
 
-                    b.HasOne("TrackMyScore.Models.User", "Player")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Game");
 
-                    b.Navigation("Player");
+                    b.Navigation("Host");
 
                     b.Navigation("Tournament");
                 });
