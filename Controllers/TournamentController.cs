@@ -229,7 +229,12 @@ namespace TrackMyScore.Controllers
                 .Where(r => r.Tournament.Id == id)
                 .ToListAsync();
 
-            var model = new TournamentModel(user, tournament, players, rooms, teams, mutualFollowers);
+            var matches = await _context.Matches
+                .Include(r => r.Room)
+                .Where(m => m.Room.Tournament.Id == id)
+                .ToListAsync();
+
+            var model = new TournamentModel(user, tournament, players, rooms, teams, mutualFollowers, matches);
             return View(model);
         }
 

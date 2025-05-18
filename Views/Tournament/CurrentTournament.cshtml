@@ -114,22 +114,31 @@
             <li>
               <div>
                 <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
-                <span>Winner: match-winner</span>
+                <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
                 <span>Date: @Model.Tournament.StartDate</span>
-                <button>View Details</button>
+                <span>Match Ended</span>
               </div>
             </li>
           } else if (room.Stage == -1) {
             <li>
               <div>
                 <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
-                <span>Winner: match-winner</span>
+                <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
                 <span>Date: @Model.Tournament.StartDate</span>
-                <button onclick="">Start Match</button>
+                <span>Waiting to start match</span>
               </div>
             </li>
-          }
+      } else if (room.Stage == 0){
+          <li>
+              <div>
+                <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
+                <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
+                <span>Date: @Model.Tournament.StartDate</span>
+                <span>Ongoing Match</span>
+              </div>
+            </li>
         }
+      }
        </ol>
     </section>
     }
