@@ -354,7 +354,12 @@ namespace TrackMyScore.Controllers
             if (!joinedPlayers.Any())
                 return RedirectToAction("List", "Room");
 
-            var playerIds = joinedPlayers.Select(j => j.User.Id).Append(room.Host.Id).ToList();
+            var playerIds = joinedPlayers.Select(j => j.User.Id).ToList();
+
+            if(room.Tournament == null){
+              playerIds.Append(room.Host.Id);
+            }
+
             var players = await _context.Users
                 .Where(u => playerIds.Contains(u.Id))
                 .ToListAsync();
@@ -396,6 +401,7 @@ namespace TrackMyScore.Controllers
         {
             var match = await _context.Matches
                 .Include(m => m.Room)
+                  .ThenInclude(r => r.Tournament)
                 .FirstOrDefaultAsync(m => m.Id == matchId);
 
             if (match?.Room == null)
@@ -454,7 +460,11 @@ namespace TrackMyScore.Controllers
             }
 
             match.EndDate = DateTime.Now;
-            match.Room.Stage = -2;
+            if(match.Room.Tournament == null){
+              match.Room.Stage = -2;
+            } else {
+              match.Room.Stage = match.Room.Tournament.Stage;
+            }
 
             await _context.SaveChangesAsync();
             return RedirectToAction("CurrentRoom", "Room", new { id = match.Room.Id });

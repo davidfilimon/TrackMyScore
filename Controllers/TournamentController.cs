@@ -142,7 +142,7 @@ namespace TrackMyScore.Controllers
                 { // creating rooms for team mode tournament
                     var newRoom = new Room
                     {
-                        Name = "Room " + i + " - Tournament: " + name,
+                        Name = $"Room {i} - Tournament: {name} - Stage 1",
                         Host = host,
                         Game = game,
                         Tournament = newTournament,
@@ -499,107 +499,310 @@ namespace TrackMyScore.Controllers
                 return Json(new { success = false, message = "You are not the host of this tournament." });
             }
 
-            if (tournament.Type == "single")
+            var success = await StartStage(tournament);
+
+            if(!success)
             {
-                var rooms = await _context.Rooms
-                    .Where(r => r.Tournament.Id == id)
-                    .ToListAsync();
-
-                var players = await _context.Players
-                    .Include(p => p.User)
-                    .Where(p => !p.Eliminated)
-                    .ToListAsync();
-
-                int roomIndex = 0;
-                int playersInRoom = 0;
-
-                foreach (var player in players)
-                {
-                    if(roomIndex >= rooms.Count)
-                    {
-                      return Json(new { success = false, message = "Not enough rooms for players." });
-                    }
-
-                    var currentRoom = rooms[roomIndex];
-
-                    await _context.JoinRooms
-                      .AddAsync(
-                          new JoinRoom{
-                              User = player.User,
-                              Room = currentRoom
-                          });
-
-                    playersInRoom++;
-
-                    if(playersInRoom == 2){
-
-                      roomIndex++;
-                      playersInRoom = 0;
-                    }
-
-                }
-                    await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = "Players distributed successfully." });
-                
+              return Json(new { success = true, message = "Not enough rooms to distribute players or teams. "});
             }
-            else if (tournament.Type == "team")
-            {
-                var rooms = await _context.Rooms
-                    .Where(r => r.Tournament.Id == id)
-                    .ToListAsync();
 
-                var players = await _context.Players
-                  .Include(p => p.User)
-                  .Include(p => p.Team)
-                  .Where(p => p.Tournament.Id == id && !p.Eliminated && p.Team != null)
-                  .ToListAsync();
+            tournament.IsActive = true;
 
-                var teams = players
-                  .GroupBy(p => p.Team)
-                  .ToList();
-
-                int roomIndex = 0;
-                int teamsInRoom = 0;
-
-                foreach (var team in teams)
-                {
-
-                  if(roomIndex >= rooms.Count)
-                  {
-                    return Json(new { success = false, message = "Not enough rooms for teams." });
-                  }
-
-                  var currentRoom = rooms[roomIndex];
-
-                  foreach(var player in team)
-                  {
-                    await _context.JoinRooms.AddAsync(
-                        new JoinRoom
-                        {
-                          User = player.User,
-                          Room = currentRoom
-                        });
-                  }
-
-                  teamsInRoom++;
-                  if(teamsInRoom == 2){
-                    roomIndex++;
-                    teamsInRoom = 0;
-                  }
-                }
-
-                await _context.SaveChangesAsync();
-            }
+            await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Tournament started." });
         }
 
         [HttpPost]
-        public async Task<IActionResult> EndStage(int roomId)
+        public async Task<IActionResult> EndStage(int tournamentId)
         {
 
-            return null;
-            // method for ending the stage
+            var tournament = await _context.Tournaments
+              .Include(t => t.Game)
+              .Include(t => t.Host)
+              .FirstOrDefaultAsync(t => t.Id == tournamentId);
+
+            if(tournament == null)
+            {
+              return Json(new { success = false, message = "Tournament not found." });
+            }
+
+            if(tournament.Type == "single")
+            {
+              var winnerList = await _context.Matches
+                .Include(m => m.Room)
+                .Where(m => m.Room.Tournament == tournament && m.Room.Stage == tournament.Stage)
+                .Select(m => m.Winner)
+                .ToListAsync();
+
+              var playerList = await _context.Players
+                .Where(p => p.Tournament == tournament && !p.Eliminated)
+                .Include(p => p.User)
+                .ToListAsync();
+
+              foreach(var player in playerList)
+              {
+                  if(!winnerList.Contains(player.User.Username))
+                  {
+
+                    player.Eliminated = true;
+                    player.User.RespectPoints += player.RespectPoints;
+
+                  } else {
+
+                    player.RespectPoints *= 2;
+
+                  }
+              }
+            }
+            else if (tournament.Type == "team")
+            {
+              var winnerList = await _context.Matches
+                .Include(m => m.Room)
+                .Where(m => m.Room.Tournament == tournament && m.Room.Stage == tournament.Stage)
+                .Select(m => m.Winner)
+                .ToListAsync();
+
+              var teamList = await _context.Players
+                .Include(p => p.Team)
+                .Where(p => p.Tournament == tournament && !p.Eliminated && p.Team != null)
+                .Select(p => p.Team)
+                .Distinct()
+                .ToListAsync();
+
+              foreach(var team in teamList)
+              {
+
+                  var players = await _context.Players
+                      .Where(p => p.Tournament == tournament && p.Team == team)
+                      .Include(p => p.User)
+                      .ToListAsync();
+
+                  if(!winnerList.Contains(team.Name))
+                  {
+                    foreach(var player in players)
+                    {
+                      player.Eliminated = true;
+                      player.User.RespectPoints += player.RespectPoints;
+                    }
+
+                  } else { 
+
+                    foreach(var player in players)
+                    {
+                      player.RespectPoints *= 2;
+                    }
+
+                  } 
+              }
+            }
+
+            for(int i = 0; i < tournament.RoomCount / (int)Math.Pow(2, tournament.Stage); i++)
+            {
+
+              var room = new Room
+              {
+                Name = $"Room {i} - Tournament: {tournament.Name} - Stage {tournament.Stage + 1}",
+                Location = tournament.Location,
+                Type = tournament.Type,
+                StartDate = tournament.StartDate,
+                Stage = -1, // inactive rooms for the next stage
+                Mode = tournament.Type,
+                Host = tournament.Host,
+                Game = tournament.Game,
+                Tournament = tournament
+              };
+              _context.Rooms.AddAsync(room);
+            }
+
+            var success = await StartStage(tournament);
+
+            if(!success)
+            {
+              return Json(new { success = false, message = "Not enough rooms to distribute players or teams." });
+            }
+
+            tournament.Stage += 1;
+            
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Stage ended successfully." });
+
         }
+
+       
+       private async Task<bool> StartStage(Tournament tournament)
+        {
+        if (tournament.Type == "single")
+        {
+        var rooms = await _context.Rooms
+            .Where(r => r.Tournament.Id == tournament.Id && r.Stage == -1)
+            .ToListAsync();
+
+        var players = await _context.Players
+            .Include(p => p.User)
+            .Where(p => !p.Eliminated && p.Tournament == tournament)
+            .ToListAsync();
+
+        int roomIndex = 0, playersInRoom = 0;
+
+        foreach (var player in players)
+        {
+            if (roomIndex >= rooms.Count) return false;
+
+            await _context.JoinRooms.AddAsync(new JoinRoom
+            {
+                User = player.User,
+                Room = rooms[roomIndex]
+            });
+
+            playersInRoom++;
+
+            if (playersInRoom == 2)
+            {
+                roomIndex++;
+                playersInRoom = 0;
+            }
+          }
+        }
+        else if (tournament.Type == "team")
+        {
+        var rooms = await _context.Rooms
+            .Where(r => r.Tournament.Id == tournament.Id && r.Stage == -1)
+            .ToListAsync();
+
+        var teams = await _context.Players
+            .Include(p => p.Team)
+            .Where(p => p.Tournament == tournament && !p.Eliminated && p.Team != null)
+            .Select(p => p.Team)
+            .Distinct()
+            .ToListAsync();
+
+        int roomIndex = 0, teamsInRoom = 0;
+
+        foreach (var team in teams)
+        {
+            if (roomIndex >= rooms.Count) return false;
+
+            var players = await _context.Players
+                .Include(p => p.User)
+                .Where(p => p.Team == team && p.Tournament == tournament)
+                .ToListAsync();
+
+            foreach (var player in players)
+            {
+                await _context.JoinRooms.AddAsync(new JoinRoom
+                {
+                    User = player.User,
+                    Room = rooms[roomIndex]
+                });
+            }
+
+            teamsInRoom++;
+            if (teamsInRoom == 2)
+            {
+                roomIndex++;
+                teamsInRoom = 0;
+            }
+           }
+          }
+
+          return true;
+        }
+
+       [HttpPost]
+       public async Task<IActionResult> EndTournament(int tournamentId)
+       {
+
+         var tournament = await _context.Tournaments
+           .FirstOrDefaultAsync(t => t.Id == tournamentId);
+
+         var lastMatch = await _context.Matches
+           .Include(m => m.Room)
+             .ThenInclude(r => r.Tournament)
+           .FirstOrDefaultAsync(m => m.Room.Tournament == tournament && m.Room.Stage == tournament.Stage);
+
+         if(lastMatch.Winner == null){
+           return Json(new { success = false, message = "Last match did not end." });
+         }
+
+         tournament.Winner = lastMatch.Winner;
+         tournament.IsActive = false;
+
+         if(tournament.Type == "single")
+            {
+              var winnerList = await _context.Matches
+                .Include(m => m.Room)
+                .Where(m => m.Room.Tournament == tournament && m.Room.Stage == tournament.Stage)
+                .Select(m => m.Winner)
+                .ToListAsync();
+
+              var playerList = await _context.Players
+                .Where(p => p.Tournament == tournament && !p.Eliminated)
+                .Include(p => p.User)
+                .ToListAsync();
+
+              foreach(var player in playerList)
+              {
+                  if(!winnerList.Contains(player.User.Username))
+                  {
+
+                    player.Eliminated = true;
+                    player.User.RespectPoints += player.RespectPoints;
+
+                  } else {
+
+                    player.User.RespectPoints = player.RespectPoints * 2;
+                  }
+              }
+            }
+            else if (tournament.Type == "team")
+            {
+              var winnerList = await _context.Matches
+                .Include(m => m.Room)
+                .Where(m => m.Room.Tournament == tournament && m.Room.Stage == tournament.Stage)
+                .Select(m => m.Winner)
+                .ToListAsync();
+
+              var teamList = await _context.Players
+                .Include(p => p.Team)
+                .Where(p => p.Tournament == tournament && !p.Eliminated && p.Team != null)
+                .Select(p => p.Team)
+                .Distinct()
+                .ToListAsync();
+
+              foreach(var team in teamList)
+              {
+
+                  var players = await _context.Players
+                      .Where(p => p.Tournament == tournament && p.Team == team)
+                      .Include(p => p.User)
+                      .ToListAsync();
+
+                  if(!winnerList.Contains(team.Name))
+                  {
+                    foreach(var player in players)
+                    {
+                      player.Eliminated = true;
+                      player.User.RespectPoints += player.RespectPoints;
+                    }
+
+                  } else { 
+
+                    foreach(var player in players)
+                    {
+                      player.User.RespectPoints = player.RespectPoints * 2;
+                    }
+
+                  }
+
+              }
+                  
+            }
+            await _context.SaveChangesAsync();
+            return Json(new {success = true, message = "Tournament ended successfully."});
+        }
+    
+       
     }
     // tournament start, end, brackets = room / 2 // dont edit this
 }

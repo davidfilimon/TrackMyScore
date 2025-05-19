@@ -1,4 +1,9 @@
 @model TournamentModel
+@{
+    var activeRooms = Model.Rooms
+        .Where(r => r.Tournament.Id == Model.Tournament.Id && r.Stage == Model.Tournament.Stage)
+        .ToList();
+}
 
 <div>
     <h1>@Model.Tournament.Name</h1>
@@ -24,7 +29,7 @@
             }
         }
     </div>
-  @if(@Model.Tournament.IsActive == false){
+  @if(@Model.Tournament.IsActive == false && @Model.Tournament.Winner == ""){
     @if(@Model.Players.Any(p => p.User.Id == Model.LoggedUser.Id)){
         <button class="btn btn-danger" onclick="leaveTournament(@Model.Tournament.Id)">Leave Tournament</button>
     } else {
@@ -37,8 +42,10 @@
      }
   }
 
-  @if(@Model.Tournament.IsActive == true){
-    <button class="btn btn-dark">End Bracket</button>
+  @if(@Model.Tournament.IsActive && Model.Rooms.Where(r => r.Tournament == @Model.Tournament && r.Stage == @Model.Tournament.Stage).Count() == 1){
+    <button class="btn btn-dark" onclick="endTournament()">End Tournament</button>
+  } else if (@Model.Tournament.IsActive) {
+    <button class="btn btn-dark" onclick="endStage()">End Stage</button>
   }
     
 
@@ -98,7 +105,7 @@
 
 <h1>Tournament Bracket</h1>
 
-@if(Model.Tournament.IsActive){
+@if(Model.Tournament.IsActive || Model.Tournament.Winner != ""){
 
   <div class="bracket-br2">
     @for(int i = 1; i <= Model.Tournament.Stage; i++){
@@ -115,7 +122,7 @@
                 <span>Match Ended</span>
               </div>
             </li>
-          } else if (room.Stage == -1) {
+          } else if (room.Stage == -1 && @Model.Tournament.Stage == i) {
             <li>
               <div>
                 <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
@@ -124,7 +131,7 @@
                 <span>Waiting to start match</span>
               </div>
             </li>
-      } else if (room.Stage == 0){
+      } else if (room.Stage == 0 && @Model.Tournament.Stage == i){
           <li>
               <div>
                 <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
@@ -252,47 +259,40 @@
             }
         })
     }
-
-    function startIndividualRoom(roomId){
-        $.ajax({
-            url: "Room/StartIndividual",
-            type: "POST",
-            data: {
-                roomId : roomId
-            },
-            success: function(data){
-                if(data.success){
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('Error starting room:', error);
-            }
-        })
-    }
     
-    function endRoom(roomId){
-        $.ajax({
-            url: "Tournament/EndBracket",
-            type: "POST",
-            data: {
-                roomId : roomId
-            },
-            success: function(data){
-                if(data.success){
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('Error ending room:', error);
-            }
-        })
+    function endStage()
+    {
+      $.ajax({
+        url: "/Tournament/EndStage",
+        type: "POST",
+        data:{
+          tournamentId: @Model.Tournament.Id
+        },
+        success: function(data){
+          location.reload();
+        },
+        error: function(xhr, status, error){
+          console.error('Error ending the stage:', error);
+        } 
+      });
+    }
+
+    function endTournament()
+    {
+      $.ajax({
+        url: "/Tournament/EndTournament",
+        type: "POST",
+        data:{
+          tournamentId: @Model.Tournament.Id
+        },
+        success: function(data){
+          location.reload();
+        },
+        error: function(xhr, status, error){
+          console.error('Error ending the tournament:', tournament);
+        }
+      });
+
     }
 
 </script>
