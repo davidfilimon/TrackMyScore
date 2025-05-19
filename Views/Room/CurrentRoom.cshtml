@@ -13,11 +13,17 @@
     <p>Creator: @Model.Room.Host.Username</p>
     <p>Location: @Model.Room.Location</p>
     <p>Numar jucatori: @joinedPlayers / @Model.Room.Game.MaxPlayers</p>
-    <p>Start Date: @Model.Room.StartDate</p>
-    <p>Room Type: @Model.Room.Type</p>
-    @if(Model.Room.Stage == -1){
+    @if(Model.Room.Tournament == null){
+       <p>Start Date: @Model.Room.StartDate</p>
+    }
+       <p>Room Type: @Model.Room.Type</p>
+    @if(Model.Room.Stage == -1 && Model.Room.Tournament == null){
         <div>
             Waiting for the host to start the game.
+        </div>
+    } else if (Model.Room.Stage == -1 && Model.Room.Tournament != null){
+        <div>
+          Waiting for host to start the tournament bracket.
         </div>
     } else if(Model.Room.Stage == 0){
         <div>
@@ -42,11 +48,14 @@
     }
     else
     {
-        if(Model.Room.Stage == -1 && Model.Room.Tournament == null){
-            <button id="startButton" class="btn btn-dark" data-room-id="@Model.Room.Id" onclick="checkAndOpenModal(@Model.Room.Id)">Start Early</button>
-            <form method="post" asp-action="Delete" asp-controller="Room" asp-route-roomId="@Model.Room.Id">
+        if(Model.Room.Stage == -1){
+            <button id="startButton" class="btn btn-dark" data-room-id="@Model.Room.Id" onclick="checkAndOpenModal(@Model.Room.Id)">Start Match</button>
+        if(Model.Room.Tournament == null){
+           <form method="post" asp-action="Delete" asp-controller="Room" asp-route-roomId="@Model.Room.Id">
                 <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
+           </form>
+        }
+            
         }
         else if (Model.Room.Stage == 0 && loggedUser.Username == Model.Room.Host.Username)
         {
@@ -54,7 +63,7 @@
         }
         
     }
-@if (loggedUser.Username == Model.Room.Host.Username && Model.Room.Stage == -1)
+@if (loggedUser.Username == Model.Room.Host.Username && Model.Room.Stage == -1 && Model.Room.Tournament == null)
 {
     <div>
         <label>Mode:</label>
@@ -83,6 +92,7 @@
                     Remove point
                 </th>
                 }
+              @if(Model.Room.Stage == 0){
                 @foreach (var participant in Model.Participants)
                 {
                     <tr>
@@ -101,7 +111,17 @@
                             </td>
                         }                           
                     </tr>
+                  }
+                } else if (Model.Room.Stage == -1){
+                @foreach (var joinedPlayer in Model.JoinedPlayersList)
+                {
+                    <tr>
+                        <td>
+                        @joinedPlayer.Username
+                        </td>
+                    </tr>
                 }
+                }       
             </table>
         }
         @if(@Model.Room.Mode == "team"){

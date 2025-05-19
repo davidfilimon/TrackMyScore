@@ -9,4 +9,5 @@ public class CurrentRoomModel
     public Match? CurrentMatch { get; set; }
     public List<Participant>? Participants { get; set; }
     public Dictionary<Team, int>? Teams { get; set; }
+    public List<User> JoinedPlayersList {get; set; }
 }

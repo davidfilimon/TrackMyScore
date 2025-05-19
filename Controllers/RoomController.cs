@@ -160,7 +160,8 @@ namespace TrackMyScore.Controllers
                 UserJoined = userJoined,
                 CurrentMatch = currentMatch,
                 Participants = participants,
-                Teams = teams
+                Teams = teams,
+                JoinedPlayersList = joinedPlayersList
             };
 
             return View(model);

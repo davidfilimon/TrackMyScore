@@ -210,6 +210,7 @@ namespace TrackMyScore.Controllers
 
             var players = await _context.Players
                 .Where(p => p.Tournament.Id == id)
+                .Include(p => p.User)
                 .Include(p => p.Team)
                 .ToListAsync();
 
@@ -487,7 +488,6 @@ namespace TrackMyScore.Controllers
                 .Include(t => t.Host)
                 .FirstOrDefaultAsync(t => t.Id == id);
             var user = await GetLoggedUserAsync();
-            int playerNumber = 0;
 
             if (tournament == null)
             {
@@ -507,34 +507,40 @@ namespace TrackMyScore.Controllers
 
                 var players = await _context.Players
                     .Include(p => p.User)
+                    .Where(p => !p.Eliminated)
                     .ToListAsync();
 
-                foreach (var room in rooms)
+                int roomIndex = 0;
+                int playersInRoom = 0;
+
+                foreach (var player in players)
                 {
-                    playerNumber = 0;
-                    foreach (var player in players)
+                    if(roomIndex >= rooms.Count)
                     {
-                        if (playerNumber == 2)
-                        {
-                            break;
-                        }
-
-                        var addToRooms = await _context.JoinRooms
-                            .AddAsync(
-                                new JoinRoom
-                                {
-                                    User = player.User,
-                                    Room = room
-                                }
-                            );
-
-                        playerNumber++;
+                      return Json(new { success = false, message = "Not enough rooms for players." });
                     }
 
-                    await _context.SaveChangesAsync();
+                    var currentRoom = rooms[roomIndex];
+
+                    await _context.JoinRooms
+                      .AddAsync(
+                          new JoinRoom{
+                              User = player.User,
+                              Room = currentRoom
+                          });
+
+                    playersInRoom++;
+
+                    if(playersInRoom == 2){
+
+                      roomIndex++;
+                      playersInRoom = 0;
+                    }
+
                 }
-
-
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Players distributed successfully." });
+                
             }
             else if (tournament.Type == "team")
             {
@@ -542,40 +548,48 @@ namespace TrackMyScore.Controllers
                     .Where(r => r.Tournament.Id == id)
                     .ToListAsync();
 
-                var teams = await _context.Players
-                    .Where(p => p.Tournament.Id == id)
-                    .Include(p => p.Team)
-                    .Include(p => p.User)
-                    .GroupBy(p => p.Team)
-                    .ToListAsync();
+                var players = await _context.Players
+                  .Include(p => p.User)
+                  .Include(p => p.Team)
+                  .Where(p => p.Tournament.Id == id && !p.Eliminated && p.Team != null)
+                  .ToListAsync();
 
-                foreach (var room in rooms)
+                var teams = players
+                  .GroupBy(p => p.Team)
+                  .ToList();
+
+                int roomIndex = 0;
+                int teamsInRoom = 0;
+
+                foreach (var team in teams)
                 {
-                    int teamsInRoom = 0;
-                    foreach (var team in teams)
-                    {
-                        if (teamsInRoom >= 2)
-                        { // max 2 teams per room
-                            break;
-                        }
 
-                        foreach (var player in team)
+                  if(roomIndex >= rooms.Count)
+                  {
+                    return Json(new { success = false, message = "Not enough rooms for teams." });
+                  }
+
+                  var currentRoom = rooms[roomIndex];
+
+                  foreach(var player in team)
+                  {
+                    await _context.JoinRooms.AddAsync(
+                        new JoinRoom
                         {
-                            await _context.JoinRooms.AddAsync(
-                                new JoinRoom
-                                {
-                                    User = player.User,
-                                    Room = room
-                                }
-                            );
-                        }
-                        teamsInRoom++;
-                    }
+                          User = player.User,
+                          Room = currentRoom
+                        });
+                  }
+
+                  teamsInRoom++;
+                  if(teamsInRoom == 2){
+                    roomIndex++;
+                    teamsInRoom = 0;
+                  }
                 }
 
                 await _context.SaveChangesAsync();
             }
-
             return Json(new { success = true, message = "Tournament started." });
         }
 

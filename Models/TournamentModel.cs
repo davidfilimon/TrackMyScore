@@ -9,9 +9,9 @@
         public List<Room> Rooms { get; set; }
         public List<Match> Matches {get; set; }
         public List<Team>? Teams { get; set; }
-        public List<User> MutualFollowers { get; set; }
+        public List<User>? MutualFollowers { get; set; }
 
-        public TournamentModel(User loggedUser, Tournament tournament, List<Player> players, List<Room> rooms, List<Team>? teams, List<User> mutualFollowers, List<Match> matches)
+        public TournamentModel(User loggedUser, Tournament tournament, List<Player> players, List<Room> rooms, List<Team>? teams, List<User>? mutualFollowers, List<Match> matches)
         {
             LoggedUser = loggedUser;
             Tournament = tournament;
