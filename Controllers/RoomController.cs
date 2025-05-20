@@ -106,12 +106,8 @@ namespace TrackMyScore.Controllers
             var room = await _context.Rooms
                 .Include(r => r.Game)
                 .Include(r => r.Host)
+                .Include(r => r.Tournament)
                 .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (room.Tournament != null)
-            {
-                return Json(new { success = false, message = "This room belongs to a tournament." });
-            }
 
             var user = await GetLoggedUserAsync();
 
@@ -139,7 +135,13 @@ namespace TrackMyScore.Controllers
                 .Where(p => p.Match == match)
                 .Select(p => p.Team)
                 .Distinct()
-                .ToListAsync();       
+                .ToListAsync();
+
+            var joinedPlayers = await _context.JoinRooms
+                .Where(p => p.Room == room)
+                .Include(p => p.User)
+                .Include(p => p.Team)
+                .ToListAsync();
 
             var model = new CurrentRoomModel
             {
@@ -148,7 +150,8 @@ namespace TrackMyScore.Controllers
                 CurrentMatch = match,
                 Players = players,
                 Participants = participants,
-                Teams = teams
+                Teams = teams,
+                JoinedPlayers = joinedPlayers
             };
 
             return View(model);
@@ -600,6 +603,52 @@ namespace TrackMyScore.Controllers
 
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Points removed from team successfully." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> StartTMatch(int id)
+        {
+            var room = await _context.Rooms
+                .Include(r => r.Game)
+                .Include(r => r.Host)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (room == null)
+                return Json(new { success = false, message = "Room not found." });
+
+            room.Stage = 0;
+            room.Mode = "team";
+
+            var match = new Match
+            {
+                StartDate = DateTime.Now,
+                Room = room,
+                Type = room.Mode
+            };
+
+            await _context.Matches.AddAsync(match);
+
+            var players = await _context.JoinRooms
+                .Where(j => j.Room == room)
+                .Include(j => j.Team)
+                .Include(j => j.User)
+                .ToListAsync();
+
+            foreach (var player in players)
+            {
+                Participant participant = new Participant
+                {
+                    Role = "",
+                    Match = match,
+                    User = player.User,
+                    Team = player.Team,
+                    Score = 0
+                };
+                await _context.Participants.AddAsync(participant);
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Match started." });
         }
         
     }

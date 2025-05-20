@@ -1,7 +1,13 @@
 @model TournamentModel
 @{
-var activeRooms = Model.Rooms
-.Where(r => r.Tournament.Id == Model.Tournament.Id && r.Stage == Model.Tournament.Stage)
+
+var rooms       = Model.Rooms;
+var players     = Model.Players ?? Enumerable.Empty<Player>();
+var teams       = Model.Teams ?? Enumerable.Empty<Team>();
+var matches     = Model.Matches;
+
+var activeRooms = rooms
+.Where(r => r.Tournament?.Id == Model.Tournament.Id && r.Stage == Model.Tournament.Stage)
 .ToList();
 }
 
@@ -11,16 +17,16 @@ var activeRooms = Model.Rooms
   <p>@Model.Tournament.Winner</p> 
   <div>
     @if(Model.Tournament.Type == "single"){
-    @foreach(var player in Model.Players)
+    @foreach(var player in players)
     {
     <p>@player.User.Username</p>    
     }
     } else if (Model.Tournament.Type == "team") {
 
-    @foreach(var team in Model.Teams)
+    @foreach(var team in teams)
     {
     <p>@team.Name</p>
-    @foreach(var player in Model.Players)
+    @foreach(var player in players)
     {
     @if(player.Team != null && player.Team == team){
     <p>@player.User.Username</p>
@@ -30,7 +36,7 @@ var activeRooms = Model.Rooms
     }
   </div>
   @if(@Model.Tournament.IsActive == false && @Model.Tournament.Winner == ""){
-  @if(@Model.Players.Any(p => p.User.Id == Model.LoggedUser.Id)){
+  @if(@players.Any(p => p.User.Id == Model.LoggedUser.Id)){
   <button class="btn btn-danger" onclick="leaveTournament(@Model.Tournament.Id)">Leave Tournament</button>
   } else {
   <button class="btn btn-dark" onclick="openJoinModal()">Join Tournament</button>

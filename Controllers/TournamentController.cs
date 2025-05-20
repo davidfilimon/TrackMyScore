@@ -717,7 +717,8 @@ namespace TrackMyScore.Controllers
             await _context.JoinRooms.AddAsync(new JoinRoom
             {
               User = player.User,
-              Room = rooms[roomIndex]
+              Room = rooms[roomIndex],
+              Team = player.Team
             });
           }
 
