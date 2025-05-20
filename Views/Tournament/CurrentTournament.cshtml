@@ -45,7 +45,7 @@ var activeRooms = Model.Rooms
   @if(@Model.Tournament.IsActive && Model.Rooms.Where(r => r.Tournament == @Model.Tournament && r.Stage == @Model.Tournament.Stage).Count() == 1){
   <button class="btn btn-dark" onclick="endTournament()">End Tournament</button>
   } else if (@Model.Tournament.IsActive) {
-  <button class="btn btn-dark" onclick="endStage()">End Stage</button>
+  <button class="btn btn-dark" onclick="endStage(@Model.Tournament.Id)">End Stage</button>
   }
 
 
@@ -260,16 +260,15 @@ var activeRooms = Model.Rooms
     })
   }
 
-  function endStage()
-{
+  function endStage(tournamentId)
+  {
     $.ajax({
       url: "/Tournament/EndStage",
       type: "POST",
       data:{
-        tournamentId: @Model.Tournament.Id
+        id: tournamentId
       },
       success: function(data){
-        location.reload();
       },
       error: function(xhr, status, error){
         console.error('Error ending the stage:', error);

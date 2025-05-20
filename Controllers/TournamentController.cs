@@ -533,13 +533,13 @@ namespace TrackMyScore.Controllers
     }
 
     [HttpPost]
-    public async Task<IActionResult> EndStage(int tournamentId)
+    public async Task<IActionResult> EndStage(int id)
     {
 
       var tournament = await _context.Tournaments
         .Include(t => t.Game)
         .Include(t => t.Host)
-        .FirstOrDefaultAsync(t => t.Id == tournamentId);
+        .FirstOrDefaultAsync(t => t.Id == id);
 
       if (tournament == null)
       {
@@ -635,8 +635,10 @@ namespace TrackMyScore.Controllers
           Game = tournament.Game,
           Tournament = tournament
         };
-        _context.Rooms.AddAsync(room);
+        await _context.Rooms.AddAsync(room);
       }
+
+      await _context.SaveChangesAsync();
 
       var success = await StartStage(tournament);
 
