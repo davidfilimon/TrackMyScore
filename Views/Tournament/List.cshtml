@@ -9,7 +9,7 @@
     <ul>
         @foreach (var tournament in Model.MyTournaments)
         {
-          @if(tournament.Winner == "" && tournament.IsActive == true)
+          @if(tournament.Winner == "")
           {
             <li>
                 @tournament.Name

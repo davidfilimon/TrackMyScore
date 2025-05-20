@@ -2,9 +2,9 @@
 @{
     int joinedPlayers = Model.Players.Count;
     var loggedUser = Model.LoggedUser;
-    var userJoined = Model.UserJoined;
     var players = Model.Players;
     var participants = Model.Participants;
+    var teams = Model.Teams;
 }
 
 <div>
@@ -13,156 +13,155 @@
     <p>Creator: @Model.Room.Host.Username</p>
     <p>Location: @Model.Room.Location</p>
     <p>Numar jucatori: @joinedPlayers / @Model.Room.Game.MaxPlayers</p>
-    @if(Model.Room.Tournament == null){
-       <p>Start Date: @Model.Room.StartDate</p>
-    }
-       <p>Room Type: @Model.Room.Type</p>
-    @if(Model.Room.Stage == -1 && Model.Room.Tournament == null){
-        <div>
-            Waiting for the host to start the game.
-        </div>
-    } else if (Model.Room.Stage == -1 && Model.Room.Tournament != null){
-        <div>
-          Waiting for host to start the tournament bracket.
-        </div>
-    } else if(Model.Room.Stage == 0){
-        <div>
-            There is an ongoing match.
-        </div>
-    } else if(Model.Room.Stage == -2){
-        <div>
-            The game has ended.
-        </div>
-    }
-    @if(Model.Room.Stage != -2){
-        @if (loggedUser.Username != Model.Room.Host.Username && Model.Room.Stage == -1)
+    @if (Model.Room.Tournament == null)
     {
-        @if (userJoined)
+        <p>Start Date: @Model.Room.StartDate</p>
+    }
+    <p>Room Type: @Model.Room.Type</p>
+
+    @if (Model.Room.Stage == -1 && Model.Room.Tournament == null)
+    {
+        <div>Waiting for the host to start the game.</div>
+    }
+    else if (Model.Room.Stage == -1 && Model.Room.Tournament != null)
+    {
+        <div>Waiting for host to start the tournament bracket.</div>
+    }
+    else if (Model.Room.Stage == 0)
+    {
+        <div>There is an ongoing match.</div>
+    }
+    else if (Model.Room.Stage == -2)
+    {
+        <div>The game has ended.</div>
+    }
+
+    @if (Model.Room.Stage != -2)
+    {
+        if (Model.Room.Host != loggedUser && Model.Room.Stage == -1)
         {
-            <a class="btn btn-danger" onclick="leave(@Model.Room.Id)">Leave</a>
+            if (players.Contains(loggedUser))
+            {
+                <a class="btn btn-danger" onclick="leave(@Model.Room.Id)">Leave</a>
+            }
+            else
+            {
+                <a class="btn btn-dark" onclick="join(@Model.Room.Id)">Join</a>
+            }
         }
         else
         {
-            <a class="btn btn-dark" onclick="join(@Model.Room.Id)">Join</a>
+            if (Model.Room.Stage == -1)
+            {
+                <button id="startButton" class="btn btn-dark" data-room-id="@Model.Room.Id" onclick="checkAndOpenModal(@Model.Room.Id)">Start Match</button>
+                @if (Model.Room.Tournament == null)
+                {
+                    <form method="post" asp-action="Delete" asp-controller="Room" asp-route-roomId="@Model.Room.Id">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                }
+            }
+            else if (Model.Room.Stage == 0)
+            {
+                <button id="endMatchButton" class="btn btn-danger" onclick="endMatch(@Model.CurrentMatch?.Id)">End Match</button>
+            }
         }
-    }
-    else
-    {
-        if(Model.Room.Stage == -1){
-            <button id="startButton" class="btn btn-dark" data-room-id="@Model.Room.Id" onclick="checkAndOpenModal(@Model.Room.Id)">Start Match</button>
-        if(Model.Room.Tournament == null){
-           <form method="post" asp-action="Delete" asp-controller="Room" asp-route-roomId="@Model.Room.Id">
-                <button type="submit" class="btn btn-danger">Delete</button>
-           </form>
-        }
-            
-        }
-        else if (Model.Room.Stage == 0 && loggedUser.Username == Model.Room.Host.Username)
+
+        @if (Model.Room.Host == loggedUser && Model.Room.Stage == -1)
         {
-            <button id="endMatchButton" class="btn btn-danger" style="display:block;" onclick="endMatch(@Model.CurrentMatch.Id)">End Match</button>
+            <div>
+                <label>Mode:</label>
+                <input type="radio" name="mode" value="single" checked onclick="toggleMode('single')" /> Single Mode
+                <input type="radio" name="mode" value="team" onclick="toggleMode('team')" /> Team Mode
+            </div>
         }
-        
-    }
-@if (loggedUser.Username == Model.Room.Host.Username && Model.Room.Stage == -1 && Model.Room.Tournament == null)
-{
-    <div>
-        <label>Mode:</label>
-        <input type="radio" name="mode" value="single" checked onclick="toggleMode('single')" /> Single Mode
-        <input type="radio" name="mode" value="team" onclick="toggleMode('team')" /> Team Mode
-    </div>
-}
     }
 </div>
 
 <div class="player-list" style="display: block;">
-    <ul>
-        @if(@Model.Room.Mode == "single"){
-            <table>
-                <th>
-                    Player
-                </th>
-                <th>
-                    Score
-                </th>
-                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Host.Username){
-                <th>
-                    Add point
-                </th>
-                <th>
-                    Remove point
-                </th>
+    @if (Model.Room.Mode == "single")
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Score</th>
+                    @if (Model.Room.Stage == 0 && Model.Room.Host == loggedUser)
+                    {
+                        <th>Add point</th>
+                        <th>Remove point</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (participants != null)
+                {
+                    foreach (var participant in participants)
+                    {
+                        <tr>
+                            <td>@participant.User.Username</td>
+                            <td>@participant.Score</td>
+                            @if (Model.Room.Host == loggedUser && Model.Room.Stage == 0)
+                            {
+                                <td>
+                                    <button class="btn" onclick="addPoint(@Model.CurrentMatch?.Id, @participant.Id)">Add Point</button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="removePoint(@Model.CurrentMatch?.Id, @participant.Id)">Remove Point</button>
+                                </td>
+                            }
+                        </tr>
+                    }
                 }
-              @if(Model.Room.Stage == 0){
-                @foreach (var participant in Model.Participants)
+                else if (Model.Room.Stage == -1)
+                {
+                    foreach (var joinedPlayer in players)
+                    {
+                        <tr>
+                            <td>@joinedPlayer.Username</td>
+                            <td>-</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else if (Model.Room.Mode == "team" && Model.Teams != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Team</th>
+                    <th>Score</th>
+                    @if (Model.Room.Stage == 0 && Model.Room.Host == loggedUser)
+                    {
+                        <th>Add point</th>
+                        <th>Remove point</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var team in teams)
                 {
                     <tr>
-                        <td>
-                            @participant.User.Username
-                        </td>
-                        <td>
-                            @participant.Score
-                        </td>
-                        @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Host.Username){   
+                        <td>@team.Name</td>
+                        <td>@Model.Participants.Where(p => p.Team == team).FirstOrDefault().Score</td>
+                        @if (Model.Room.Stage == 0 && Model.Room.Host == loggedUser)
+                        {
                             <td>
-                                <button class="btn" onclick="addPoint(@Model.CurrentMatch.Id, @participant.Id)">Add Point</button>
+                                <button class="btn" onclick="addPointTeam(@Model.CurrentMatch?.Id, @team.Id)">Add Point</button>
                             </td>
                             <td>
-                                <button class="btn btn-danger" onclick="removePoint(@Model.CurrentMatch.Id, @participant.Id)">Remove Point</button>
+                                <button class="btn btn-danger" onclick="removePointTeam(@Model.CurrentMatch?.Id, @team.Id)">Remove Point</button>
                             </td>
-                        }                           
-                    </tr>
-                  }
-                } else if (Model.Room.Stage == -1 && Model.Players != null){
-                @foreach (var joinedPlayer in Model.Players)
-                {
-                    <tr>
-                        <td>
-                        @joinedPlayer.Username
-                        </td>
+                        }
                     </tr>
                 }
-                }       
-            </table>
-        }
-        @if(@Model.Room.Mode == "team"){
-                <table>
-                <th>
-                    Team
-                </th>
-                <th>
-                    Score
-                </th>
-                @if(Model.Room.Stage == 0 && Model.LoggedUser.Username == Model.Room.Host.Username){
-                <th>
-                    Add point
-                </th>
-                <th>
-                    Remove point
-                </th>
-                }
-                @foreach (var team in Model.Teams)
-                {
-                    <tr>
-                        <td>
-                            @team.Key.Name
-                        </td>
-                        <td>
-                            @team.Value
-                        </td>
-                        @if(Model.Room.Stage == 0 && Model.Room.Host.Username == Model.LoggedUser.Username){   
-                            <td>
-                                <button class="btn" onclick="addPointTeam(@Model.CurrentMatch.Id, @team.Key.Id)">Add Point</button>
-                            </td>
-                            <td>
-                                <button class="btn btn-danger" onclick="removePointTeam(@Model.CurrentMatch.Id, @team.Key.Id)">Remove Point</button>
-                            </td>
-                        }                           
-                    </tr>
-                }
-            </table>
-        }
-    </ul>
+            </tbody>
+        </table>
+    }
 </div>
+
 
 
 <!-- Team Setup Modal -->
