@@ -9,10 +9,13 @@
     <ul>
         @foreach (var tournament in Model.MyTournaments)
         {
+          @if(tournament.Winner == "" && tournament.IsActive == true)
+          {
             <li>
                 @tournament.Name
                 <a class="btn btn-dark" asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@tournament.Id">View Details</a>   
             </li>
+          }
         }
     </ul>
 </div>
@@ -22,8 +25,11 @@
     <ul>
         @foreach (var tournament in Model.Tournaments)
         {
+          @if(tournament.Winner == "")
+          {
             <li>@tournament.Name</li>
             <a class="btn btn-dark" asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@tournament.Id">View Details</a>
+          } 
         }
     </ul>
 </div>

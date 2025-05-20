@@ -1,359 +1,359 @@
 @model TournamentModel
 @{
-    var activeRooms = Model.Rooms
-        .Where(r => r.Tournament.Id == Model.Tournament.Id && r.Stage == Model.Tournament.Stage)
-        .ToList();
+var activeRooms = Model.Rooms
+.Where(r => r.Tournament.Id == Model.Tournament.Id && r.Stage == Model.Tournament.Stage)
+.ToList();
 }
 
 <div>
-    <h1>@Model.Tournament.Name</h1>
-    <p>@Model.Tournament.Reward, @Model.Tournament.Game.Title, @Model.Tournament.StartDate, @Model.Tournament.RoomCount, @Model.Tournament.MaxPlayers, @Model.Tournament.Code, @Model.Tournament.Type, @Model.Tournament.Host.Username, @Model.Tournament.Winner</p>
-    <p>@Model.Tournament.Winner</p> 
-    <div>
-        @if(Model.Tournament.Type == "single"){
-            @foreach(var player in Model.Players)
-            {
-                <p>@player.User.Username</p>    
-            }
-        } else if (Model.Tournament.Type == "team" && Model.Teams != null) {
-
-            @foreach(var team in Model.Teams)
-            {
-                <p>@team.Name</p>
-                @foreach(var player in Model.Players)
-                {
-                    @if(player.Team != null && player.Team == team){
-                        <p>@player.User.Username</p>
-                    }
-                }
-            }
-        }
-    </div>
-  @if(@Model.Tournament.IsActive == false && @Model.Tournament.Winner == ""){
-    @if(@Model.Players.Any(p => p.User.Id == Model.LoggedUser.Id)){
-        <button class="btn btn-danger" onclick="leaveTournament(@Model.Tournament.Id)">Leave Tournament</button>
-    } else {
-        <button class="btn btn-dark" onclick="openJoinModal()">Join Tournament</button>
+  <h1>@Model.Tournament.Name</h1>
+  <p>@Model.Tournament.Reward, @Model.Tournament.Game.Title, @Model.Tournament.StartDate, @Model.Tournament.RoomCount, @Model.Tournament.MaxPlayers, @Model.Tournament.Code, @Model.Tournament.Type, @Model.Tournament.Host.Username, @Model.Tournament.Winner</p>
+  <p>@Model.Tournament.Winner</p> 
+  <div>
+    @if(Model.Tournament.Type == "single"){
+    @foreach(var player in Model.Players)
+    {
+    <p>@player.User.Username</p>    
     }
+    } else if (Model.Tournament.Type == "team") {
 
-    @if(@Model.LoggedUser == @Model.Tournament.Host){
-        <button class="btn btn-dark" onclick="startTournament()">Start Tournament</button>
-        <button class="btn btn-danger" onclick="deleteTournament()">Delete Tournament</button>
-     }
+    @foreach(var team in Model.Teams)
+    {
+    <p>@team.Name</p>
+    @foreach(var player in Model.Players)
+    {
+    @if(player.Team != null && player.Team == team){
+    <p>@player.User.Username</p>
+    }
+    }
+    }
+    }
+  </div>
+  @if(@Model.Tournament.IsActive == false && @Model.Tournament.Winner == ""){
+  @if(@Model.Players.Any(p => p.User.Id == Model.LoggedUser.Id)){
+  <button class="btn btn-danger" onclick="leaveTournament(@Model.Tournament.Id)">Leave Tournament</button>
+  } else {
+  <button class="btn btn-dark" onclick="openJoinModal()">Join Tournament</button>
+  }
+
+  @if(@Model.LoggedUser == @Model.Tournament.Host){
+  <button class="btn btn-dark" onclick="startTournament()">Start Tournament</button>
+  <button class="btn btn-danger" onclick="deleteTournament()">Delete Tournament</button>
+  }
   }
 
   @if(@Model.Tournament.IsActive && Model.Rooms.Where(r => r.Tournament == @Model.Tournament && r.Stage == @Model.Tournament.Stage).Count() == 1){
-    <button class="btn btn-dark" onclick="endTournament()">End Tournament</button>
+  <button class="btn btn-dark" onclick="endTournament()">End Tournament</button>
   } else if (@Model.Tournament.IsActive) {
-    <button class="btn btn-dark" onclick="endStage()">End Stage</button>
+  <button class="btn btn-dark" onclick="endStage()">End Stage</button>
   }
-    
 
-   
-<div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
+
+
+  <div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="joinModalLabel">Join Tournament</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            @if(Model.Tournament.Type == "single"){
-                <div class="modal-body">
-                    <form id="joinFormSingle" onsubmit="joinTournamentSingle(@Model.Tournament.Id, $('#code').val());">
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Tournament Code</label>
-                            <input type="text" class="form-control" id="code" name="code" required autocomplete="off">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Join</button>
-                    </form>
-                </div>
-            }
-            @if(Model.Tournament.Type == "team"){
-                <div class="modal-body">
-                    <form id="joinFormTeam" onsubmit="joinTournamentTeam(@Model.Tournament.Id, $('#code').val(), $('#teammates').val(), $('#teamName').val());">
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Tournament Code</label>
-                            <input type="text" class="form-control" id="code" name="code" required autocomplete="off">
-                        </div>
-                        <div class="mb-3">
-                            <label for="teamName" class="form-label">Team Name</label>
-                            <input type="text" class="form-control" id="teamName" name="teamName" required autocomplete="off">
-                        </div>
-                        <div class="mb-3">
-                            <label for="teammates" class="form-label">Teammates</label>
-                            @if(Model.MutualFollowers != null){
-                            <select class="form-select" id="teammates" name="teammates" multiple required>
-                              
-                                @foreach(var user in Model.MutualFollowers){
-                                    <option value="@user.Id">@user.Username</option>
-                                }
-                            </select>  
-                            <button type="submit" class="btn btn-primary">Create Team</button>
-                            } else {
-                              <div>
-                                You have no mutual followers in order to create a team.
-                              </div>
-                            <button type="button" onclick="closeModal()">Cancel</button>
-                            }
-                        </div>
-                    </form>
-                </div>
-            }
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="joinModalLabel">Join Tournament</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        @if(Model.Tournament.Type == "single"){
+        <div class="modal-body">
+          <form id="joinFormSingle" onsubmit="joinTournamentSingle(@Model.Tournament.Id, $('#code').val());">
+            <div class="mb-3">
+              <label for="code" class="form-label">Tournament Code</label>
+              <input type="text" class="form-control" id="code" name="code" required autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary">Join</button>
+          </form>
+        </div>
+        }
+        @if(Model.Tournament.Type == "team"){
+        <div class="modal-body">
+          <form id="joinFormTeam" onsubmit="joinTournamentTeam(@Model.Tournament.Id, $('#code').val(), $('#teammates').val(), $('#teamName').val());">
+            <div class="mb-3">
+              <label for="code" class="form-label">Tournament Code</label>
+              <input type="text" class="form-control" id="code" name="code" required autocomplete="off">
+            </div>
+            <div class="mb-3">
+              <label for="teamName" class="form-label">Team Name</label>
+              <input type="text" class="form-control" id="teamName" name="teamName" required autocomplete="off">
+            </div>
+            <div class="mb-3">
+              <label for="teammates" class="form-label">Teammates</label>
+              @if(Model.MutualFollowers != null){
+              <select class="form-select" id="teammates" name="teammates" multiple required>
+
+                @foreach(var user in Model.MutualFollowers){
+                <option value="@user.Id">@user.Username</option>
+                }
+              </select>  
+              <button type="submit" class="btn btn-primary">Create Team</button>
+              } else {
+              <div>
+                You have no mutual followers in order to create a team.
+              </div>
+              <button type="button" onclick="closeModal()">Cancel</button>
+              }
+            </div>
+          </form>
+        </div>
+        }
+      </div>
     </div>
-</div>
+  </div>
 
-<h1>Tournament Bracket</h1>
+  <h1>Tournament Bracket</h1>
 
-@if(Model.Tournament.IsActive || Model.Tournament.Winner != ""){
+  @if(Model.Tournament.IsActive || Model.Tournament.Winner != ""){
 
   <div class="bracket-br2">
     @for(int i = 1; i <= Model.Tournament.Stage; i++){
-      <section>
+    <section>
       <h2 id="round-@(i)">Round @i</h2>
       <ol>
-      @foreach(var room in Model.Rooms){
-          @if(room.Stage == i){
-            <li>
-              <div>
-                <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
-                <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
-                <span>Date: @Model.Tournament.StartDate</span>
-                <span>Match Ended</span>
-              </div>
-            </li>
-          } else if (room.Stage == -1 && @Model.Tournament.Stage == i) {
-            <li>
-              <div>
-                <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
-                <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
-                <span>Date: @Model.Tournament.StartDate</span>
-                <span>Waiting to start match</span>
-              </div>
-            </li>
-      } else if (room.Stage == 0 && @Model.Tournament.Stage == i){
-          <li>
-              <div>
-                <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
-                <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
-                <span>Date: @Model.Tournament.StartDate</span>
-                <span>Ongoing Match</span>
-              </div>
-            </li>
+        @foreach(var room in Model.Rooms){
+        @if(room.Stage == i){
+        <li>
+          <div>
+            <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
+            <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
+            <span>Date: @Model.Tournament.StartDate</span>
+            <span>Match Ended</span>
+          </div>
+        </li>
+        } else if (room.Stage == -1 && @Model.Tournament.Stage == i) {
+        <li>
+          <div>
+            <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
+            <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
+            <span>Date: @Model.Tournament.StartDate</span>
+            <span>Waiting to start match</span>
+          </div>
+        </li>
+        } else if (room.Stage == 0 && @Model.Tournament.Stage == i){
+        <li>
+          <div>
+            <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id" class="btn">@room.Name</a>
+            <span>Winner: @(Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id)?.Winner ?? "No winner")</span>
+            <span>Date: @Model.Tournament.StartDate</span>
+            <span>Ongoing Match</span>
+          </div>
+        </li>
         }
-      }
-       </ol>
+        }
+      </ol>
     </section>
     }
 
-     
-    </div>  
-}
 
-<script>
-    function closeModal(){
-      $('#joinModal').modal('hide');
-    }
+  </div>  
+  }
 
-    function startTournament() {
-        $.ajax({
-            url: '/Tournament/Start',
-            type: 'POST',
-            data: {
-                id: @Model.Tournament.Id
-            },
-            success: function (data) {
-                if (data.success) {
-                    alert('Tournament started successfully!');
-                    location.reload();
-                } else {
-                    alert('Failed to start tournament: ' + data.message);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Error starting tournament:', error);
-            }
-        });
-    }
+  <script>
+  function closeModal(){
+    $('#joinModal').modal('hide');
+  }
 
-    function deleteTournament() {
-        $.ajax({
-            url: '/Tournament/Delete',
-            type: 'POST',
-            data: { id: @Model.Tournament.Id },
-            success: function (data) {
-                if (data.success) {
-                    alert('Tournament deleted successfully!');
-                    window.location.href = '/';
-                } else {
-                    alert('Failed to delete tournament: ' + data.message);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Error deleting tournament:', error);
-            }
-        });
-    }
-
-    function openJoinModal() {
-        $('#joinModal').modal('show');
-    }
-
-    function joinTournamentSingle(id, code){
-        $.ajax({
-            url: '/Tournament/JoinSingle',
-            type: 'POST',
-            data: {
-                id: id,
-                code: code
-            },
-            success: function(data){
-                if(data.success){
-                    location.reload();
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('Error joining tournament:', error);
-            }
-        })
-    }
-
-    function joinTournamentTeam(id, code, teammates, teamName){
-        $.ajax({
-            url: '/Tournament/JoinTeam',
-            type: 'POST',
-            data: {
-                id: id,
-                code: code,
-                teammates: teammates,
-                teamName: teamName
-            },
-            success: function(data){
-                if(data.success){
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('Error joining tournament:', error);
-            }
-        })
-    }
-
-    function leaveTournament(id){
-        $.ajax({
-            url: '/Tournament/Leave',
-            type: 'POST',
-            data: {
-                 id: id
-            },
-            success: function(data){
-                if(data.success){
-                    location.reload();
-                }
-            },
-            error: function(xhr, status, error){
-                console.error('Error leaving tournament:', error);
-            }
-        })
-    }
-    
-    function endStage()
-    {
-      $.ajax({
-        url: "/Tournament/EndStage",
-        type: "POST",
-        data:{
-          tournamentId: @Model.Tournament.Id
-        },
-        success: function(data){
+  function startTournament() {
+    $.ajax({
+      url: '/Tournament/Start',
+      type: 'POST',
+      data: {
+        id: @Model.Tournament.Id
+      },
+      success: function (data) {
+        if (data.success) {
+          alert('Tournament started successfully!');
           location.reload();
-        },
-        error: function(xhr, status, error){
-          console.error('Error ending the stage:', error);
-        } 
-      });
-    }
-
-    function endTournament()
-    {
-      $.ajax({
-        url: "/Tournament/EndTournament",
-        type: "POST",
-        data:{
-          tournamentId: @Model.Tournament.Id
-        },
-        success: function(data){
-          location.reload();
-        },
-        error: function(xhr, status, error){
-          console.error('Error ending the tournament:', tournament);
+        } else {
+          alert('Failed to start tournament: ' + data.message);
         }
-      });
+      },
+      error: function (xhr, status, error) {
+        console.error('Error starting tournament:', error);
+      }
+    });
+  }
 
-    }
+  function deleteTournament() {
+    $.ajax({
+      url: '/Tournament/Delete',
+      type: 'POST',
+      data: { id: @Model.Tournament.Id },
+      success: function (data) {
+        if (data.success) {
+          alert('Tournament deleted successfully!');
+          window.location.href = '/';
+        } else {
+          alert('Failed to delete tournament: ' + data.message);
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error('Error deleting tournament:', error);
+      }
+    });
+  }
 
-</script>
+  function openJoinModal() {
+    $('#joinModal').modal('show');
+  }
 
-<style>
-    :root {
+  function joinTournamentSingle(id, code){
+    $.ajax({
+      url: '/Tournament/JoinSingle',
+      type: 'POST',
+      data: {
+        id: id,
+        code: code
+      },
+      success: function(data){
+        if(data.success){
+          location.reload();
+        }
+      },
+      error: function(xhr, status, error){
+        console.error('Error joining tournament:', error);
+      }
+    })
+  }
+
+  function joinTournamentTeam(id, code, teammates, teamName){
+    $.ajax({
+      url: '/Tournament/JoinTeam',
+      type: 'POST',
+      data: {
+        id: id,
+        code: code,
+        teammates: teammates,
+        teamName: teamName
+      },
+      success: function(data){
+        if(data.success){
+          alert(data.message);
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      },
+      error: function(xhr, status, error){
+        console.error('Error joining tournament:', error);
+      }
+    })
+  }
+
+  function leaveTournament(id){
+    $.ajax({
+      url: '/Tournament/Leave',
+      type: 'POST',
+      data: {
+        id: id
+      },
+      success: function(data){
+        if(data.success){
+          location.reload();
+        }
+      },
+      error: function(xhr, status, error){
+        console.error('Error leaving tournament:', error);
+      }
+    })
+  }
+
+  function endStage()
+{
+    $.ajax({
+      url: "/Tournament/EndStage",
+      type: "POST",
+      data:{
+        tournamentId: @Model.Tournament.Id
+      },
+      success: function(data){
+        location.reload();
+      },
+      error: function(xhr, status, error){
+        console.error('Error ending the stage:', error);
+      } 
+    });
+  }
+
+  function endTournament()
+{
+    $.ajax({
+      url: "/Tournament/EndTournament",
+      type: "POST",
+      data:{
+        tournamentId: @Model.Tournament.Id
+      },
+      success: function(data){
+        location.reload();
+      },
+      error: function(xhr, status, error){
+        console.error('Error ending the tournament:', tournament);
+      }
+    });
+
+  }
+
+  </script>
+
+  <style>
+  :root {
   --border: 1px solid black;
-}
+  }
 
-.bracket {
+  .bracket {
   display: flex;
   justify-content: space-between;
   margin-bottom: 100px;
   overflow: visible;
   width: 100%;
-}
+  }
 
-section {
+  section {
   max-width: 200px;
   min-width: 100px;
   padding: 0 20px 0 10px;
   width: 17%;
-}
+  }
 
-ol {
+  ol {
   display: flex;
   flex-flow: row wrap;
   /*list-style-type: "";*/
   margin: 0;
   min-height: 100%;
   padding: 0;
-}
+  }
 
-li {
+  li {
   display: flex;
   flex-direction: column;
   justify-content: center;
   margin: 20px 0;
   position: relative;
   width: 100%;
-}
+  }
 
-div:not(.bracket) {
-    border: var(--border);
-}
+  div:not(.bracket) {
+  border: var(--border);
+  }
 
-a, span {
+  a, span {
   display: block;
-}
+  }
 
-section:not(:nth-child(4), :last-child) {
+  section:not(:nth-child(4), :last-child) {
   & li:after, li:before {
-    content: "";
-    display: block;
-    position: absolute;
+  content: "";
+  display: block;
+  position: absolute;
   }
 
   & li:after {
-    right: -16px;
-    width: 15px;
+  right: -16px;
+  width: 15px;
   }
 
   & li
-</style>
+  </style>

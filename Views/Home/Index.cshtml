@@ -29,11 +29,13 @@
             border: none;
             border-radius: 5px;
             margin: 5px 0;
+            font-weight: bold;
         }
 
             .custom-card .list-group-item:hover {
                 background-color: #B5FFE1;
                 cursor: pointer;
+                font-weight: bold;
             }
 
     .welcome-alert {
@@ -56,10 +58,24 @@
 
     <div class="card custom-card shadow-lg mt-4">
         <div class="card-header">
-            <h5 class="mb-0">📰 What's New?</h5>
+            <h5 class="mb-0">📰 What's new?</h5>
         </div>
         <div class="card-body">
-            <p>Stay up to date with the latest updates, features, and announcements.</p>
+            <p>Stay up to date with the latest updates!</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">✅ New feature: Single type tournaments!</li>
+                <li class="list-group-item">⚙️ Added functionality to bracket distribution and tournament systems.</li>
+                <li class="list-group-item">🎨 Updated UI for tournaments.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card custom-card shadow-lg mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">📰 Previous Update</h5>
+        </div>
+        <div class="card-body">
+            <p>April update!</p>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item">✅ New feature: Invite your friends to matches!</li>
                 <li class="list-group-item">⚙️ Improved performance on match loading.</li>

@@ -129,7 +129,7 @@ function leave(roomId) {
     });
 }
 
-// Global variables
+// global variables
 let currentMode = 'single';
 let teamCount = 0;
 
@@ -142,11 +142,11 @@ function checkAndOpenModal(roomId) {
         }
     }
 }
-
+// toggling room mode
 function toggleMode(mode) {
     currentMode = mode;
 }
-
+// function for adding a team
 function addTeam() {
     teamCount++;
     const teamHtml = `
@@ -171,12 +171,12 @@ function addTeam() {
     $('#teamsContainer').append(teamHtml);
     updateAllTeamSelects();
 }
-
+// function for removing a team
 function removeTeam(teamId) {
     $(`.team-card[data-team-id="${teamId}"]`).remove();
     updateAllTeamSelects();
 }
-
+// function for dynamically updating teams
 function updateAllTeamSelects() {
     $('.team-select').each(function () {
         const defaultOption = $(this).find('option:first');
@@ -196,7 +196,7 @@ function updateAllTeamSelects() {
 function updateTeamOptions(teamId, newName) {
     updateAllTeamSelects();
 }
-
+// starting single game
 function startSingleGame(roomId) {
     $.ajax({
         url: '/Room/StartIndividual',
@@ -210,7 +210,7 @@ function startSingleGame(roomId) {
         }
     });
 }
-
+// starting team game
 function startGame(roomId) {
     const teamAssignments = {};
     const roles = {};

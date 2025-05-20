@@ -112,48 +112,50 @@ namespace TrackMyScore.Controllers
                 return NotFound();
             }
 
-            List<User> joinedPlayersList = await _context.JoinRooms
+            if(room.Tournament == null || room.Tournament.Type == "single")
+            {
+              List<User> joinedPlayersList = await _context.JoinRooms
                 .Where(j => j.Room == room)
                 .Include(j => j.User)
                 .Select(j => j.User)
                 .ToListAsync();
 
-            var user = await GetLoggedUserAsync();
-            if (user == null)
-            {
+              var user = await GetLoggedUserAsync();
+              if (user == null)
+              {
                 return RedirectToAction("Login", "Account");
-            }
+              }
 
-            var userJoined = await _context.JoinRooms
+              var userJoined = await _context.JoinRooms
                 .AnyAsync(u => u.User.Id == user.Id && u.Room.Id == id);
 
-            var currentMatch = await _context.Matches
+              var currentMatch = await _context.Matches
                 .FirstOrDefaultAsync(m => m.Room.Id == room.Id) ?? null;
 
-            List<Participant> participants = new List<Participant>();
+              List<Participant> participants = new List<Participant>();
 
-            Dictionary<Team,int>? teams = null;
+              Dictionary<Team,int>? teams = null;
 
-            if(currentMatch != null)
-            {
+              if(currentMatch != null)
+              {
                 participants = await _context.Participants
-                    .Where(p => p.Match.Id == currentMatch.Id)
-                    .Include(p => p.Team)
-                    .ToListAsync();
+                  .Where(p => p.Match.Id == currentMatch.Id)
+                  .Include(p => p.Team)
+                  .ToListAsync();
 
                 teams = await _context.Participants
-                    .Where(p => p.Match.Id == currentMatch.Id)
-                    .GroupBy(p => p.Team)
-                    .Where(g => g.Key != null)
-                    .Select(g => new {
-                        Team = g.Key,
-                        Score = g.First().Score
-                    })
-                    .ToDictionaryAsync(x => x.Team!, x => x.Score);
-            }      
+                  .Where(p => p.Match.Id == currentMatch.Id)
+                  .GroupBy(p => p.Team)
+                  .Where(g => g.Key != null)
+                  .Select(g => new {
+                      Team = g.Key,
+                      Score = g.First().Score
+                      })
+                .ToDictionaryAsync(x => x.Team!, x => x.Score);
+              }      
 
-            var model = new CurrentRoomModel
-            {
+              var model = new CurrentRoomModel
+              {
                 Room = room,
                 Players = joinedPlayersList,
                 LoggedUser = user,
@@ -161,10 +163,34 @@ namespace TrackMyScore.Controllers
                 CurrentMatch = currentMatch,
                 Participants = participants,
                 Teams = teams,
-                JoinedPlayersList = joinedPlayersList
-            };
+              };
 
-            return View(model);
+              return View(model);
+
+            }
+            /*else if(room.Tournament.Type == "team")
+            {
+              var tournament = await _context.Tournaments
+                .FirstOrDefaultAsync(t => t.Id == room.Tournament.Id);
+
+              var players = await _context.Players
+                .Where(p => p.Tournament == tournament);
+
+              var model = new CurrentRoomModel
+              {
+                Room = room,
+                Players = players,
+                LoggedUser = user,
+                UserJoined = userJoined,
+                CurrentMatch = currentMatch,
+                Participants = participants,
+                Teams = teams
+              };
+
+            }*/
+
+            return Ok();
+
         }
 
 

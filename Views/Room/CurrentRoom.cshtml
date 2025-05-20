@@ -112,8 +112,8 @@
                         }                           
                     </tr>
                   }
-                } else if (Model.Room.Stage == -1){
-                @foreach (var joinedPlayer in Model.JoinedPlayersList)
+                } else if (Model.Room.Stage == -1 && Model.Players != null){
+                @foreach (var joinedPlayer in Model.Players)
                 {
                     <tr>
                         <td>

@@ -1,82 +1,98 @@
 ﻿@{
 }
 @model List<Game>
-<h1>
+  <h1>
     Create Tournament
-</h1>
+  </h1>
 
-<form method="post" asp-action="Create" asp-controller="Tournament">
+  <form method="post" asp-action="Create" asp-controller="Tournament">
     <div>
-        <label>
-            Tournament Title:
-            <input type="text" name="name" autocomplete="off" />
-        </label>
+      <label>
+        Tournament Title:
+        <input type="text" name="name" autocomplete="off" />
+      </label>
     </div>
     <div id="playerNumberDiv" style="display: none;">
-        <label>
-            Maximum Players per Team:
-            <input type="number" name="playerNumber" autocomplete="off" />
-        </label>
+      <label>
+        Maximum Players per Team:
+        <input type="number" name="playerNumber" autocomplete="off" />
+      </label>
     </div>
     <div>
-        <label>
-            Location:
-            <input type="text" name="location" autocomplete="off" />
-        </label>
+      <label>
+        Location:
+        <input type="text" name="location" autocomplete="off" />
+      </label>
     </div>
     <div>
-        <label>
-            Reward:
-            <input type="text" name="reward" autocomplete="off" />
-        </label>
+      <label>
+        Reward:
+        <input type="text" name="reward" autocomplete="off" />
+      </label>
     </div>
     <div>
-        <label>
-            Room Count:
-            <select name="roomCount">
-                <option value=2>2</option>
-                <option value=4>4</option>
-                <option value=8>8</option>
-                <option value=16>16</option>
-                <option value=32>32</option>
-            </select>
-        </label>
+      <label>
+        Room Count:
+        <select name="roomCount">
+          <option value=2>2</option>
+          <option value=4>4</option>
+          <option value=8>8</option>
+          <option value=16>16</option>
+          <option value=32>32</option>
+        </select>
+      </label>
     </div>
     <div>
-        <label>
-            Start Date:
-            <input type="date" name="startDate" autocomplete="off" />
-            <input type="time" name="startTime" autocomplete="off" />
-        </label>
+      <label>
+        Start Date:
+        <input type="date" name="startDate" autocomplete="off" />
+        <input type="time" name="startTime" autocomplete="off" />
+      </label>
     </div>
     <div>
-        <label>Game:</label>
-        @if (Model != null && Model.Any())
+      <label>Game:</label>
+      @if (Model != null && Model.Any())
+      {
+      <select name="gameId">
+        @foreach (var game in Model)
         {
-            <select name="gameId">
-                @foreach (var game in Model)
-                {
-                    <option value="@game.Id">@game.Title</option>
-                }
-            </select>
+        <option value="@game.Id">@game.Title</option>
         }
-        else
-        {
-            <p style="color: red;">There are no games added in your games list.</p>
-        }
+      </select>
+      }
+      else
+      {
+      <p style="color: red;">There are no games added in your games list.</p>
+      }
     </div>
     <div>
+      <div>
+        <label>Mode:</label>
         <div>
-            <label>Mode:</label>
-            <div>
-                <input type="radio" name="mode" value="single" checked onclick="toggleTournamentMode('single')" /> Single Mode
-                <input type="radio" name="mode" value="team" onclick="toggleTournamentMode('team')" /> Team Mode
-            </div>
+          <input type="radio" name="mode" value="single" checked onclick="toggleTournamentMode('single')" /> Single Mode
+          <input type="radio" name="mode" value="team" onclick="toggleTournamentMode('team')" /> Team Mode
         </div>
+      </div>
     </div>
     <div>
-        <button class="btn btn-dark" type="submit">Create Tournament</button>
+      <button class="btn btn-dark" type="submit">Create Tournament</button>
     </div>
-</form>
+  </form>
 
-<script src="~/js/site.js"></script>
+<script>
+
+let mode = "single"; 
+
+function toggleTournamentMode(tournamentMode){
+
+  if(tournamentMode == "single"){
+    mode = tournamentMode;
+    $("#playerNumberDiv").hide();
+  } else if (tournamentMode == "team"){
+    mode = tournamentMode;
+    $("#playerNumberDiv").show();
+  }
+}
+
+</script>
+

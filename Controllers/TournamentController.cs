@@ -86,7 +86,7 @@ namespace TrackMyScore.Controllers
                     StartDate = startDateTime,
                     Code = code,
                     RoomCount = roomCount,
-                    IsActive = true,
+                    IsActive = false,
                     Game = game,
                     Type = mode,
                     Host = host,
@@ -128,7 +128,7 @@ namespace TrackMyScore.Controllers
                     RoomCount = roomCount,
                     Code = code,
                     Game = game,
-                    IsActive = true,
+                    IsActive = false,
                     Type = mode,
                     Host = host,
                     Winner = "",
@@ -219,7 +219,7 @@ namespace TrackMyScore.Controllers
                 foreach (var player in players)
                 {
                     teams = await _context.Players
-                        .Where(p => p.User.Id == player.Id && p.Tournament.Id == id)
+                        .Where(p => p.Tournament.Id == id)
                         .Select(p => p.Team)
                         .Distinct()
                         .ToListAsync();
@@ -288,63 +288,77 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> JoinTeam(int id, string code, List<int>? teammates, string? teamName)
         {
 
-            var user = await GetLoggedUserAsync();
+          var user = await GetLoggedUserAsync();
 
-            if (user == null)
-                return RedirectToAction("Login", "Account");
+          if (user == null)
+            return RedirectToAction("Login", "Account");
 
-            var tournament = await _context.Tournaments
-                .Include(t => t.Game)
-                .FirstOrDefaultAsync(t => t.Id == id);
+          var tournament = await _context.Tournaments
+            .Include(t => t.Game)
+            .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (tournament == null)
+          if (tournament == null)
+          {
+            return Json(new { success = false, message = "Tournament not found." });
+          }
+
+          if (string.IsNullOrEmpty(code) || tournament.Code != code)
+          {
+            return Json(new { success = false, message = "Invalid tournament code." });
+          }
+
+          var existingPlayer = await _context.Players
+            .AnyAsync(p => p.Tournament.Id == id && p.User.Id == user.Id);
+          if (existingPlayer)
+          {
+            return Json(new { success = false, message = "You already joined this tournament." });
+          }
+
+          foreach(var teammate in teammates){
+            var alreadyJoined = await _context.Players
+              .AnyAsync(p => p.Tournament.Id == id && p.User.Id == teammate);
+
+            if(alreadyJoined){
+              return Json(new { success = false, message = "One of your teammates already joined the tournament." });
+            }
+          }
+
+          if(teammates.Count > tournament.MaxPlayers)
+          {
+            return Json(new { success = false, message = "The chosen team exceeds the player limit set by the tournament. "});
+          }
+
+          if (tournament.Type == "team")
+          {
+            if (string.IsNullOrEmpty(teamName) || teammates == null || !teammates.Any())
             {
-                return Json(new { success = false, message = "Tournament not found." });
+              return Json(new { success = false, message = "Team name and at least one teammate required." });
             }
 
-            if (string.IsNullOrEmpty(code) || tournament.Code != code)
+            var team = new Team { Name = teamName };
+            _context.Teams.Add(team);
+
+            var allMembers = new List<User> { user };
+            var teammateUsers = await _context.Users
+              .Where(u => teammates.Contains(u.Id))
+              .ToListAsync();
+            allMembers.AddRange(teammateUsers);
+
+            foreach (var member in allMembers)
             {
-                return Json(new { success = false, message = "Invalid tournament code." });
+              _context.Players.Add(new Player
+                  {
+                  User = member,
+                  Tournament = tournament,
+                  Team = team,
+                  Eliminated = false,
+                  RespectPoints = 1
+                  });
             }
+          }
 
-            var existingPlayer = await _context.Players
-                .AnyAsync(p => p.Tournament.Id == id && p.User.Id == user.Id);
-            if (existingPlayer)
-            {
-                return Json(new { success = false, message = "You already joined this tournament." });
-            }
-
-            if (tournament.Type == "team")
-            {
-                if (string.IsNullOrEmpty(teamName) || teammates == null || !teammates.Any())
-                {
-                    return Json(new { success = false, message = "Team name and at least one teammate required." });
-                }
-
-                var team = new Team { Name = teamName };
-                _context.Teams.Add(team);
-
-                var allMembers = new List<User> { user };
-                var teammateUsers = await _context.Users
-                    .Where(u => teammates.Contains(u.Id))
-                    .ToListAsync();
-                allMembers.AddRange(teammateUsers);
-
-                foreach (var member in allMembers)
-                {
-                    _context.Players.Add(new Player
-                    {
-                        User = member,
-                        Tournament = tournament,
-                        Team = team,
-                        Eliminated = false,
-                        RespectPoints = 1
-                    });
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Joined successfully" });
+          await _context.SaveChangesAsync();
+          return Json(new { success = true, message = "Joined successfully" });
         }
 
         private async Task<List<User>> GetMutualFollowersAsync(User user)
@@ -366,65 +380,69 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> Leave(int id)
         { // method for leaving the tournament
 
-            var user = await GetLoggedUserAsync();
-            var tournament = await _context.Tournaments
-                .FirstOrDefaultAsync(t => t.Id == id);
+          var user = await GetLoggedUserAsync();
+          var tournament = await _context.Tournaments
+            .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (tournament == null)
+          if (tournament == null)
+          {
+            return NotFound();
+          }
+
+          if (tournament.Type == "single")
+          { // removing the player
+            var player = await _context.Players
+              .Include(p => p.User)
+              .FirstOrDefaultAsync(p => p.Tournament == tournament && p.User.Id == user.Id);
+
+            if (player == null)
             {
-                return NotFound();
+              return NotFound();
             }
 
-            if (tournament.Type == "single")
-            { // removing the player
-                var player = await _context.Players
-                    .FirstOrDefaultAsync(p => p.Tournament.Id == id && p.User.Id == user.Id);
+            _context.Players.Remove(player);
+            await _context.SaveChangesAsync();
 
-                if (player == null)
-                {
-                    return NotFound();
-                }
+            return Json(new { success = true, message = "Left tournament." });
+          }
 
-                _context.Players.Remove(player);
-                await _context.SaveChangesAsync();
+          if (tournament.Type == "team")
+          { // removing the team of the player and the teammates
+            var player = await _context.Players
+              .Include(p => p.Tournament)
+              .Include(p => p.User)
+              .Include(p => p.Team)
+              .FirstOrDefaultAsync(p => p.Tournament.Id == id && p.User.Id == user.Id);
 
-                return Json(new { success = true, message = "Left tournament." });
+            if (player == null)
+            {
+              return Json(new { success = false, message = "Player not found." });
             }
 
-            if (tournament.Type == "team")
-            { // removing the team of the player and the teammates
-                var player = await _context.Players
-                    .FirstOrDefaultAsync(p => p.Tournament.Id == id && p.User.Id == user.Id);
+            var team = await _context.Teams
+              .FirstOrDefaultAsync(t => t.Id == player.Team.Id);
 
-                if (player == null)
-                {
-                    return Json(new { success = false, message = "Player not found." });
-                }
-
-                var team = await _context.Teams
-                    .FirstOrDefaultAsync(t => t.Id == player.Team.Id);
-
-                if (team == null)
-                {
-                    return Json(new { success = false, message = "Team not found." });
-                }
-
-                var teamPlayers = await _context.Players
-                    .Where(p => p.Tournament.Id == id && p.Team.Id == team.Id)
-                    .ToListAsync();
-
-                foreach (var p in teamPlayers)
-                {
-                    _context.Players.Remove(p);
-                }
-
-                _context.Teams.Remove(team);
-                await _context.SaveChangesAsync();
-
-                return Json(new { success = true, message = "Left tournament." });
+            if (team == null)
+            {
+              return Json(new { success = false, message = "Team not found." });
             }
 
-            return Json(new { success = false, message = "Tournament not found or you are not taking part in it." });
+            var teamPlayers = await _context.Players
+              .Where(p => p.Tournament.Id == id && p.Team.Id == team.Id)
+              .ToListAsync();
+
+            foreach (var p in teamPlayers)
+            {
+              _context.Players.Remove(p);
+            }
+
+            _context.Teams.Remove(team);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Left tournament." });
+          }
+
+          return Json(new { success = false, message = "Tournament not found or you are not taking part in it." });
         }
 
         [HttpPost]
