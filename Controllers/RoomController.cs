@@ -32,12 +32,6 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
-        public IActionResult Play()
-        {
-            return View();
-        }
-
-        [HttpGet]
         public async Task<IActionResult> List()
         {
             User loggedUser = await GetLoggedUserAsync();

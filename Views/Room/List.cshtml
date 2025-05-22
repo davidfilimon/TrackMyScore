@@ -1,114 +1,323 @@
 ﻿@model RoomListModel
 
 @{
-    int playerCount = Model.playerCount;
+    ViewData["Title"] = "Room List";
 }
 
-<h1>
-    Room List:
-</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - TrackMyScore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<style>
+    :root {
+        --primary-dark: #1A3C2A;
+        --primary: #2A5940;
+        --primary-light: #3B7A5A;
+        --accent-gold: #D4AF37;
+        --accent-gold-light: #F0D875;
+        --accent-wood: #966F33;
+        --text-light: #E8F5E9;
+        --text-muted: #ffffff;
+        --card-bg: #234134;
+        --input-bg: #1A3C2A;
+        --input-border: #3B7A5A;
+        --input-focus: #D4AF37;
+        --error: #CF6679;
+        --success: #4CAF50;
+        --spacing-unit: 8px;
+    }
 
-<div>
-    @if(Model.roomList != null && Model.roomList.Any()){
-        @foreach(var room in Model.roomList){
-            <div>
-                Room Name: @room.Name
-            </div>
-            <div>
-                Host Name: @room.Host.Username
-            </div>
-            <div>
-                Number of players: @(Model.joinedPlayers.ContainsKey(room) ? Model.joinedPlayers[room].Count : 0) / @room.Game.MaxPlayers
-            </div>
-            <div>
-                Game Name: @room.Game.Title
-            </div>
-            <div>
-                Room Description: @room.Game.Description
-            </div>
-            @if (room.Stage == -1)
-            {
-                <div>
-                    Waiting for the host to start the game.
-                </div>
-            }
-            else if (room.Stage == -2)
-            {
-                <div>
-                    Match already ended.
-                </div>
-            }
-            else if (room.Stage == 0)
-            {
-                <div>
-                    There is an ongoing match.
-                </div>
-            }       
-            <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
-                View Details
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background-color: var(--primary-dark);
+        color: var(--text-light);
+        min-height: 100vh;
+        line-height: 1.5;
+        padding: calc(var(--spacing-unit) * 10) calc(var(--spacing-unit) * 4) calc(var(--spacing-unit) * 4);
+    }
+
+    .container-fluid {
+        max-width: 1200px; /* Limit width for better readability */
+    }
+
+    .header-section {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: calc(var(--spacing-unit) * 3);
+        margin-bottom: calc(var(--spacing-unit) * 4);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-section h1 {
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    .btn-create-room {
+        background-color: var(--accent-gold);
+        border: none;
+        color: var(--primary-dark);
+        font-weight: 600;
+        padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+
+    .btn-create-room:hover, .btn-create-room:focus {
+        background-color: var(--accent-gold-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: var(--primary-dark);
+    }
+
+    .room-section {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: calc(var(--spacing-unit) * 4);
+        margin-bottom: calc(var(--spacing-unit) * 4);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .room-section h3 {
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: calc(var(--spacing-unit) * 3);
+    }
+
+    .room-card {
+        background-color: var(--primary);
+        border-radius: 10px;
+        padding: calc(var(--spacing-unit) * 3);
+        margin-bottom: calc(var(--spacing-unit) * 3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative; /* For the status badge */
+    }
+
+    .room-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .room-card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: calc(var(--spacing-unit) * 1.5);
+    }
+
+    .room-info {
+        font-size: 0.95rem;
+        margin-bottom: calc(var(--spacing-unit) * 1);
+        color: var(--text-muted);
+    }
+
+    .room-info strong {
+        color: var(--text-light);
+    }
+
+    .room-players {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--accent-gold);
+        margin-top: calc(var(--spacing-unit) * 1.5);
+        margin-bottom: calc(var(--spacing-unit) * 2);
+    }
+
+    .room-status {
+        font-style: italic;
+        color: var(--text-muted);
+        margin-top: calc(var(--spacing-unit) * 1.5);
+        padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: 500;
+        text-align: center;
+        width: 100%; /* Occupy full width for smaller screens */
+    }
+    
+    .status-waiting {
+        background-color: rgba(212, 175, 55, 0.2);
+        color: var(--accent-gold);
+        border: 1px solid var(--accent-gold);
+    }
+
+    .status-ended {
+        background-color: rgba(207, 102, 121, 0.2);
+        color: var(--error);
+        border: 1px solid var(--error);
+    }
+
+    .status-ongoing {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: var(--success);
+        border: 1px solid var(--success);
+    }
+
+    .btn-view-details {
+        background-color: var(--accent-gold);
+        border: none;
+        color: var(--primary-dark);
+        font-weight: 600;
+        padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        display: block; /* Make button full width */
+        text-align: center;
+        margin-top: calc(var(--spacing-unit) * 2);
+    }
+
+    .btn-view-details:hover {
+        background-color: var(--accent-gold-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: var(--primary-dark);
+    }
+
+    .no-rooms-message {
+        text-align: center;
+        padding: calc(var(--spacing-unit) * 3);
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* Responsive adjustments */
+    @@media (min-width: 768px) {
+        .btn-create-room {
+            margin-left: calc(var(--spacing-unit) * 3);
+        }
+        .room-status {
+            position: absolute; /* Position badge on larger screens */
+            top: calc(var(--spacing-unit) * 2);
+            right: calc(var(--spacing-unit) * 2);
+            width: auto; /* Revert to auto width */
+            padding: calc(var(--spacing-unit) * 0.75) calc(var(--spacing-unit) * 1.5);
+        }
+        .btn-view-details {
+            display: inline-block; /* Make button inline-block on larger screens */
+            width: auto;
+        }
+    }
+</style>
+<body>
+    <div class="container-fluid">
+        <div class="header-section">
+            <h1>Active Rooms</h1>
+            <a class="btn btn-create-room" asp-action="Create" asp-controller="Room">
+                <i class="fa-solid fa-plus me-2"></i> Create Room
             </a>
-        }
-    }
-    else 
-    {
-        <div>
-            No rooms available.
         </div>
-    }
-</div>    
-<h1>
-    Joined or Hosted Rooms:
-</h1>
-<div>
-    @if (Model.joinedRooms != null && Model.joinedRooms.Any())
-    {
-        @foreach (var joinedRoom in Model.joinedRooms)
-        {
-            @if(joinedRoom.Room.Stage != -2){
-                <div>
-                    Room Name: @joinedRoom.Room.Name
-                </div>
-                <div>
-                    Host Name: @joinedRoom.Room.Host.Username
-                </div>
-                <div>
-                    Number of players: @(Model.joinedPlayers.ContainsKey(joinedRoom.Room) ? Model.joinedPlayers[joinedRoom.Room].Count : 0) / @joinedRoom.Room.Game.MaxPlayers
-                </div>
-                <div>
-                    Game Name: @joinedRoom.Room.Game.Title
-                </div>
-                <div>
-                    Room Description: @joinedRoom.Room.Game.Description
-                </div>
-                @if (joinedRoom.Room.Stage == -1)
-                {
-                    <div>
-                        Waiting for the host to start the game.
-                    </div>
-                }
-                else if (joinedRoom.Room.Stage == -2)
-                {
-                    <div>
-                        Match already ended.
-                    </div>
-                }
-                else if (joinedRoom.Room.Stage == 0)
-                {
-                    <div>
-                        There is an ongoing match.
-                    </div>
-                }
-                <a class="btn-dark btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@joinedRoom.Room.Id">
-                    View Details
-                </a>
-            }
-        }
-    }
-    else
-    {
-        <div>
-            No rooms joined.
-        </div>
-    }
-</div>
 
+        <div class="room-section mb-4">
+            <h3>Available Rooms to Join</h3>
+            <div class="row">
+                @if(Model.roomList != null && Model.roomList.Any()){
+                    @foreach(var room in Model.roomList){
+                        <div class="col-md-6 col-lg-4">
+                            <div class="room-card">
+                                <div class="room-card-title">@room.Name</div>
+                                <div class="room-info"><strong>Host:</strong> @room.Host.Username</div>
+                                <div class="room-info"><strong>Game:</strong> @room.Game.Title</div>
+                                <div class="room-info"><strong>Description:</strong> @room.Game.Description</div>
+                                <div class="room-players">Players: @(Model.joinedPlayers.ContainsKey(room) ? Model.joinedPlayers[room].Count : 0) / @room.Game.MaxPlayers</div>
+                                
+                                @if (room.Stage == -1)
+                                {
+                                    <div class="room-status status-waiting">
+                                        <i class="fa-solid fa-clock me-1"></i> Waiting for host to start
+                                    </div>
+                                }
+                                else if (room.Stage == -2)
+                                {
+                                    <div class="room-status status-ended">
+                                        <i class="fa-solid fa-flag-checkered me-1"></i> Match ended
+                                    </div>
+                                }
+                                else if (room.Stage == 0)
+                                {
+                                    <div class="room-status status-ongoing">
+                                        <i class="fa-solid fa-play me-1"></i> Ongoing match
+                                    </div>
+                                }
+                                <a class="btn btn-view-details" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
+                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="no-rooms-message">No rooms available to join.</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="room-section">
+            <h3>Your Joined or Hosted Rooms</h3>
+            <div class="row">
+                @if (Model.joinedRooms != null && Model.joinedRooms.Any())
+                {
+                    @foreach (var joinedRoom in Model.joinedRooms)
+                    {
+                        @if(joinedRoom.Room.Stage != -2){
+                            <div class="col-md-6 col-lg-4">
+                                <div class="room-card">
+                                    <div class="room-card-title">@joinedRoom.Room.Name</div>
+                                    <div class="room-info"><strong>Host:</strong> @joinedRoom.Room.Host.Username</div>
+                                    <div class="room-info"><strong>Game:</strong> @joinedRoom.Room.Game.Title</div>
+                                    <div class="room-info"><strong>Description:</strong> @joinedRoom.Room.Game.Description</div>
+                                    <div class="room-players">Players: @(Model.joinedPlayers.ContainsKey(joinedRoom.Room) ? Model.joinedPlayers[joinedRoom.Room].Count : 0) / @joinedRoom.Room.Game.MaxPlayers</div>
+                                    
+                                    @if (joinedRoom.Room.Stage == -1)
+                                    {
+                                        <div class="room-status status-waiting">
+                                            <i class="fa-solid fa-clock me-1"></i> Waiting for host to start
+                                        </div>
+                                    }
+                                    else if (joinedRoom.Room.Stage == -2)
+                                    {
+                                        <div class="room-status status-ended">
+                                            <i class="fa-solid fa-flag-checkered me-1"></i> Match ended
+                                        </div>
+                                    }
+                                    else if (joinedRoom.Room.Stage == 0)
+                                    {
+                                        <div class="room-status status-ongoing">
+                                            <i class="fa-solid fa-play me-1"></i> Ongoing match
+                                        </div>
+                                    }
+                                    <a class="btn btn-view-details" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@joinedRoom.Room.Id">
+                                        <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="no-rooms-message">You haven't joined or hosted any active rooms.</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>

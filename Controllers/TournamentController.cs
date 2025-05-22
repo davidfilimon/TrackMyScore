@@ -302,6 +302,11 @@ namespace TrackMyScore.Controllers
         return Json(new { success = false, message = "Tournament not found." });
       }
 
+      if (teammates.Count + 1 > tournament.MaxPlayers)
+      {
+        return Json(new { success = false, message = "The number of teammates is bigger than the maximum number of players allowed per team." });
+      }
+
       if (string.IsNullOrEmpty(code) || tournament.Code != code)
       {
         return Json(new { success = false, message = "Invalid tournament code." });
@@ -472,7 +477,7 @@ namespace TrackMyScore.Controllers
         return Json(new { success = false, message = "You are not the host of this tournament." });
       }
 
-      if (!tournament.IsActive)
+      if (!tournament.IsActive && tournament.Winner != "")
       {
         return Json(new { success = false, message = "Tournament already ended." });
       }
@@ -831,14 +836,6 @@ namespace TrackMyScore.Controllers
       await _context.SaveChangesAsync();
       return Json(new { success = true, message = "Tournament ended successfully." });
     }
-
-
-    [HttpGet]
-    public async Task<IActionResult> TR(int id)
-    {
-      return Ok();
-    }
-    
        
     }
     // tournament start, end, brackets = room / 2 // dont edit this

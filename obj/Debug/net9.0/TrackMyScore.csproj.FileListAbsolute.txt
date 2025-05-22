@@ -205,12 +205,9 @@ D:\TrackMyScore\obj\Debug\net9.0\compressed\p749oiazj9-5vj65cig9w.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\syw134p19k-5p029spbuu.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\0zf3lfia5o-st1cbwfwo5.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\0apgy4e1cf-nakmwdwsxp.gz
-D:\TrackMyScore\obj\Debug\net9.0\compressed\5erd8g1fec-mg3yqh3i00.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\qla6i1ffii-61n19gt1b8.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\hl6cnujjc8-3rg60fogfm.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\orf1twlcmn-zqkd2xegk2.gz
-D:\TrackMyScore\obj\Debug\net9.0\compressed\k5f4rxl2ak-gfpo1kpi8h.gz
-D:\TrackMyScore\obj\Debug\net9.0\compressed\2b0e8a5jbc-bz6mmspcge.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\gdx8f58tt6-chiani7mko.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\p57wwk86kw-4337bjm2p6.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\k042jzg5kd-4337bjm2p6.gz
@@ -224,3 +221,4 @@ D:\TrackMyScore\obj\Debug\net9.0\refint\TrackMyScore.dll
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyScore.pdb
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyScore.genruntimeconfig.cache
 D:\TrackMyScore\obj\Debug\net9.0\ref\TrackMyScore.dll
+D:\TrackMyScore\obj\Debug\net9.0\compressed\5erd8g1fec-awcbecnhft.gz

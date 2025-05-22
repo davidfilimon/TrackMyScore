@@ -84,10 +84,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUm9vbVxMaXN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/TrackMyScore/Views/Room/Play.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUm9vbVxQbGF5LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [D:/TrackMyScore/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -106,10 +102,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/TrackMyScore/Views/Tournament/List.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVG91cm5hbWVudFxMaXN0LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[D:/TrackMyScore/Views/Tournament/Play.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVG91cm5hbWVudFxQbGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/TrackMyScore/Views/_ViewImports.cshtml]

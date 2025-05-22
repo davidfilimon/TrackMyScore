@@ -3,67 +3,409 @@
 }
 @model List<Game>
 
-<form method="post" asp-action="Create" asp-controller="Room">
-    <div>
-        <label>
-            Room Title:
-            <input type="text" name="name" autocomplete="off" />
-        </label>
-    </div>
-    <div>
-        <label>
-            Type:
-            <input type="text" name="type" autocomplete="off" />
-        </label>
-    </div>
-    <div>
-        <label>
-            Location:
-            <input type="text" name="location" autocomplete="off" />
-        </label>
-    </div>
-    <div>
-        <label>
-            Start Date:
-            <input type="date" name="startDate" autocomplete="off" />
-            <input type="time" name="startTime" autocomplete="off" />
-        </label>
-    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Room - TrackMyScore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-    <div>
-        <label>Game:</label>
-        @if (Model != null && Model.Any())
-        {
-            <select name="gameId">
-                @foreach (var game in Model)
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ro.js"></script>
+
+
+    <style>
+        :root {
+            --primary-dark: #1A3C2A;
+            --primary: #2A5940;
+            --primary-light: #3B7A5A;
+            --accent-gold: #D4AF37;
+            --accent-gold-light: #F0D875;
+            --accent-wood: #966F33;
+            --text-light: #E8F5E9;
+            --text-muted: #ffffff; /* Folosit pentru placeholder */
+            --card-bg: #234134;
+            --input-bg: #1A3C2A; /* Fundalul verde închis pentru input-uri */
+            --input-border: #3B7A5A; /* Chenarul verde mai deschis */
+            --input-focus: #D4AF37;
+            --error: #CF6679;
+            --success: #4CAF50;
+            --spacing-unit: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            line-height: 1.5;
+            padding: calc(var(--spacing-unit) * 4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: calc(var(--spacing-unit) * 4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            margin: auto;
+        }
+
+        .form-container h2 {
+            color: var(--accent-gold);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: calc(var(--spacing-unit) * 3);
+        }
+
+        .form-group label {
+            color: var(--text-light);
+            font-weight: 500;
+            margin-bottom: calc(var(--spacing-unit) * 1);
+            display: block;
+        }
+
+        .form-control,
+        .form-select {
+            background-color: var(--input-bg); /* Fundal verde închis */
+            color: var(--text-light);
+            border: 1px solid var(--input-border); /* Chenar verde mai deschis */
+            border-radius: 8px;
+            padding: calc(var(--spacing-unit) * 1.5);
+            font-size: 1rem;
+            width: 100%;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
+            background-color: var(--input-bg); /* Rămâne verde închis la focus */
+            color: var(--text-light);
+        }
+
+        /* Adjust placeholder color for all inputs including Flatpickr's altInput */
+        .form-control::placeholder,
+        .flatpickr-alt-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* **Am redus agresivitatea CSS-ului aici, bazându-mă mai mult pe JS** */
+        /* Păstrăm totuși aceste reguli, dar fără prea multe !important, ca fallback */
+        .flatpickr-alt-input {
+            background-color: var(--input-bg);
+            color: var(--text-light);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: calc(var(--spacing-unit) * 1.5);
+            font-size: 1rem;
+            width: 100%;
+            box-shadow: none;
+        }
+
+        .flatpickr-alt-input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
+            background-color: var(--input-bg);
+            color: var(--text-light);
+        }
+
+
+        .btn-primary-custom {
+            background-color: var(--accent-gold);
+            border: none;
+            color: var(--primary-dark);
+            font-weight: 600;
+            padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            font-size: 1.1rem;
+            margin-top: calc(var(--spacing-unit) * 3);
+        }
+
+        .btn-primary-custom:hover:not(:disabled) {
+            background-color: var(--accent-gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            color: var(--primary-dark);
+        }
+
+        .btn-primary-custom:disabled {
+            background-color: var(--primary-light);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        p.text-danger {
+            color: var(--error);
+            font-size: 0.95rem;
+            margin-top: calc(var(--spacing-unit) * 1);
+        }
+
+        /* Custom styles for Flatpickr calendar popup */
+        .flatpickr-calendar {
+            background-color: var(--card-bg);
+            border: 1px solid var(--primary-light);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            border-radius: 8px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            z-index: 1050;
+        }
+
+        .flatpickr-months .flatpickr-month {
+            background-color: var(--primary);
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month,
+        .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-year {
+            color: var(--text-light);
+        }
+
+        .flatpickr-months .flatpickr-prev-month,
+        .flatpickr-months .flatpickr-next-month {
+            color: var(--accent-gold);
+        }
+        .flatpickr-months .flatpickr-prev-month:hover,
+        .flatpickr-months .flatpickr-next-month:hover {
+            color: var(--accent-gold-light);
+        }
+        .flatpickr-months .flatpickr-prev-month svg,
+        .flatpickr-months .flatpickr-next-month svg {
+            fill: currentColor;
+        }
+
+        .flatpickr-weekdays {
+            background-color: var(--primary-dark);
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--input-border);
+        }
+        .flatpickr-weekday {
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
+        .flatpickr-days {
+            padding: calc(var(--spacing-unit) * 1.5);
+        }
+
+        .flatpickr-day {
+            color: var(--text-light);
+            border-radius: 4px;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange,
+        .flatpickr-day.today.selected {
+            background-color: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--primary-dark);
+            box-shadow: none;
+        }
+
+        .flatpickr-day.today {
+            border: 1px solid var(--accent-gold);
+            color: var(--text-light);
+        }
+        .flatpickr-day.today:hover {
+             background-color: var(--primary-light);
+        }
+
+        .flatpickr-day:hover {
+            background-color: var(--primary-light);
+            color: var(--text-light);
+        }
+        .flatpickr-day.flatpickr-disabled {
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* Time picker specific styles */
+        .flatpickr-time {
+            border-top: 1px solid var(--input-border);
+            padding: calc(var(--spacing-unit) * 1.5) 0;
+            background-color: var(--primary-dark);
+        }
+        .flatpickr-time input.flatpickr-hour,
+        .flatpickr-time input.flatpickr-minute {
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-light);
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .flatpickr-time .flatpickr-am-pm {
+             color: var(--text-light);
+        }
+        .flatpickr-time .numInputWrapper span.arrowUp:after,
+        .flatpickr-time .numInputWrapper span.arrowDown:after {
+            border-color: var(--accent-gold);
+        }
+        .flatpickr-time .numInputWrapper:hover span.arrowUp:after,
+        .flatpickr-time .numInputWrapper:hover span.arrowDown:after {
+            border-color: var(--accent-gold-light);
+        }
+        .flatpickr-time .numInputWrapper:hover {
+            background-color: var(--primary-light);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create New Room</h2>
+        <form method="post" asp-action="Create" asp-controller="Room">
+            <div class="form-group">
+                <label for="name">Room Title:</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="e.g., My Awesome Poker Room" autocomplete="off" required />
+            </div>
+            <div class="form-group">
+                <label for="type">Type:</label>
+                <input type="text" id="type" name="type" class="form-control" placeholder="e.g., Casual, Ranked" autocomplete="off" required />
+            </div>
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" class="form-control" placeholder="e.g., Online, Bucharest Arena" autocomplete="off" required />
+            </div>
+            <div class="form-group">
+                <label>Start Date & Time:</label>
+                <div class="d-flex gap-3">
+                    <input type="text" name="startDate" class="form-control" placeholder="Select Date" autocomplete="off" required />
+                    <input type="text" name="startTime" class="form-control" placeholder="Select Time" autocomplete="off" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="gameId">Game:</label>
+                @if (Model != null && Model.Any())
                 {
-                    <option value="@game.Id">@game.Title</option>
+                    <select id="gameId" name="gameId" class="form-select">
+                        @foreach (var game in Model)
+                        {
+                            <option value="@game.Id">@game.Title</option>
+                        }
+                    </select>
                 }
-            </select>
-        }
-        else
-        {
-            <p style="color: red;">Nu exista jocuri in lista de favorite.</p>
-        }
+                else
+                {
+                    <p class="text-danger">Nu exista jocuri in lista de favorite. Adaugă jocuri pentru a putea crea o cameră.</p>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom" @(Model == null || !Model.Any() ? "disabled" : "")>Create Room</button>
+        </form>
     </div>
 
-    <div>
-        <button type="submit" @(Model == null || !Model.Any() ? "disabled" : "")>Create Room</button>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 
-</form>
+    <script>
+        // Start of original JavaScript functions (UNCHANGED)
+        let tournamentMode = 'single';
 
-<script>
-    let tournamentMode = 'single';
+        function toggleTournamentMode(mode){
+            tournamentMode = mode;
 
-    function toggleTournamentMode(mode){
-        tournamentMode = mode;
-
-        if(mode == 'team'){
-            $('#playerNumberDiv').show();
-        } else {
-            $('#playerNumberDiv').hide();
+            if(mode == 'team'){
+                $('#playerNumberDiv').show();
+            } else {
+                $('#playerNumberDiv').hide();
+            }
         }
-    }
-</script>
+        // End of original JavaScript functions (UNCHANGED)
+
+        // Inițializarea Flatpickr
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preia variabilele CSS din root
+            const rootStyles = getComputedStyle(document.documentElement);
+            const inputBg = rootStyles.getPropertyValue('--input-bg').trim();
+            const textLight = rootStyles.getPropertyValue('--text-light').trim();
+            const inputBorder = rootStyles.getPropertyValue('--input-border').trim();
+
+
+            // Inițializare pentru selectorul de dată
+            flatpickr("input[name='startDate']", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "F j, Y",
+                locale: "ro",
+                minDate: "today",
+                wrap: false,
+                // **HOOK-ul CRUCIAL AICI**
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Aplică stilurile direct pe altInput-ul creat de Flatpickr
+                    const altInput = instance.altInput;
+                    if (altInput) {
+                        altInput.style.backgroundColor = inputBg;
+                        altInput.style.color = textLight;
+                        altInput.style.border = `1px solid ${inputBorder}`;
+                        altInput.style.setProperty('box-shadow', 'none', 'important'); // Elimină orice box-shadow implicit
+                        // Asigură că placeholder-ul are culoarea corectă la început
+                        if (!altInput.value) { // Dacă input-ul este gol
+                            altInput.style.color = 'var(--text-muted)'; // Setează culoarea placeholder-ului
+                        }
+                    }
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Restaurează culoarea textului normală după ce a fost selectată o dată
+                    if (instance.altInput && instance.altInput.value) {
+                        instance.altInput.style.color = textLight;
+                    }
+                }
+            });
+
+            // Inițializare pentru selectorul de oră
+            flatpickr("input[name='startTime']", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                altInput: true,
+                altFormat: "H:i",
+                time_24hr: true,
+                locale: "ro",
+                wrap: false,
+                // **HOOK-ul CRUCIAL AICI**
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Aplică stilurile direct pe altInput-ul creat de Flatpickr
+                    const altInput = instance.altInput;
+                    if (altInput) {
+                        altInput.style.backgroundColor = inputBg;
+                        altInput.style.color = textLight;
+                        altInput.style.border = `1px solid ${inputBorder}`;
+                        altInput.style.setProperty('box-shadow', 'none', 'important'); // Elimină orice box-shadow implicit
+                        // Asigură că placeholder-ul are culoarea corectă la început
+                        if (!altInput.value) { // Dacă input-ul este gol
+                            altInput.style.color = 'var(--text-muted)'; // Setează culoarea placeholder-ului
+                        }
+                    }
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Restaurează culoarea textului normală după ce a fost selectată o oră
+                    if (instance.altInput && instance.altInput.value) {
+                        instance.altInput.style.color = textLight;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
