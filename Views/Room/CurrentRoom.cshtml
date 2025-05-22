@@ -40,7 +40,7 @@
         <div>The game has ended.</div>
     }
 
-    @if (Model.Room.Stage != -2 && Model.Room.Tournament == null)
+    @if (Model.Room.Stage != -2 && (Model.Room.Tournament == null || Model.Room.Mode == "single"))
     {
         if (Model.Room.Host != loggedUser && Model.Room.Stage == -1)
         {
@@ -79,11 +79,11 @@
                 <input type="radio" name="mode" value="team" onclick="toggleMode('team')" /> Team Mode
             </div>
         }
-    } else if (Model.Room.Stage == -1 && Model.Room.Tournament != null){
+    } else if (Model.Room.Stage == -1 && Model.Room.Tournament != null && Model.Room.Mode == "team"){
         <button class="btn btn-dark" onclick="startTMatch(@Model.Room.Id)">
             Start Match (Tournament)
         </button>
-    } else if(Model.Room.Stage == 0 && Model.Room.Tournament != null){
+    } else if(Model.Room.Stage == 0 && Model.Room.Tournament != null && Model.Room.Mode == "team"){
         <button id="endMatchButton" class="btn btn-danger" onclick="endMatch(@Model.CurrentMatch?.Id)">End Match</button>
     }
 </div>

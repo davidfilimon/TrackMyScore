@@ -10,291 +10,417 @@
 @inject FollowerService followerService;
 @inject UserService userService;
 
-<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/css/profile.css" />
-<script src="~/js/site.js"></script>
-
-<style>
-    .admin-button{
-        color: #000000;
-        transition: transform 0.7s ease-in-out;
-    }
-        .admin-button:hover{
-            transform:rotate(360deg);
-        }
-
-    .admin-button-container{
-        top: 25px;
-        right: 0px;
-        position:absolute;
-    }
-
-    .profile-header{
-        position:relative;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackMyScore - Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    .follow-container{
-        top: 65px;
-        left: 50px;
-        position:absolute;
-    }
-
-    .follow-btn{
-        background-color: #00241B;
-        color: #FFFFFF;
-    }
-    .tab-button{
-        background-color: #00241B;
-        color: #FFFFFF;
-        border:none;
-        padding:8px 15px;
-        cursor: pointer;
-    }
-
-    #profile-tabs{
-        background-color: #00241B;
-        color: #FFFFFF;
-        border-bottom:none;
-    }
-
-    .details-btn{
-        background-color: #65B891;
-        color: #000000;
-    }
-
-    .nav-tabs .nav-link{
-        border:none;
-        margin-bottom: -1px;
-    }
-        .nav-tabs .nav-link.active.tab-button{
-            background-color: #00241B;
-            color: #FFFFFF;
+    <style>
+        :root {
+            --primary-dark: #1A3C2A;
+            --primary: #2A5940;
+            --primary-light: #3B7A5A;
+            --accent-gold: #D4AF37;
+            --accent-gold-light: #F0D875;
+            --text-light: #E8F5E9;
+            --text-muted: #A7C0A7;
+            --card-bg: #234134;
+            --error: #CF6679;
+            --success: #4CAF50;
         }
 
-    
-
-    .tabs{
-        background-color: #00241B !important;
-        color: #FFFFFF;
-    }
-
-        .tab-pane.active.show {
-            background-color: #00241B;
-            color: #FFFFFF;
+        body {
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
-    .games {
-        display: flex;
-        justify-content: space-between;
-        align-items: center; 
-    }
-
-        .games td {
-            padding: 0.5rem;
+        .profile-header {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-    .view-details {
-        margin-left:auto;
-    }
+        .admin-button-container {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+        }
 
-</style>
+        .admin-button {
+            color: var(--accent-gold);
+            transition: transform 0.7s ease-in-out;
+            cursor: pointer;
+        }
 
+        .admin-button:hover {
+            transform: rotate(360deg);
+            color: var(--accent-gold-light);
+        }
+
+        .follow-container {
+            margin-top: 1rem;
+        }
+
+        .follow-btn {
+            background-color: var(--primary);
+            color: var(--text-light);
+            border: 2px solid var(--primary-light);
+            transition: all 0.3s ease;
+        }
+
+        .follow-btn:hover {
+            background-color: var(--primary-light);
+            color: var(--text-light);
+            transform: translateY(-2px);
+        }
+
+        .follow-section a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .follow-section a:hover {
+            color: var(--accent-gold);
+        }
+
+        .nav-tabs {
+            border-bottom: none;
+            margin-bottom: 1rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-muted);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: var(--card-bg);
+            color: var(--accent-gold);
+            border: none;
+        }
+
+        .tab-content {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .games {
+            background-color: var(--primary);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .games:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .details-btn {
+            background-color: var(--accent-gold);
+            color: var(--primary-dark);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .details-btn:hover {
+            background-color: var(--accent-gold-light);
+            transform: translateY(-2px);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-light);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .modal-header .btn-close {
+            color: var(--text-light);
+        }
+
+        .follower-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .follower-item:last-child {
+            border-bottom: none;
+        }
+
+        .heart-icons {
+            color: var(--accent-gold);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .heart-icons:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
 <body>
     <div class="container">
         <div class="profile-header">
-            <!-- <img src="" alt="Profile Picture"> -->
             <div class="d-flex justify-content-between align-items-center">
-                <span class="fs-4 mt-3 mx-5">@Model.User.Username</span>
-                <div class="mt-3 me-3 fs-5 admin-button-container ms-auto">
-                    @if (Model.User.isAdmin == true && loggedUser == Model.User.Id)
-                    {
+                <h2 class="mb-0">@Model.User.Username</h2>
+                @if (Model.User.isAdmin == true && loggedUser == Model.User.Id)
+                {
+                    <div class="admin-button-container">
                         <a asp-controller="Admin" asp-action="Dashboard" title="Admin Dashboard">
-                            <i class="fa-solid fa-gear admin-button fs-5"></i>
+                            <i class="fa-solid fa-gear admin-button fs-4"></i>
                         </a>
-                    }
-                </div>
-            </div>     
-            <div class="ms-3 mt-2 follow-container">
+                    </div>
+                }
+            </div>
+            
+            <div class="follow-container">
                 @if (loggedUser != 0 && loggedUser != Model.User.Id)
                 {
                     @if (await followerService.IsFollowing(loggedUser, Model.User.Id))
                     {
-                        <button type="submit" class="btn follow-btn" id="unfollow-btn" onclick="unfollow(@Model.User.Id, this)" style="display:inline;">
+                        <button type="submit" class="btn follow-btn" id="unfollow-btn" onclick="unfollow(@Model.User.Id, this)">
                             Unfollow
                         </button>
                     }
                     else
                     {
-                        <button type="submit" class="btn follow-btn" id="follow-btn" onclick="follow(@Model.User.Id, this)" style="display:inline;">
+                        <button type="submit" class="btn follow-btn" id="follow-btn" onclick="follow(@Model.User.Id, this)">
                             Follow
                         </button>
                     }
                 }
             </div>
-        </div>   
 
-        <div class="d-flex justify-content-start">
-            <div class="follow-section mb-2 me-3 d-flex align-items-center">
-                <a class="btn text-dark fw-bold p-0" href="#" data-bs-toggle="modal" data-bs-target="#followersModal">
-                    @await followerService.GetNumberFollowers(Model.User.Id) Followers
+            <div class="d-flex gap-4 mt-3">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#followersModal" class="text-decoration-none">
+                    <span class="fw-bold btn">@await followerService.GetNumberFollowers(Model.User.Id) Followers</span> 
                 </a>
-            </div>
-            <div class="follow-section mb-2 me-3 d-flex align-items-center">
-                <a class="btn text-dark fw-bold p-0" href="#" data-bs-toggle="modal" data-bs-target="#followingModal">
-                    @await followerService.GetNumberFollowing(Model.User.Id) Following
+                <a href="#" data-bs-toggle="modal" data-bs-target="#followingModal" class="text-decoration-none">
+                    <span class="fw-bold btn">@await followerService.GetNumberFollowing(Model.User.Id) Following</span>
                 </a>
             </div>
         </div>
 
-        <ul class="nav nav-tabs mt-3" id="profileTabs">
+        <ul class="nav nav-tabs" id="profileTabs">
             <li class="nav-item">
-                <a class="nav-link active tab-button" id="info-tab" data-bs-toggle="tab" href="#info">Info</a>
+                <a class="nav-link active" id="info-tab" data-bs-toggle="tab" href="#info">Info</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link tab-button" id="history-tab" data-bs-toggle="tab" href="#history">History</a>
+                <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history">Game History</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link tab-button" id="stats-tab" data-bs-toggle="tab" href="#stats">Statistics</a>
+                <a class="nav-link" id="tournament-tab" data-bs-toggle="tab" href="tournaments">Tournament History</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link tab-button" id="added-games-tab" data-bs-toggle="tab" href="#addedGames">Custom games</a>
+                <a class="nav-link" id="stats-tab" data-bs-toggle="tab" href="#stats">Statistics</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="added-games-tab" data-bs-toggle="tab" href="#addedGames">Custom games</a>
+            </li>
+            
         </ul>
 
-        
-
-        <div class="tab-content tabs">
+        <div class="tab-content">
             <div class="tab-pane fade show active" id="info">
-                <h3>Player Info</h3>
+                <h3 class="mb-4">Player Info</h3>
                 <p>Player since: @Model.User.AccountCreationDate</p>
-                <p>Respect points: @Model.User.RespectPoints</p>        
+                <p>Respect points: @Model.User.RespectPoints</p>
             </div>
 
             <div class="tab-pane fade" id="history">
-                <h3>Match History</h3>
+                <h3 class="mb-4">Match History</h3>
                 @if(Model.Matches.Any()){
                     @foreach(var match in matches){
-                        <table>
-                            <tr class="games">
-                                @if(match.Match.Room.Stage == -2){
-                                    <td>Match: @match.Match.Room.Name</td>
-                                    <td>Game: @match.Match.Room.Game.Title</td>
-                                    <td>Date: @match.Match.StartDate</td>
-                                    <td>Mode: @match.Match.Room.Mode</td>
-                                    @if (@match.Match.Winner != string.Empty)
-                                    {
-                                        <td>Winner: @match.Match.Winner</td>
-                                    }
-                                    <td class="view-details">
-                                        <a class="btn btn-dark" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@match.Match.Room.Id">
-                                            View Details
-                                        </a>
-                                    </td>
-                                }  
-                            </tr>
-                        </table>
+                        @if(match.Match.Room.Stage == -2){
+                            <div class="games">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">@match.Match.Room.Name</div>
+                                        <div class="text-muted">@match.Match.Room.Game.Title</div>
+                                        <div>@match.Match.StartDate</div>
+                                        <div>Mode: @match.Match.Room.Mode</div>
+                                        @if (@match.Match.Winner != string.Empty)
+                                        {
+                                            <div>Winner: @match.Match.Winner</div>
+                                        }
+                                    </div>
+                                    <a class="btn details-btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@match.Match.Room.Id">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        }
                     }
                 }
             </div>
 
             <div class="tab-pane fade" id="stats">
-                <h3>Statistics</h3>
-                <p>statistici</p>
+                <h3 class="mb-4">Statistics</h3>
+                <p>Statistics coming soon...</p>
             </div>
 
             <div class="tab-pane fade" id="addedGames">
-                <h3>Custom added games by @Model.User.Username </h3>
-                <div>
-                    @if (Model.CustomGames.Any())
+                <h3 class="mb-4">Custom added games by @Model.User.Username</h3>
+                @if (Model.CustomGames.Any())
+                {
+                    @foreach (var game in Model.CustomGames.Where(g => g.IsOfficial || !g.IsOfficial))
                     {
-                        @foreach (var game in Model.CustomGames.Where(g => g.IsOfficial || !g.IsOfficial))
-                        {
-                            <table>
-                                <tr class="games-list">
-                                    <td>@game.Title</td>
-                                    <td>@game.Description</td>
-                                    <td>@game.MaxPlayers</td>
-                                    <td>@game.Difficulty</td>
-                                    <td>
+                        <div class="games">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">@game.Title</div>
+                                    <div class="text-muted">@game.Description</div>
+                                    <div>Players: @game.MaxPlayers</div>
+                                    <div>Difficulty: @game.Difficulty</div>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <a onclick="toggleFavorite(@game.Id, this)" class="text-decoration-none">
                                         @if (await userService.IsGameFavorite(game.Id))
                                         {
-                                            <a onclick="toggleFavorite(@game.Id, this)">
-                                                <i class="fa-regular fa-heart"></i>
-                                            </a>
-                                            
+                                            <i class="fa-regular fa-heart heart-icons"></i>
                                         }
                                         else
                                         {
-                                            <a onclick="toggleFavorite(@game.Id, this)">
-                                                <i class="heart-icons fa-solid fa-heart"></i>
-                                            </a>
-                                            
+                                            <i class="fa-solid fa-heart heart-icons"></i>
                                         }
-                                        <a class="btn details-btn" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
-                                            Details
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-                        }
+                                    </a>
+                                    <a class="btn details-btn" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                        Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     }
-                    else
-                    {
-                        <table>
-                            <tr>
-                                <td colspan="5">No games found.</td>
-                            </tr>
-                        </table>  
-                    }
-                </div>
+                }
+                else
+                {
+                    <p class="text-muted">No games found.</p>
+                }
             </div>
         </div>
     </div>
 
-
+    <!-- Followers Modal -->
     <div class="modal fade" id="followersModal" tabindex="-1" aria-labelledby="followersModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="followersModalLabel">Followers</h5>
-                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">X</button>
+                    <h5 class="modal-title">Followers</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul>
-                        @foreach (var follower in await followerService.GetFollowers(Model.User.Id))
-                        {
-                            <li class="d-flex justify-content-between align-items-center follower-item">
+                    @foreach (var follower in await followerService.GetFollowers(Model.User.Id))
+                    {
+                        <div class="follower-item">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <span>@follower.Username</span>
-                                <a href="@Url.Action("Profile", "Account", new { id = follower.Id })" class="btn btn-dark btn-sm text-end">View Profile</a>
-                            </li>
-                            
-                        }
-                    </ul>
+                                <a href="@Url.Action("Profile", "Account", new { id = follower.Id })" class="btn details-btn btn-sm">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Following Modal -->
     <div class="modal fade" id="followingModal" tabindex="-1" aria-labelledby="followingModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="followersModalLabel">Following</h5>
-                    <button type="button" class="btn-dark" data-bs-dismiss="modal" aria-label="Close">X</button>
+                    <h5 class="modal-title">Following</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul>
-                        @foreach (var follower in await followerService.GetFollowing(Model.User.Id))
-                        {
-                            <li class="d-flex justify-content-between align-items-center follower-item">
-                                <span>@follower.Username</span>
-                                <a href="@Url.Action("Profile", "Account", new { id = follower.Id })" class="btn btn-dark btn-sm text-end">View Profile</a>
-                            </li>
-                        }
-                    </ul>
+                    @foreach (var following in await followerService.GetFollowing(Model.User.Id))
+                    {
+                        <div class="follower-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>@following.Username</span>
+                                <a href="@Url.Action("Profile", "Account", new { id = following.Id })" class="btn details-btn btn-sm">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function follow(userId, button) {
+            fetch(`/api/follow/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    button.textContent = 'Unfollow';
+                    button.onclick = () => unfollow(userId, button);
+                    location.reload();
+                }
+            });
+        }
+
+        function unfollow(userId, button) {
+            fetch(`/api/unfollow/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    button.textContent = 'Follow';
+                    button.onclick = () => follow(userId, button);
+                    location.reload();
+                }
+            });
+        }
+
+        function toggleFavorite(gameId, element) {
+            fetch(`/api/games/${gameId}/favorite`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    const icon = element.querySelector('i');
+                    if (icon.classList.contains('fa-regular')) {
+                        icon.classList.remove('fa-regular');
+                        icon.classList.add('fa-solid');
+                    } else {
+                        icon.classList.remove('fa-solid');
+                        icon.classList.add('fa-regular');
+                    }
+                }
+            });
+        }
+    </script>
 </body>
+</html>
