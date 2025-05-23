@@ -435,7 +435,7 @@
                         altInput.style.border = `1px solid ${inputBorder}`;
                         altInput.style.setProperty('box-shadow', 'none', 'important');
                         if (!altInput.value) {
-                            altInput.style.color = textMuted; // Setează culoarea placeholder-ului
+                            altInput.style.color = textMuted; 
                         }
                     }
                 },
@@ -446,7 +446,7 @@
                 }
             });
 
-            // Inițializare pentru selectorul de oră
+            // hour selector
             flatpickr("input[name='startTime']", {
                 enableTime: true,
                 noCalendar: true,

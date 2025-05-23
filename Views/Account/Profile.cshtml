@@ -319,6 +319,33 @@
                     <p class="text-muted">No tournaments found.</p>
                 }
             </div>
+
+            <div class="tab-pane fade" id="addedGames">
+                <h3 class="mb-4">Custom Added Games</h3>
+                @if (customGames.Any())
+                {
+                    @foreach (var game in customGames)
+                    {
+                        <div class="games">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold">@game.Title</div>
+                                    <div>Author: @game.Author.Username</div>
+                                    <div>Difficulty: @game.Difficulty</div>
+                                    <div>Maximum players: @game.MaxPlayers</div>
+                                </div>
+                            </div>
+                            <a class="btn details-btn" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                View Details
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No custom games found.</p>
+                }
+            </div>
         </div>
     </div>
 

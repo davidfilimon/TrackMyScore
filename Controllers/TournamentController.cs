@@ -167,10 +167,16 @@ namespace TrackMyScore.Controllers
     {
 
       var user = await GetLoggedUserAsync();
+
+      if (user == null)
+      {
+        return RedirectToAction("Login", "Account");
+      }
+
       var tournaments = await _context.Tournaments
           .Include(t => t.Host)
           .Include(t => t.Game)
-          .Where(t => t.Host.Id != user.Id)
+          .Where(t => t.Host != user)
           .ToListAsync();
 
       var myTournaments = await _context.Tournaments
@@ -630,7 +636,7 @@ namespace TrackMyScore.Controllers
 
         var room = new Room
         {
-          Name = $"Room {i + 1} - Tournament: {tournament.Name} - Stage {tournament.Stage + 1}",
+          Name = $"Room {i + 1} - Tournament: {tournament.Name}",
           Location = tournament.Location,
           Type = tournament.Type,
           StartDate = tournament.StartDate,
@@ -783,8 +789,7 @@ namespace TrackMyScore.Controllers
           }
           else
           {
-
-            player.User.RespectPoints = player.RespectPoints * 2;
+            player.User.RespectPoints += player.RespectPoints * 2;
           }
         }
       }
@@ -818,14 +823,12 @@ namespace TrackMyScore.Controllers
               player.Eliminated = true;
               player.User.RespectPoints += player.RespectPoints;
             }
-
           }
           else
           {
-
             foreach (var player in players)
             {
-              player.User.RespectPoints = player.RespectPoints * 2;
+              player.User.RespectPoints += player.RespectPoints * 2;
             }
 
           }

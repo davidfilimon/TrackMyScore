@@ -1,592 +1,577 @@
 @model TournamentModel
+@using TrackMyScore.Services
+@inject UserService userService
+
 @{
-    var rooms = Model.Rooms;
+    var tour = Model.Tournament;
+    var rooms = Model.Rooms.Where(r => r.Tournament.Id == tour.Id).ToList();
     var players = Model.Players ?? Enumerable.Empty<Player>();
     var teams = Model.Teams ?? Enumerable.Empty<Team>();
     var matches = Model.Matches;
-
-    var activeRooms = rooms
-        .Where(r => r.Tournament?.Id == Model.Tournament.Id && r.Stage == Model.Tournament.Stage)
-        .ToList();
+    int totalRounds = tour.Stage;
+    var currentStageRooms = rooms.Where(r => r.Stage == tour.Stage).ToList();
+    int leafCount = rooms.Count(r => r.Stage == 1);
+    int gridRows = leafCount * 2 - 1;
+    int totalCols = totalRounds + 1;
 }
 
-<div class="tournament-page">
-    <div class="tournament-details">
-        <div class="details-card">
-            <h1 class="tournament-title">@Model.Tournament.Name</h1>
-            <div class="info-grid">
-                <div class="info-item">
-                    <i class="fa-solid fa-trophy"></i>
-                    <span>Reward: @Model.Tournament.Reward</span>
-                </div>
-                <div class="info-item">
-                    <i class="fa-solid fa-gamepad"></i>
-                    <span>Game: @Model.Tournament.Game.Title</span>
-                </div>
-                <div class="info-item">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span>@Model.Tournament.StartDate.ToString("MMM dd, yyyy")</span>
-                </div>
-                <div class="info-item">
-                    <i class="fa-solid fa-users"></i>
-                    <span>@Model.Tournament.MaxPlayers players</span>
-                </div>
-                <div class="info-item">
-                    <i class="fa-solid fa-key"></i>
-                    <span>Code: @Model.Tournament.Code</span>
-                </div>
-                <div class="info-item">
-                    <i class="fa-solid fa-user"></i>
-                    <span>Host: @Model.Tournament.Host.Username</span>
-                </div>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>@tour.Name – Bracket</title>
+  <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-dark: #1A3C2A;
+      --primary:      #2A5940;
+      --primary-light:#3B7A5A;
+      --accent-gold:  #D4AF37;
+      --accent-gold-light:#F0D875;
+      --card-bg:      #234134;
+      --text-light:   #E8F5E9;
+      --text-muted:   #A7C0A7;
+      --error:        #CF6679;
+      --success:      #4CAF50;
+      --bracket-line: #3B7A5A;
+      --spacing:      8px;
+    }
 
-            @if (!string.IsNullOrEmpty(Model.Tournament.Winner))
+    body {
+      background: var(--primary-dark);
+      color: var(--text-light);
+      padding-top: 80px;
+      min-height: 100vh;
+    }
+    .tournament-page {
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      gap: calc(var(--spacing)*2);
+      padding: calc(var(--spacing)*2);
+    }
+
+    /* left panel */
+    .details-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: calc(var(--spacing)*3);
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+    .tournament-title {
+      color: var(--accent-gold);
+      font-size: 1.4rem;
+      margin-bottom: calc(var(--spacing)*2);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: calc(var(--spacing)/2);
+    }
+    .info-grid { display: grid; gap: calc(var(--spacing)*1); }
+    .info-item {
+      display: flex; align-items: center; gap: calc(var(--spacing)/2);
+      background: var(--primary); padding: calc(var(--spacing));
+      border-radius: 6px;
+    }
+    .info-item i { color: var(--accent-gold); }
+
+    .winner-banner {
+      margin: calc(var(--spacing)*2) 0;
+      padding: calc(var(--spacing));
+      background: rgba(212,175,55,.2);
+      border-radius: 6px;
+      display: flex; align-items:center; gap: .5rem;
+      color: var(--accent-gold);
+    }
+
+    .tournament-actions {
+      margin-top: calc(var(--spacing)*2);
+      display: flex; flex-wrap: wrap; gap: calc(var(--spacing));
+    }
+    .tournament-actions .btn {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    /* right panel */
+    .participants-card h2 {
+      color: var(--accent-gold);
+      font-size: 1.3rem;
+      margin-bottom: calc(var(--spacing)*1.5);
+      display: flex; align-items:center; gap: .5rem;
+    }
+
+    .participants-list,
+    .teams-list {
+    max-height: 300px;
+    overflow-y: auto; 
+    padding-right: 4px;
+    }
+
+    .participant-card {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: calc(var(--spacing) * 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) / 2);
+    color: var(--text-light);
+    }
+
+    .participant-card i {
+    font-size: 1.2rem;
+    color: var(--accent-gold);
+    }
+
+    .participant-item,
+    .team-item {
+    margin-bottom: var(--spacing);
+    }
+
+    .team-header {
+      display: flex; align-items:center; gap: .5rem;
+      background: var(--primary-light); padding: calc(var(--spacing));
+      border-top-left-radius:6px; border-top-right-radius:6px;
+    }
+    .team-header h3 { color: var(--accent-gold); margin:0; }
+    .team-members .team-member {
+      padding: calc(var(--spacing));
+      border:1px solid var(--primary-light);
+      border-radius: 5px;
+    }
+
+    /* bracket */
+    .bracket-section {
+      grid-column:1 / -1;
+      margin-top: calc(var(--spacing)*3 + 20px);
+    }
+    .bracket-title {
+      text-align:center;
+      color: var(--accent-gold);
+      font-size:1.5rem;
+      margin-bottom: calc(var(--spacing)*2);
+    }
+    .bracket-container {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(260px, max-content);
+      row-gap: 1rem;
+      column-gap: 1.5rem;
+      overflow-x: auto;
+      padding: 20px 2rem 2rem;
+      align-items: start;
+    }
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+    }
+    .round-header {
+      text-align:center;
+      color: var(--accent-gold);
+      font-weight:bold;
+      margin-bottom: calc(var(--spacing));
+    }
+    .round-matches {
+    display: grid;
+    grid-auto-rows: min-content;
+    row-gap: var(--spacing);
+    position: relative;
+    overflow: visible;
+    }
+
+    .match-wrapper {
+    position: relative;
+    z-index: 1;
+    }
+
+    .match-wrapper::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -12px;
+    width: 12px;
+    height: 2px;
+    background: var(--bracket-line);
+    transform: translateY(-50%);
+    z-index: 0;
+    }
+
+    .match-wrapper::after {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: 0;
+    width: 2px;
+    height: calc(100% + var(--spacing));
+    background: var(--bracket-line);
+    z-index: 0;
+    }
+
+    .round-matches .match-wrapper:nth-child(2n-1)::after {
+    clip-path: inset(0 0 calc(50% + var(--spacing)) 0);
+    }
+
+    .round-matches .match-wrapper:nth-child(2n)::after {
+    clip-path: inset(calc(50% + var(--spacing)) 0 0 0);
+    }
+
+    .match-wrapper::before,
+    .match-wrapper::after {
+    z-index: -1;
+    }
+
+    .match-card {
+      background: var(--card-bg);
+      border-radius:6px;
+      overflow:hidden;
+      transition: transform .2s;
+      z-index: 1;
+      position: relative;
+    }
+    .match-card:hover { transform: translateY(-2px); }
+    .match-header {
+      background: var(--primary);
+      padding: calc(var(--spacing));
+    }
+    .match-header a {
+      color: var(--text-light);
+      text-decoration:none;
+      font-weight:600;
+    }
+    .match-info {
+      padding: calc(var(--spacing));
+    }
+    .match-winner { color: var(--accent-gold); font-weight:600; }
+    .match-status { font-style:italic; font-size:.85rem; opacity:.8; }
+    .status-waiting  { color: var(--text-muted); }
+    .status-ongoing  { color: var(--accent-gold); }
+    .status-completed{ color: var(--success); }
+
+    /* modal */
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--text-light);
+    }
+    .modal-header .btn-close {
+      filter: invert(1);
+    }
+    .form-control, .form-select {
+      background: var(--primary-dark)!important;
+      border-color: var(--primary)!important;
+      color: var(--text-light)!important;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent-gold)!important;
+      box-shadow:0 0 0 .25rem rgba(212,175,55,.25)!important;
+    }
+
+    .winner-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: calc(var(--spacing)*3);
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+
+    .winner-card h2 {
+    color: var(--accent-gold);
+    font-size: 1.3rem;
+    margin-bottom: calc(var(--spacing)*1.5);
+    display: flex; align-items:center; gap: .5rem;
+    }
+
+    .winner-name {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    font-weight: 600;
+    }
+
+    .winner-pending {
+    font-style: italic;
+    color: var(--text-muted);
+    }
+
+    .bracket-subtitle {
+    text-align: center;
+    color: var(--accent-gold-light);
+    font-size: 1rem;
+    margin-bottom: calc(var(--spacing) * 1.5);
+    }
+
+    .round-headers {
+    display: flex;
+    justify-content: start; 
+    gap: var(--spacing);
+    margin-bottom: var(--spacing);
+    }
+
+    .round-label {
+    display: inline-block;
+    color: var(--accent-gold);
+    font-weight: bold;
+    }
+
+    .bracket-header-row {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(260px, max-content);
+        column-gap: 1.5rem;
+        padding: 0 2rem;
+        margin-bottom: calc(var(--spacing) * 2);
+    }
+
+    .round-header-label {
+        text-align: center;
+        color: var(--accent-gold);
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="tournament-page">
+
+    <!-- left -->
+    <div class="tournament-details">
+      <div class="details-card">
+        <h1 class="tournament-title">@tour.Name</h1>
+        <div class="info-grid">
+          <div class="info-item"><i class="fa-solid fa-trophy"></i><span>Reward: @tour.Reward</span></div>
+          <div class="info-item"><i class="fa-solid fa-gamepad"></i><span>Game: @tour.Game.Title</span></div>
+          <div class="info-item"><i class="fa-solid fa-calendar"></i><span>@tour.StartDate</span></div>
+          @if(tour.Type == "team"){
+            <div class="info-item"><i class="fa-solid fa-users"></i><span>@tour.MaxPlayers players per team</span></div>
+          }
+          <div class="info-item"><i class="fa-solid fa-key"></i><span>Code: @tour.Code</span></div>
+          <div class="info-item"><i class="fa-solid fa-user"></i><span>Host: @tour.Host.Username</span></div>
+        </div>
+
+        @if(!string.IsNullOrEmpty(tour.Winner))
+        {
+          <div class="winner-banner"><i class="fa-solid fa-crown"></i><span>Winner: @tour.Winner</span></div>
+        }
+
+        <div class="tournament-actions">
+          @if(!tour.IsActive && string.IsNullOrEmpty(tour.Winner))
+          {
+            @if(players.Any(p=>p.User.Id==Model.LoggedUser.Id))
             {
-                <div class="winner-banner">
-                    <i class="fa-solid fa-crown"></i>
-                    <span>Winner: @Model.Tournament.Winner</span>
+              <button class="btn btn-danger" onclick="leaveTournament(@tour.Id)">
+                <i class="fa-solid fa-door-open"></i> Leave Tournament
+              </button>
+            }
+            else
+            {
+              <button class="btn btn-primary" onclick="openJoinModal()">
+                <i class="fa-solid fa-right-to-bracket"></i> Join Tournament
+              </button>
+            }
+          }
+          @if(Model.LoggedUser==tour.Host && !Model.Tournament.IsActive && tour.Winner == "")
+          {
+            <button class="btn btn-success" onclick="startTournament()">
+              <i class="fa-solid fa-play"></i> Start Tournament
+            </button>
+            <button class="btn btn-danger" onclick="deleteTournament()">
+              <i class="fa-solid fa-trash"></i> Delete Tournament
+            </button>
+          }
+          @if(tour.IsActive)
+          {
+            if (currentStageRooms.Count == 1 && currentStageRooms[0].Stage > 0)
+            {
+                <button class="btn btn-primary" onclick="endTournament()">
+                    <i class="fa-solid fa-flag-checkered"></i> End Tournament
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-primary" onclick="endStage(@tour.Id)">
+                    <i class="fa-solid fa-forward"></i> End Stage
+                </button>
+            }
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- right -->
+    <div class="participants-panel">
+      <div class="participants-card">
+        @if(tour.Type=="single")
+        {
+          <h2><i class="fa-solid fa-users"></i> Participants</h2>
+          <div class="participants-list">
+            @foreach(var p in players)
+            {
+              <div class="participant-card">
+                <i class="fa-solid fa-user"></i>
+                <span>
+                    @p.User.Username
+                </span>
                 </div>
             }
-
-            <div class="tournament-actions">
-                @if(@Model.Tournament.IsActive == false && @Model.Tournament.Winner == "")
-                {
-                    @if(@players.Any(p => p.User.Id == Model.LoggedUser.Id))
-                    {
-                        <button class="btn btn-danger" onclick="leaveTournament(@Model.Tournament.Id)">
-                            <i class="fa-solid fa-door-open"></i> Leave Tournament
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-primary" onclick="openJoinModal()">
-                            <i class="fa-solid fa-right-to-bracket"></i> Join Tournament
-                        </button>
-                    }
-
-                    @if(@Model.LoggedUser == @Model.Tournament.Host)
-                    {
-                        <button class="btn btn-success" onclick="startTournament()">
-                            <i class="fa-solid fa-play"></i> Start Tournament
-                        </button>
-                        <button class="btn btn-danger" onclick="deleteTournament()">
-                            <i class="fa-solid fa-trash"></i> Delete Tournament
-                        </button>
-                    }
-                }
-
-                @if(@Model.Tournament.IsActive && Model.Rooms.Where(r => r.Tournament == @Model.Tournament && r.Stage == @Model.Tournament.Stage).Count() == 1)
-                {
-                    <button class="btn btn-primary" onclick="endTournament()">
-                        <i class="fa-solid fa-flag-checkered"></i> End Tournament
-                    </button>
-                }
-                else if (@Model.Tournament.IsActive && @Model.Rooms.All(r => r.Stage > 0))
-                {
-                    <button class="btn btn-primary" onclick="endStage(@Model.Tournament.Id)">
-                        <i class="fa-solid fa-forward"></i> End Stage
-                    </button>
-                }
-            </div>
-        </div>
+          </div>
+        }
+        else
+        {
+          <h2><i class="fa-solid fa-users-group"></i> Teams</h2>
+          <div class="teams-list">
+            @foreach(var t in teams)
+            {
+              <div class="team-item">
+                <div class="team-header">
+                  <i class="fa-solid fa-users"></i><h3>@t.Name</h3>
+                </div>
+                <div class="team-members">
+                  @foreach(var p in players.Where(x=>x.Team?.Id==t.Id))
+                  {
+                    <div class="team-member"><i class="fa-solid fa-user"></i><span>@p.User.Username</span></div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    <!-- middle right: Winner panel -->
+    <div class="winner-panel">
+      <div class="winner-card align-items-center">
+        <h2><i class="fa-solid fa-crown"></i> Winner</h2>
+        @if (!string.IsNullOrEmpty(tour.Winner))
+        {
+          <div class="winner-name">@tour.Winner</div>
+        }
+        else
+        {
+          <div class="winner-pending">Tournament did not end.</div>
+        }
+      </div>
     </div>
 
-    <!-- Right Sidebar - Participants -->
-    <div class="participants-panel">
-        @if(Model.Tournament.Type == "single")
-        {
-            <div class="participants-card">
-                <h2><i class="fa-solid fa-users"></i> Participants</h2>
-                <div class="participants-list">
-                    @foreach(var player in players)
-                    {
-                        <div class="participant-item">
-                            <i class="fa-solid fa-user"></i>
-                            <span>@player.User.Username</span>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-        else if (Model.Tournament.Type == "team")
-        {
-            <div class="participants-card">
-                <h2><i class="fa-solid fa-users-group"></i> Teams</h2>
-                <div class="teams-list">
-                    @foreach(var team in teams)
-                    {
-                        <div class="team-item">
-                            <div class="team-header">
-                                <i class="fa-solid fa-users"></i>
-                                <h3>@team.Name</h3>
-                            </div>
-                            <div class="team-members">
-                                @foreach(var player in players.Where(p => p.Team != null && p.Team == team))
-                                {
-                                    <div class="team-member">
-                                        <i class="fa-solid fa-user"></i>
-                                        <span>@player.User.Username</span>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    @if(Model.Tournament.IsActive || Model.Tournament.Winner != "")
+    <!-- bracket -->
+    @if(tour.IsActive || !string.IsNullOrEmpty(tour.Winner))
     {
-        <div class="bracket-section">
-            <h2 class="bracket-title">Tournament Bracket</h2>
-            <div class="bracket-container">
-                @for(int i = 1; i <= Model.Tournament.Stage; i++)
-                {
-                    <div class="bracket-round">
-                        <div class="round-header">Round @i</div>
-                        <div class="round-matches">
-                            @foreach(var room in Model.Rooms.Where(r => r.Stage == i || (r.Stage == -1 && Model.Tournament.Stage == i) || (r.Stage == 0 && Model.Tournament.Stage == i)))
+    <div class="bracket-section">
+    <h2 class="bracket-title">Tournament Bracket</h2>
+    <div class="bracket-subtitle">Round @tour.Stage</div>
+
+    <div class="bracket-header-row">
+        @for(int rnd = 1; rnd <= totalRounds; rnd++)
+        {
+            <div class="round-header-label">Round @rnd</div>
+        }
+    </div>
+    
+    <div class="bracket-container">
+        @for(int rnd = 1; rnd <= totalRounds; rnd++)
+        {
+            
+            var roundRooms = rooms.Where(r => r.Stage == rnd).ToList();
+        
+            @for(int idx = 0; idx < roundRooms.Count; idx++)
+            {
+                var room = roundRooms[idx];
+                var m = matches.FirstOrDefault(x => x.Room.Id == room.Id);
+                var stat = room.Stage == -1 ? "waiting"
+                         : room.Stage == 0 ? "ongoing"
+                         : "completed";
+                
+                int row = idx * (1 << rnd) + (1 << (rnd - 1));
+                int col = rnd; 
+
+                <div class="match-wrapper"
+                     style="grid-column: @col; grid-row: @row;">
+                    <div class="match-card @stat">
+                        <div class="match-header">
+                            <a asp-action="CurrentRoom"
+                               asp-controller="Room"
+                               asp-route-id="@room.Id">
+                                @room.Name
+                            </a>
+                        </div>
+                        <div class="match-info">
+                            @if(!string.IsNullOrEmpty(m?.Winner))
                             {
-                                <div class="match-wrapper">
-                                    <div class="match-card @(room.Stage == -1 ? "waiting" : room.Stage == 0 ? "ongoing" : "completed")">
-                                        <div class="match-header">
-                                            <a asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@room.Id">
-                                                @room.Name
-                                            </a>
-                                        </div>
-                                        @{
-                                            var match = Model.Matches.FirstOrDefault(m => m.Room.Id == room.Id);
-                                            var winner = match?.Winner ?? "No winner";
-                                        }
-                                        <div class="match-info">
-                                            <div class="match-winner">
-                                                @if (!string.IsNullOrEmpty(winner) && winner != "No winner")
-                                                {
-                                                    <i class="fa-solid fa-trophy"></i>
-                                                }
-                                                @winner
-                                            </div>
-                                            <div class="match-status">
-                                                @if(room.Stage == -1)
-                                                {
-                                                    <span class="status-waiting">
-                                                        <i class="fa-solid fa-clock"></i> Waiting
-                                                    </span>
-                                                }
-                                                else if(room.Stage == 0)
-                                                {
-                                                    <span class="status-ongoing">
-                                                        <i class="fa-solid fa-play"></i> In Progress
-                                                    </span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="status-completed">
-                                                        <i class="fa-solid fa-check"></i> Completed
-                                                    </span>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="match-winner">
+                                    <i class="fa-solid fa-trophy"></i> @m.Winner
                                 </div>
                             }
+                            <div class="match-status">
+                                @(room.Stage==-1 ? "Waiting"
+                                  : room.Stage==0 ? "In Progress"
+                                  : "Completed")
+                            </div>
                         </div>
                     </div>
-                }
-            </div>
-        </div>
-    }
-</div>
-
-<!-- Join Modal -->
-<div class="modal fade" id="joinModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Join Tournament</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            @if(Model.Tournament.Type == "single")
-            {
-                <div class="modal-body">
-                    <form id="joinFormSingle" onsubmit="event.preventDefault(); joinTournamentSingle(@Model.Tournament.Id, $('#code').val());">
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Tournament Code</label>
-                            <input type="text" class="form-control" id="code" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Join</button>
-                    </form>
                 </div>
             }
-            @if(Model.Tournament.Type == "team")
-            {
-                <div class="modal-body">
-                    <form id="joinFormTeam" onsubmit="event.preventDefault(); joinTournamentTeam(@Model.Tournament.Id, $('#code').val(), $('#teammates').val(), $('#teamName').val());">
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Tournament Code</label>
-                            <input type="text" class="form-control" id="code" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="teamName" class="form-label">Team Name</label>
-                            <input type="text" class="form-control" id="teamName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="teammates" class="form-label">Teammates</label>
-                            @if(Model.MutualFollowers != null)
-                            {
-                                <select class="form-select" id="teammates" multiple required>
-                                    @foreach(var user in Model.MutualFollowers)
-                                    {
-                                        <option value="@user.Id">@user.Username</option>
-                                    }
-                                </select>
-                                <button type="submit" class="btn btn-primary mt-3">Create Team</button>
-                            }
-                            else
-                            {
-                                <div class="alert alert-warning">
-                                    You have no mutual followers to create a team with.
-                                </div>
-                                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                            }
-                        </div>
-                    </form>
-                </div>
-            }
-        </div>
+        }
     </div>
 </div>
-
-<style>
-:root {
-    --primary-dark: #1A3C2A;
-    --primary: #2A5940;
-    --primary-light: #3B7A5A;
-    --accent-gold: #D4AF37;
-    --accent-gold-light: #F0D875;
-    --text-light: #E8F5E9;
-    --text-muted: #A7C0A7;
-    --card-bg: #234134;
-    --error: #CF6679;
-    --success: #4CAF50;
-    --bracket-line: #3B7A5A;
 }
+  </div>
+</body>
 
-/* Page Layout */
-.tournament-page {
-    display: grid;
-    grid-template-columns: 300px 1fr 300px;
-    gap: 2rem;
-    padding: 2rem;
-    min-height: 100vh;
-    background-color: var(--primary-dark);
-    color: var(--text-light);
-    padding-top: 80px;
-}
-
-/* Tournament Details Section */
-.tournament-details {
-    grid-column: 1;
-}
-
-.details-card {
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.tournament-title {
-    color: var(--accent-gold);
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid var(--primary-light);
-    padding-bottom: 0.5rem;
-}
-
-.info-grid {
-    display: grid;
-    gap: 1rem;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem;
-    background-color: var(--primary);
-    border-radius: 8px;
-}
-
-.info-item i {
-    color: var(--accent-gold);
-}
-
-/* Participants Panel */
-.participants-panel {
-    grid-column: 3;
-}
-
-.participants-card {
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.participants-card h2 {
-    color: var(--accent-gold);
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.participants-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.participant-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background-color: var(--primary);
-    border-radius: 8px;
-    transition: transform 0.2s;
-}
-
-.participant-item:hover {
-    transform: translateX(5px);
-}
-
-/* Teams Styling */
-.team-item {
-    background-color: var(--primary);
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    overflow: hidden;
-}
-
-.team-header {
-    background-color: var(--primary-light);
-    padding: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.team-header h3 {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--accent-gold);
-}
-
-.team-members {
-    padding: 0.75rem;
-}
-
-.team-member {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--primary-light);
-}
-
-/* Bracket Section */
-.bracket-section {
-    grid-column: 1 / -1;
-    margin-top: 2rem;
-}
-
-.bracket-title {
-    color: var(--accent-gold);
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.bracket-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 2rem;
-    padding: 2rem;
-    overflow-x: auto;
-    position: relative;
-}
-
-.bracket-round {
-    flex: 1;
-    min-width: 250px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    position: relative;
-}
-
-.round-header {
-    color: var(--accent-gold);
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-.round-matches {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.match-wrapper {
-    position: relative;
-}
-
-/* Connecting Lines */
-.match-wrapper::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -2rem;
-    width: 2rem;
-    height: 2px;
-    background-color: var(--bracket-line);
-}
-
-.match-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -2rem;
-    height: 100%;
-    width: 2px;
-    background-color: var(--bracket-line);
-}
-
-.bracket-round:not(:last-child) .match-wrapper:nth-child(odd)::before {
-    height: 50%;
-    top: 50%;
-}
-
-.bracket-round:not(:last-child) .match-wrapper:nth-child(even)::before {
-    height: 50%;
-    top: 0;
-}
-
-.match-card {
-    background-color: var(--card-bg);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.3s;
-}
-
-.match-card:hover {
-    transform: translateY(-2px);
-}
-
-.match-header {
-    background-color: var(--primary);
-    padding: 0.75rem;
-}
-
-.match-header a {
-    color: var(--text-light);
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.match-info {
-    padding: 0.75rem;
-}
-
-.match-winner {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--accent-gold);
-    font-weight: bold;
-}
-
-.match-status {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.status-waiting { color: var(--text-muted); }
-.status-ongoing { color: var(--accent-gold); }
-.status-completed { color: var(--success); }
-
-/* Match States */
-.waiting {
-    border: 2px dashed var(--primary-light);
-}
-
-.ongoing {
-    border: 2px solid var(--accent-gold);
-}
-
-.completed {
-    border: 2px solid var(--success);
-}
-
-/* Modal Styling */
-.modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-light);
-}
-
-.modal-header {
-    border-bottom-color: var(--primary);
-}
-
-.form-control, .form-select {
-    background-color: var(--primary-dark);
-    border-color: var(--primary);
-    color: var(--text-light);
-}
-
-.form-control:focus, .form-select:focus {
-    background-color: var(--primary-dark);
-    border-color: var(--accent-gold);
-    color: var(--text-light);
-    box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
-}
-
-/* Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-}
-
-.btn-primary {
-    background-color: var(--primary);
-    border-color: var(--primary-light);
-}
-
-.btn-success {
-    background-color: var(--success);
-    border: none;
-}
-
-.btn-danger {
-    background-color: var(--error);
-    border: none;
-}
-
-</style>
+  <!-- join Modal -->
+  <div class="modal fade" id="joinModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Join Tournament</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        @if(tour.Type=="single")
+        {
+          <div class="modal-body">
+            <form id="joinFormSingle" onsubmit="event.preventDefault(); joinTournamentSingle(@tour.Id,$('#code').val());">
+              <div class="mb-3">
+                <label class="form-label">Tournament Code</label>
+                <input type="text" id="code" class="form-control" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Join</button>
+            </form>
+          </div>
+        }
+        else
+        {
+          <div class="modal-body">
+            <form id="joinFormTeam" onsubmit="event.preventDefault(); joinTournamentTeam(@tour.Id,$('#code').val(),$('#teammates').val(),$('#teamName').val());">
+              <div class="mb-3">
+                <label class="form-label">Tournament Code</label>
+                <input type="text" id="code" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Team Name</label>
+                <input type="text" id="teamName" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Teammates</label>
+                @if(Model.MutualFollowers?.Any()==true)
+                {
+                  <select id="teammates" class="form-select" multiple required>
+                    @foreach(var u in Model.MutualFollowers)
+                    {
+                      <option value="@u.Id">@u.Username</option>
+                    }
+                  </select>
+                  <button type="submit" class="btn btn-primary mt-3">Create Team</button>
+                }
+                else
+                {
+                  <div class="alert alert-warning">
+                    No mutual followers available.
+                  </div>
+                  <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                }
+              </div>
+            </form>
+          </div>
+        }
+      </div>
+    </div>
+    
 
 <script>
     function closeModal() {

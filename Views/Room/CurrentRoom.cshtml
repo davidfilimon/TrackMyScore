@@ -19,6 +19,7 @@
 </head>
 <style>
     :root {
+    using Microsoft.IdentityModel.Tokens;
         --primary-dark: #1A3C2A;
         --primary: #2A5940;
         --primary-light: #3B7A5A;
@@ -495,14 +496,19 @@
                             {
                                 <tr>
                                     <td>@team.Name</td>
-                                    <td>@Model.Participants.Where(p => p.Team == team).FirstOrDefault()?.Score ?? 0</td>
+                                    <td>@Model.Participants.Where(p => p.Team == team).FirstOrDefault()?.Score</td>
                                     <td>
                                         @if (Model.Participants != null && Model.Participants.Any())
                                         {
-                                            <ul class="list-unstyled mb-0"> @* Removed default list styling *@
-                                                @foreach (var participant in Model.Participants)
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach (var participant in Model.Participants.Where(t => t.Team == team))
                                                 {
-                                                    <li>@participant.User.Username (@participant.Role)</li>
+                                                    <li>@participant.User.Username
+                                                        @if(participant.Role.Any()){
+                                                            <div>Role: @participant.Role</div>
+                                                        }
+                                                    </li>
+                                                    
                                                 }
                                             </ul>
                                         }
