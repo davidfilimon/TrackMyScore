@@ -630,7 +630,7 @@ namespace TrackMyScore.Controllers
 
         var room = new Room
         {
-          Name = $"Room {i} - Tournament: {tournament.Name} - Stage {tournament.Stage + 1}",
+          Name = $"Room {i + 1} - Tournament: {tournament.Name} - Stage {tournament.Stage + 1}",
           Location = tournament.Location,
           Type = tournament.Type,
           StartDate = tournament.StartDate,

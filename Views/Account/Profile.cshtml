@@ -6,6 +6,7 @@
     var profileUser = Model.User;
     var customGames = Model.CustomGames;
     var matches = Model.Matches;
+    var tournaments = Model.Tournaments;
 }
 @inject FollowerService followerService;
 @inject UserService userService;
@@ -242,7 +243,7 @@
                 <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history">Game History</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="tournament-tab" data-bs-toggle="tab" href="tournaments">Tournament History</a>
+                <a class="nav-link" id="tournament-tab" data-bs-toggle="tab" href="#tournaments">Tournament History</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="stats-tab" data-bs-toggle="tab" href="#stats">Statistics</a>
@@ -292,42 +293,30 @@
                 <p>Statistics coming soon...</p>
             </div>
 
-            <div class="tab-pane fade" id="addedGames">
-                <h3 class="mb-4">Custom added games by @Model.User.Username</h3>
-                @if (Model.CustomGames.Any())
+            <div class="tab-pane fade" id="tournaments">
+                <h3 class="mb-4">Tournament History</h3>
+                @if (tournaments.Any())
                 {
-                    @foreach (var game in Model.CustomGames.Where(g => g.IsOfficial || !g.IsOfficial))
+                    @foreach (var tournament in tournaments)
                     {
                         <div class="games">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="fw-bold">@game.Title</div>
-                                    <div class="text-muted">@game.Description</div>
-                                    <div>Players: @game.MaxPlayers</div>
-                                    <div>Difficulty: @game.Difficulty</div>
-                                </div>
-                                <div class="d-flex align-items-center gap-3">
-                                    <a onclick="toggleFavorite(@game.Id, this)" class="text-decoration-none">
-                                        @if (await userService.IsGameFavorite(game.Id))
-                                        {
-                                            <i class="fa-regular fa-heart heart-icons"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="fa-solid fa-heart heart-icons"></i>
-                                        }
-                                    </a>
-                                    <a class="btn details-btn" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
-                                        Details
-                                    </a>
+                                    <div class="fw-bold">@tournament.Name</div>
+                                    <div class="text-muted">@tournament.StartDate</div>
+                                    <div>Type: @tournament.Type</div>
+                                    <div>Winner: @tournament.Winner</div>
                                 </div>
                             </div>
+                            <a class="btn details-btn" asp-action="CurrentTournament" asp-controller="Tournament" asp-route-id="@tournament.Id">
+                                View Details
+                            </a>
                         </div>
                     }
                 }
                 else
                 {
-                    <p class="text-muted">No games found.</p>
+                    <p class="text-muted">No tournaments found.</p>
                 }
             </div>
         </div>

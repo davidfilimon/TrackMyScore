@@ -381,7 +381,7 @@
                 }
             </div>
 
-            @if (Model.Room.Host == loggedUser && Model.Room.Stage == -1)
+            @if (Model.Room.Host == loggedUser && Model.Room.Stage == -1 && Model.Room.Tournament == null)
             {
                 <div class="mt-4">
                     <label class="form-check-label me-3"><strong>Mode:</strong></label>

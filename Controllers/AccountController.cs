@@ -64,11 +64,17 @@ namespace TrackMyScore.Controllers
                         .Where(p => p.User.Id == profileUser.Id)
                     .ToListAsync();
 
+            var tournaments = await _context.Players
+                .Where(p => p.User.Id == profileUser.Id)
+                .Select(p => p.Tournament)
+                .ToListAsync();
+
             var model = new UserGamesModel
             {
                 User = profileUser,
                 CustomGames = games,
                 Matches = matches,
+                Tournaments = tournaments
             };
 
             return View(model);

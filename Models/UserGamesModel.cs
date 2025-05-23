@@ -6,10 +6,11 @@
         public User User { get; set; }
         public List<Game> CustomGames { get; set; }
         public List<Participant> Matches { get; set; }
+        public List<Tournament> Tournaments { get; set; }
 
         public UserGamesModel()
         {
-            
+
         }
     }
 }
