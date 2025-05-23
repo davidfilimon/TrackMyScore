@@ -1,40 +1,181 @@
 ﻿@using TrackMyScore.Services
-@inject UserService userService;
+@inject UserService userService
 @model Game
 @{
+    ViewData["Title"] = "Game Details";
     string email = Context.Session.GetString("email");
 }
+
 <script src="~/js/site.js"></script>
 
-<div>@Model.Title</div>
-@if (!@Model.IsOfficial)
-{
-    <div>@Model.Author</div>
-}
-<div>@Model.Description</div>
-<div>@Model.Difficulty</div>
-<div>@Model.MaxPlayers</div>
+<style>
+  :root {
+    --primary-dark:      #1A3C2A;
+    --card-bg:           #234134;
+    --accent-gold:       #D4AF37;
+    --accent-gold-light: #F0D875;
+    --error:             #CF6679;
+    --text-light:        #E8F5E9;
+    --spacing-unit:      8px;
+  }
 
-<a onclick="toggleFavorite(@Model.Id, this)">
-    @if(!await userService.IsGameFavorite(@Model.Id)){
-        <i class="fa-solid fa-heart"></i>
-    }
-    else
-    {
-        <i class="fa-regular fa-heart"></i>
-    }
-</a>
+  .page-container {
+    max-width: 800px;
+    margin: calc(var(--spacing-unit)*4) auto;
+    padding: 0 calc(var(--spacing-unit)*2);
+  }
 
-@if(userService.IsAdmin(email)){
-    <a class="btn btn-dark">Delete</a>
-    @if (!Model.IsOfficial)
-    {
-        <a class="btn btn-dark" onclick="toggleOfficial(@Model.Id, this)">Change to official status</a>
-    }
-    else
-    {
-        <a class="btn btn-dark" onclick="toggleOfficial(@Model.Id, this)">Remove official status</a>
-    }
+  .game-detail-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: calc(var(--spacing-unit)*4);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
 
-}
+  h2 {
+    position: relative;
+    color: var(--accent-gold);
+    text-align: center;
+    margin-bottom: calc(var(--spacing-unit)*3);
+  }
+  .favorite-icon {
+    position: absolute; top: 0; right: 0;
+    font-size: 1.5rem;
+    color: var(--accent-gold);
+    cursor: pointer;
+    transition: color .2s;
+  }
+  .favorite-icon:hover {
+    color: var(--accent-gold-light);
+  }
 
+  .card-content {
+    display: flex;
+    gap: calc(var(--spacing-unit)*4);
+    align-items: flex-start;
+    padding-right: calc(var(--spacing-unit)*5);
+  }
+  .col-md-4, .col-md-8 {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .field-label {
+    font-weight: 500;
+    color: var(--text-light);
+    margin-bottom: calc(var(--spacing-unit)*1);
+  }
+  .field-value {
+    color: var(--text-light);
+    margin-bottom: calc(var(--spacing-unit)*2);
+  }
+
+  .description-box {
+    background: var(--primary-dark);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: calc(var(--spacing-unit)*2);
+    color: var(--text-light);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  /* aici sunt butoanele grupate și aliniate la dreapta */
+  .admin-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: calc(var(--spacing-unit)*1);
+    margin-top: calc(var(--spacing-unit)*3);
+  }
+
+  .btn-action {
+    background-color: var(--accent-gold) !important;
+    color: var(--primary-dark)   !important;
+    border: none;
+    font-weight: 600;
+    padding: calc(var(--spacing-unit)*1) calc(var(--spacing-unit)*2);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color .2s;
+  }
+  .btn-action:hover {
+    background-color: var(--accent-gold-light) !important;
+  }
+
+  .btn-danger-custom {
+    background-color: var(--error) !important;
+    color: var(--text-light) !important;
+    border: none;
+    font-weight: 600;
+    padding: calc(var(--spacing-unit)*1) calc(var(--spacing-unit)*2);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color .2s;
+  }
+  .btn-danger-custom:hover {
+    background-color: rgba(207,102,121,0.8) !important;
+  }
+
+</style>
+
+<div class="page-container">
+  <div class="game-detail-card">
+    <h2>
+      @Model.Title
+      <a class="favorite-icon" onclick="toggleFavorite(@Model.Id, this)">
+        @if (await userService.IsGameFavorite(@Model.Id)) {
+          <i class="fa-regular fa-heart"></i>
+        } else {
+          <i class="fa-solid fa-heart"></i>
+        }
+      </a>
+    </h2>
+
+    <div class="card-content">
+      <div class="col-md-4">
+        @if (!Model.IsOfficial) {
+          <div>
+            <div class="field-label">Author:</div>
+            <div class="field-value">@Model.Author.Username</div>
+          </div>
+        }
+        <div>
+          <div class="field-label">Difficulty:</div>
+          <div class="field-value">@Model.Difficulty</div>
+        </div>
+        <div>
+          <div class="field-label">Maximum Players:</div>
+          <div class="field-value">@Model.MaxPlayers</div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="field-label">Description:</div>
+        <div class="description-box">
+          @Model.Description
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-buttons">
+      @if (await userService.IsAuthor(email, Model.Id) || userService.IsAdmin(email)) {
+        <form asp-controller="Games" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-danger-custom">Delete</button>
+        </form>
+      }
+      @if (userService.IsAdmin(email)) {
+        @if (!Model.IsOfficial) {
+          <a class="btn-action" onclick="toggleOfficial(@Model.Id, this)">
+            Change to official status
+          </a>
+        } else {
+          <a class="btn-action" onclick="toggleOfficial(@Model.Id, this)">
+            Remove official status
+          </a>
+        }
+      }
+    </div>
+  </div>
+</div>

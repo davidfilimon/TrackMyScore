@@ -34,7 +34,7 @@ namespace TrackMyScore.Controllers
         public IActionResult AddGame(string name, string description, int maxPlayers, string difficulty)
         {
 
-            if(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers == 0)
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers == 0)
             {
                 ViewData["Error"] = "All fields are required to register a game.";
                 return View();
@@ -60,6 +60,15 @@ namespace TrackMyScore.Controllers
             };
 
             _context.Games.Add(game);
+
+            var favoriteGame = new FavoriteGame
+            {
+                User = user,
+                Game = game
+            };
+
+            _context.FavoriteGames.Add(favoriteGame);
+
             _context.SaveChanges();
 
             return RedirectToAction("List", "Games");
@@ -72,14 +81,14 @@ namespace TrackMyScore.Controllers
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
-            if(user == null)
+            if (user == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
             var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == id);
 
-            if(game == null)
+            if (game == null)
             {
                 return NotFound();
             }
@@ -87,16 +96,17 @@ namespace TrackMyScore.Controllers
             var favoriteGame = await _context.FavoriteGames
                 .FirstOrDefaultAsync(fg => fg.User.Id == userId && fg.Game.Id == game.Id);
 
-            if(favoriteGame != null)
+            if (favoriteGame != null)
             {
                 _context.FavoriteGames.Remove(favoriteGame);
             }
             else
             {
-                favoriteGame = new FavoriteGame{
+                favoriteGame = new FavoriteGame
+                {
                     User = user,
                     Game = game
-                    };
+                };
                 _context.FavoriteGames.Add(favoriteGame);
             }
 
@@ -104,7 +114,7 @@ namespace TrackMyScore.Controllers
 
             string referer = Request.Headers["Referer"].ToString();
 
-            if(referer.Contains("List", StringComparison.OrdinalIgnoreCase))
+            if (referer.Contains("List", StringComparison.OrdinalIgnoreCase))
             {
                 return RedirectToAction("List", "Games");
             }
@@ -120,6 +130,50 @@ namespace TrackMyScore.Controllers
             var game = _context.Games.FirstOrDefault(g => g.Id == id);
 
             return View(game);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == id);
+
+            if (game == null)
+            {
+                return Json(new { success = false, message = "Game not found." });
+            }
+
+            var rooms = await _context.Rooms
+                .Where(r => r.Game == game)
+                .ToListAsync();
+
+            if (rooms.Any())
+            {
+                return Json(new { success = false, message = "There are already rooms played with this game." });
+            }
+
+            var tournaments = await _context.Tournaments
+                .Where(t => t.Game == game)
+                .ToListAsync();
+
+            if (tournaments.Any())
+            {
+                return Json(new { success = false, message = "There are already tournaments played with this game." });
+            }
+
+            var favoriteUsers = await _context.FavoriteGames
+                .Where(t => t.Game == game)
+                .ToListAsync();
+
+            foreach (var favoriteUser in favoriteUsers)
+            {
+                _context.FavoriteGames.Remove(favoriteUser);
+            }
+
+            _context.Games.Remove(game);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("List", "Games");
+            
         }
 
     }

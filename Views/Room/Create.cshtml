@@ -320,7 +320,6 @@
 
 
     <script>
-        // Start of original JavaScript functions (UNCHANGED)
         let tournamentMode = 'single';
 
         function toggleTournamentMode(mode){
@@ -332,18 +331,13 @@
                 $('#playerNumberDiv').hide();
             }
         }
-        // End of original JavaScript functions (UNCHANGED)
 
-        // Inițializarea Flatpickr
         document.addEventListener('DOMContentLoaded', function() {
-            // Preia variabilele CSS din root
             const rootStyles = getComputedStyle(document.documentElement);
             const inputBg = rootStyles.getPropertyValue('--input-bg').trim();
             const textLight = rootStyles.getPropertyValue('--text-light').trim();
             const inputBorder = rootStyles.getPropertyValue('--input-border').trim();
 
-
-            // Inițializare pentru selectorul de dată
             flatpickr("input[name='startDate']", {
                 dateFormat: "Y-m-d",
                 altInput: true,
@@ -351,30 +345,25 @@
                 locale: "ro",
                 minDate: "today",
                 wrap: false,
-                // **HOOK-ul CRUCIAL AICI**
                 onReady: function(selectedDates, dateStr, instance) {
-                    // Aplică stilurile direct pe altInput-ul creat de Flatpickr
                     const altInput = instance.altInput;
                     if (altInput) {
                         altInput.style.backgroundColor = inputBg;
                         altInput.style.color = textLight;
                         altInput.style.border = `1px solid ${inputBorder}`;
-                        altInput.style.setProperty('box-shadow', 'none', 'important'); // Elimină orice box-shadow implicit
-                        // Asigură că placeholder-ul are culoarea corectă la început
-                        if (!altInput.value) { // Dacă input-ul este gol
-                            altInput.style.color = 'var(--text-muted)'; // Setează culoarea placeholder-ului
+                        altInput.style.setProperty('box-shadow', 'none', 'important');
+                        if (!altInput.value) { 
+                            altInput.style.color = 'var(--text-muted)'; 
                         }
                     }
                 },
                 onChange: function(selectedDates, dateStr, instance) {
-                    // Restaurează culoarea textului normală după ce a fost selectată o dată
                     if (instance.altInput && instance.altInput.value) {
                         instance.altInput.style.color = textLight;
                     }
                 }
             });
 
-            // Inițializare pentru selectorul de oră
             flatpickr("input[name='startTime']", {
                 enableTime: true,
                 noCalendar: true,
@@ -384,23 +373,19 @@
                 time_24hr: true,
                 locale: "ro",
                 wrap: false,
-                // **HOOK-ul CRUCIAL AICI**
                 onReady: function(selectedDates, dateStr, instance) {
-                    // Aplică stilurile direct pe altInput-ul creat de Flatpickr
                     const altInput = instance.altInput;
                     if (altInput) {
                         altInput.style.backgroundColor = inputBg;
                         altInput.style.color = textLight;
                         altInput.style.border = `1px solid ${inputBorder}`;
-                        altInput.style.setProperty('box-shadow', 'none', 'important'); // Elimină orice box-shadow implicit
-                        // Asigură că placeholder-ul are culoarea corectă la început
-                        if (!altInput.value) { // Dacă input-ul este gol
-                            altInput.style.color = 'var(--text-muted)'; // Setează culoarea placeholder-ului
+                        altInput.style.setProperty('box-shadow', 'none', 'important');
+                        if (!altInput.value) {
+                            altInput.style.color = 'var(--text-muted)';
                         }
                     }
                 },
                 onChange: function(selectedDates, dateStr, instance) {
-                    // Restaurează culoarea textului normală după ce a fost selectată o oră
                     if (instance.altInput && instance.altInput.value) {
                         instance.altInput.style.color = textLight;
                     }

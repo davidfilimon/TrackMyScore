@@ -43,6 +43,7 @@
         min-height: 100vh;
         line-height: 1.5;
         padding: calc(var(--spacing-unit) * 4);
+        margin-top: var(--spacing-unit);
     }
 
     .container-fluid {
@@ -264,6 +265,43 @@
 
     .btn-close {
         filter: invert(1); /* Makes the close button white */
+    }
+
+    /* ==== Table styling: header mai închis, date mai deschise, border ==== */
+    .room-details-section .table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: transparent; /* moștenește fundal-ul containerului */
+    }
+
+    .room-details-section .table th,
+    .room-details-section .table td {
+    padding: calc(var(--spacing-unit) * 2);
+    text-align: left;
+    }
+
+    /* Header-ul, fundal întunecat */
+    .room-details-section .table thead th {
+    background-color: var(--primary-dark) !important;
+    color: var(--text-light)  !important;
+    border-bottom: 2px solid var(--primary-light) !important;
+    }
+
+    /* Rândurile de date, fundal mai deschis */
+    .room-details-section .table tbody td {
+    background-color: var(--primary) !important;
+    color: var(--text-light) !important;
+    border-bottom: 1px solid var(--primary-light) !important;
+    }
+
+    /* Fără border pe ultimul rând */
+    .room-details-section .table tbody tr:last-child td {
+    border-bottom: none !important;
+    }
+
+    /* Hover subtil peste rânduri */
+    .room-details-section .table tbody tr:hover td {
+    background-color: var(--primary-light) !important;
     }
 </style>
 <body>

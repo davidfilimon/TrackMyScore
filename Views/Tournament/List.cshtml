@@ -77,12 +77,12 @@
         color: var(--primary-dark);
     }
 
-    .search-bar {
-        width: 100%;
-        margin-top: calc(var(--spacing-unit) * 3);
+    .search-bar1 {
+        width: 30%;
+        padding-right: 20px;
     }
 
-    .search-input {
+    .search-input1 {
         background-color: var(--input-bg);
         border: 2px solid var(--input-border);
         color: var(--text-light);
@@ -91,14 +91,14 @@
         transition: all 0.3s ease;
     }
 
-    .search-input:focus {
+    .search-input1:focus {
         background-color: var(--input-bg);
         border-color: var(--input-focus);
         color: var(--text-light);
         box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
     }
 
-    .search-input::placeholder {
+    .search-input1::placeholder {
         color: var(--text-muted);
         opacity: 0.7;
     }
@@ -175,7 +175,7 @@
 
     /* Responsive adjustments */
     @@media (min-width: 768px) {
-        .search-bar {
+        .search-bar1 {
             width: auto; /* Auto width on larger screens */
             margin-top: 0;
             flex-grow: 1; /* Allow search bar to grow */
@@ -192,8 +192,8 @@
         <div class="header-section">
             <h1>Tournament List</h1>
             <div class="d-flex align-items-center flex-grow-1 justify-content-end">
-                <div class="search-bar">
-                    <input type="text" id="tournamentSearch" class="form-control search-input" placeholder="Search tournaments by name...">
+                <div class="search-bar1">
+                    <input type="text" id="tournamentSearch" class="form-control search-input1" placeholder="Search tournaments by name...">
                 </div>
                 <a class="btn btn-accent-gold" asp-action="Create" asp-controller="Tournament">
                     <i class="fa-solid fa-plus me-2"></i> Create Tournament

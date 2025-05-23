@@ -206,9 +206,6 @@ D:\TrackMyScore\obj\Debug\net9.0\compressed\syw134p19k-5p029spbuu.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\0zf3lfia5o-st1cbwfwo5.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\0apgy4e1cf-nakmwdwsxp.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\qla6i1ffii-61n19gt1b8.gz
-D:\TrackMyScore\obj\Debug\net9.0\compressed\hl6cnujjc8-3rg60fogfm.gz
-D:\TrackMyScore\obj\Debug\net9.0\compressed\orf1twlcmn-zqkd2xegk2.gz
-D:\TrackMyScore\obj\Debug\net9.0\compressed\gdx8f58tt6-chiani7mko.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\p57wwk86kw-4337bjm2p6.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\k042jzg5kd-4337bjm2p6.gz
 D:\TrackMyScore\obj\Debug\net9.0\staticwebassets.build.json

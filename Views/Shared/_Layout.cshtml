@@ -12,11 +12,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TrackMyScore</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/TrackMyScore.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <!-- font-awesome link -->
 
     <style>
+
+        :root {
+        --horizontal-padding: 1rem;
+        --navbar-height: 70px;
+        }
 
         *{
             font-family: Arial;
@@ -102,30 +105,30 @@
                 margin: 5px 0;
             }
 
-                .custom-card .list-group-item:hover {
-                    background-color: #B5FFE1;
-                    cursor: pointer;
+                .custom-card .list-group-item:hover { 
+                    background-color: #B5FFE1 !important;
+                    cursor: pointer !important;
                 }
 
         .navbar .navbar-brand {
             color: #B5FFE1 !important;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            background-color: #00241B;
-            transition: none;
+            font-size: 1.2rem !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            padding: 8px 15px !important;
+            border-radius: 5px !important;
+            background-color: #00241B !important;
+            transition: none !important;
         }
 
             .navbar .navbar-brand:hover {
-                background-color: #00241B;
-                color: #B5FFE1; 
+                background-color: #00241B !important;
+                color: #B5FFE1 !important; 
             }
 
         #trackmyscore {
-                color: #FFFFFF !important; /* Folosim !important pentru a suprascrie alte stiluri */
-                font-family:Arial;
+                color: #FFFFFF !important;
+                font-family:Arial ;
         }
 
             #trackmyscore:hover {
@@ -144,18 +147,63 @@
             background-color: #00241B;
             transition: none;
         }
+
+        #mainNavbar > .container-fluid {
+        max-width: none    !important;
+        width: 100%        !important;
+        padding-left:  var(--horizontal-padding) !important;
+        padding-right: var(--horizontal-padding) !important;
+        margin: 0          !important;
+        display: flex      !important;
+        align-items: center!important;
+        }
+
+        #mainNavbar .navbar-brand {
+        font-family: Arial, sans-serif !important;
+        font-size:    1.2rem        !important;
+        font-weight:  bold          !important;
+        white-space:  nowrap        !important;
+        
+        /* 2. Make it an inline-block with a fixed width */
+        display:      inline-block  !important;
+        width:        162px         !important;
+        
+        padding:      0             !important;
+        margin:       0 20px        !important;
+        }
+
+        .page-container {
+        max-width: 100%;           
+        margin: 0 auto !important;
+        padding-left:  var(--horizontal-padding) !important;
+        padding-right: var(--horizontal-padding) !important;
+        padding-top:   calc(var(--navbar-height) + 1rem) !important;   
+        }
+
+        #mainNavbar .nav-link,
+        #mainNavbar .nav-link:hover {
+        color: #FFFFFF !important;
+        }
+
+        #mainNavbar .nav-link i {
+        color: #FFFFFF !important;
+        }
+
+        i {
+            color: #FFFFFF !important;
+        }
+
+
     </style>
 
 
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg fixed-top">
+    <nav class="navbar navbar-expand-lg fixed-top navbar-white" id="mainNavbar">
         <div class="container-fluid">
-            <div class="navbar-brand">
-                <a id="trackmyscore" class="nav-link" asp-controller="Home" asp-action="Index">
+            <a id="trackmyscore" class="btn navbar-brand" asp-controller="Home" asp-action="Index">
                     TrackMyScore
-                </a>             
-            </div>
+            </a>  
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -181,7 +229,7 @@
                 <!-- search bar -->
                 <form class="d-flex me-auto" asp-controller="Account" asp-action="Search" method="get">
                     <input class="form-control me-2 search-bar" type="search" name="query" placeholder="Search" aria-label="Search" autocomplete="off">
-                    <button class="btn" type="submit">
+                    <button class="btn nav-link" type="submit">
                         <i class="fa-solid fa-magnifying-glass search-button"></i>
                     </button>
                 </form>

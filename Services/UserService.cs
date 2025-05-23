@@ -55,5 +55,27 @@ namespace TrackMyScore.Services
             return false;
         }
 
+        public async Task<bool> IsAuthor(string email, int gameId)
+        {
+
+            var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
+
+            if (game == null)
+            {
+                return false;
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (game.Author == user && user != null)
+            {
+                return true;
+            }
+
+            return false;
+ 
+
+        }
+
     }
 }
