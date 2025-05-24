@@ -7,19 +7,19 @@
     var teams = Model.Teams;
     var room = Model.Room;
     var jPlayers = Model.JoinedPlayers;
+    ViewData["Title"] = Model.Room.Name;
 }
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room Details - TrackMyScore</title>
+    <title>@ViewData["Title"] - TrackMyScore</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <style>
     :root {
-    using Microsoft.IdentityModel.Tokens;
         --primary-dark: #1A3C2A;
         --primary: #2A5940;
         --primary-light: #3B7A5A;
@@ -166,31 +166,30 @@
         color: var(--text-muted);
     }
 
-    /* Table styles */
     .table {
         color: var(--text-light);
-        background-color: var(--primary); /* Background for the whole table */
+        background-color: var(--primary); 
         border-radius: 10px;
-        overflow: hidden; /* Ensures rounded corners apply to table content */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Added shadow for consistency */
+        overflow: hidden; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); 
     }
 
     .table thead {
-        background-color: var(--primary-light); /* Header background */
+        background-color: var(--primary-light);
     }
 
     .table th, .table td {
-        border-color: var(--primary-dark); /* Border color between cells */
+        border-color: var(--primary-dark);
         padding: calc(var(--spacing-unit) * 2);
         vertical-align: middle;
     }
 
     .table tbody tr:nth-child(even) {
-        background-color: rgba(0, 0, 0, 0.1); /* Slightly darker background for even rows */
+        background-color: rgba(0, 0, 0, 0.1);
     }
 
     .table tbody tr:hover {
-        background-color: var(--primary-light); /* Hover effect for rows */
+        background-color: var(--primary-light);
         transition: background-color 0.2s ease;
     }
 
@@ -265,44 +264,39 @@
     }
 
     .btn-close {
-        filter: invert(1); /* Makes the close button white */
+        filter: invert(1); 
     }
 
-    /* ==== Table styling: header mai închis, date mai deschise, border ==== */
     .room-details-section .table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: transparent; /* moștenește fundal-ul containerului */
+        width: 100%;
+        border-collapse: collapse;
+        background-color: transparent; 
     }
 
     .room-details-section .table th,
     .room-details-section .table td {
-    padding: calc(var(--spacing-unit) * 2);
-    text-align: left;
+        padding: calc(var(--spacing-unit) * 2);
+        text-align: left;
     }
 
-    /* Header-ul, fundal întunecat */
     .room-details-section .table thead th {
-    background-color: var(--primary-dark) !important;
-    color: var(--text-light)  !important;
-    border-bottom: 2px solid var(--primary-light) !important;
+        background-color: var(--primary-dark) !important;
+        color: var(--text-light)  !important;
+        border-bottom: 2px solid var(--primary-light) !important;
     }
 
-    /* Rândurile de date, fundal mai deschis */
     .room-details-section .table tbody td {
-    background-color: var(--primary) !important;
-    color: var(--text-light) !important;
-    border-bottom: 1px solid var(--primary-light) !important;
+        background-color: var(--primary) !important;
+        color: var(--text-light) !important;
+        border-bottom: 1px solid var(--primary-light) !important;
     }
 
-    /* Fără border pe ultimul rând */
     .room-details-section .table tbody tr:last-child td {
-    border-bottom: none !important;
+        border-bottom: none !important;
     }
-
-    /* Hover subtil peste rânduri */
+    
     .room-details-section .table tbody tr:hover td {
-    background-color: var(--primary-light) !important;
+        background-color: var(--primary-light) !important;
     }
 </style>
 <body>
@@ -584,8 +578,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // function for ending match
         function endMatch(matchId) {
             $.ajax({
                 url: '/Room/End',
@@ -606,6 +600,7 @@
             });
         }
 
+        // add individual point
         function addPoint(matchId, participantId) {
             $.ajax({
                 url: "/Room/AddPoint",
@@ -623,6 +618,7 @@
             })
         }
 
+        // remove individual point
         function removePoint(matchId, participantId) {
             $.ajax({
                 url: "/Room/RemovePoint",
@@ -640,6 +636,7 @@
             })
         }
 
+        // add team point
         function addPointTeam(matchId, teamId) {
             $.ajax({
                 url: "/Room/AddPointTeam",
@@ -657,6 +654,7 @@
             })
         }
 
+        // remove team points
         function removePointTeam(matchId, teamId) {
             $.ajax({
                 url: "/Room/RemovePointTeam",
@@ -674,6 +672,7 @@
             })
         }
 
+        // function for starting a tournament match
         function startTMatch(roomId) {
             $.ajax({
                 url: "/Room/StartTMatch",
@@ -727,10 +726,9 @@
         }
 
         // global variables
-        let currentMode = '@Model.Room.Mode'; // Initialize with the current room mode
+        let currentMode = '@Model.Room.Mode';
         let teamCount = 0;
 
-        // Set the initial radio button state based on Model.Room.Mode
         $(document).ready(function () {
             if (currentMode === 'team') {
                 $('#teamMode').prop('checked', true);
@@ -739,20 +737,20 @@
             }
         });
 
-
+        // open modal
         function checkAndOpenModal(roomId) {
             if (currentMode === 'team') {
                 $('#startEarlyModal').modal('show');
             } else {
-                if (confirm('Are you sure you want to start the match in single mode?')) {
-                    startSingleGame(roomId);
-                }
+                startSingleGame(roomId);
             }
         }
+
         // toggling room mode
         function toggleMode(mode) {
             currentMode = mode;
         }
+
         // function for adding a team
         function addTeam() {
             teamCount++;
@@ -778,11 +776,13 @@
             $('#teamsContainer').append(teamHtml);
             updateAllTeamSelects();
         }
+
         // function for removing a team
         function removeTeam(teamId) {
             $(`.team-card[data-team-id="${teamId}"]`).remove();
             updateAllTeamSelects();
         }
+
         // function for dynamically updating teams
         function updateAllTeamSelects() {
             $('.team-select').each(function () {
@@ -803,6 +803,7 @@
         function updateTeamOptions(teamId, newName) {
             updateAllTeamSelects();
         }
+
         // starting single game
         function startSingleGame(roomId) {
             $.ajax({
@@ -817,6 +818,7 @@
                 }
             });
         }
+
         // starting team game
         function startGame(roomId) {
             const teamAssignments = {};
@@ -847,7 +849,7 @@
                     roomId: roomId,
                     teamAssignments: teamAssignments,
                     roles: roles,
-                    teamNames: teamNames // Pass team names to the backend
+                    teamNames: teamNames
                 },
                 success: function () {
                     location.reload();

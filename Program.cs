@@ -17,6 +17,7 @@ builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<CreateAccountService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<StatsService>();
 
 
 builder.Services.AddHttpContextAccessor();

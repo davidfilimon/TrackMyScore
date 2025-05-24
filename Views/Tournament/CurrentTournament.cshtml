@@ -13,12 +13,14 @@
     int leafCount = rooms.Count(r => r.Stage == 1);
     int gridRows = leafCount * 2 - 1;
     int totalCols = totalRounds + 1;
+    ViewData["Title"] = Model.Tournament.Name;
 }
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <title>@ViewData["Title"] - TrackMyScore</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>@tour.Name – Bracket</title>
   <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />

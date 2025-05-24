@@ -1,4 +1,7 @@
 ﻿@model TournamentListView
+@{
+    ViewData["Title"] = "Tournament List";
+}
 
 <head>
     <meta charset="UTF-8">
@@ -27,7 +30,7 @@
     }
 
     body {
-        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         background-color: var(--primary-dark);
         color: var(--text-light);
         min-height: 100vh;
@@ -36,7 +39,7 @@
     }
 
     .container-fluid {
-        max-width: 1200px; /* Limit width for better readability */
+        max-width: 1200px;
     }
 
     .header-section {
@@ -57,7 +60,6 @@
         margin-bottom: 0;
     }
 
-    /* Renamed and applied to all gold buttons */
     .btn-accent-gold {
         background-color: var(--accent-gold);
         border: none;

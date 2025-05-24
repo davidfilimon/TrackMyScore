@@ -1,11 +1,12 @@
 ﻿@{
+    ViewData["Title"] = "Create Tournament";
 }
 @model List<Game>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Tournament - TrackMyScore</title>
+    <title>@ViewData["Title"] - TrackMyScore</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -24,10 +25,10 @@
             --accent-gold-light: #F0D875;
             --accent-wood: #966F33;
             --text-light: #E8F5E9;
-            --text-muted: #ffffff; /* Folosit pentru placeholder */
+            --text-muted: #ffffff;
             --card-bg: #234134;
-            --input-bg: #1A3C2A; /* Fundalul verde închis pentru input-uri */
-            --input-border: #3B7A5A; /* Chenarul verde mai deschis */
+            --input-bg: #1A3C2A;
+            --input-border: #3B7A5A;
             --input-focus: #D4AF37;
             --error: #CF6679;
             --success: #4CAF50;
@@ -57,7 +58,7 @@
             margin: auto;
         }
 
-        .form-container h2, .form-container h1 { /* Adaugat h1 pentru a se potrivi cu noul titlu */
+        .form-container h2, .form-container h1 {
             color: var(--accent-gold);
             margin-bottom: calc(var(--spacing-unit) * 4);
             font-weight: 600;
@@ -77,9 +78,9 @@
 
         .form-control,
         .form-select {
-            background-color: var(--input-bg); /* Fundal verde închis */
+            background-color: var(--input-bg);
             color: var(--text-light);
-            border: 1px solid var(--input-border); /* Chenar verde mai deschis */
+            border: 1px solid var(--input-border);
             border-radius: 8px;
             padding: calc(var(--spacing-unit) * 1.5);
             font-size: 1rem;
@@ -91,18 +92,16 @@
         .form-select:focus {
             border-color: var(--input-focus);
             box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
-            background-color: var(--input-bg); /* Rămâne verde închis la focus */
+            background-color: var(--input-bg);
             color: var(--text-light);
         }
 
-        /* Adjust placeholder color for all inputs including Flatpickr's altInput */
         .form-control::placeholder,
         .flatpickr-alt-input::placeholder {
             color: var(--text-muted);
             opacity: 0.7;
         }
 
-        /* Stiluri pentru input-urile Flatpickr (altInput) */
         .flatpickr-alt-input {
             background-color: var(--input-bg);
             color: var(--text-light);
@@ -154,7 +153,6 @@
             margin-top: calc(var(--spacing-unit) * 1);
         }
 
-        /* Custom styles for Flatpickr calendar popup */
         .flatpickr-calendar {
             background-color: var(--card-bg);
             border: 1px solid var(--primary-light);
@@ -236,12 +234,12 @@
             opacity: 0.5;
         }
 
-        /* Time picker specific styles */
         .flatpickr-time {
             border-top: 1px solid var(--input-border);
             padding: calc(var(--spacing-unit) * 1.5) 0;
             background-color: var(--primary-dark);
         }
+
         .flatpickr-time input.flatpickr-hour,
         .flatpickr-time input.flatpickr-minute {
             background-color: var(--input-bg);
@@ -250,22 +248,25 @@
             font-weight: bold;
             border-radius: 4px;
         }
+
         .flatpickr-time .flatpickr-am-pm {
              color: var(--text-light);
         }
+
         .flatpickr-time .numInputWrapper span.arrowUp:after,
         .flatpickr-time .numInputWrapper span.arrowDown:after {
             border-color: var(--accent-gold);
         }
+
         .flatpickr-time .numInputWrapper:hover span.arrowUp:after,
         .flatpickr-time .numInputWrapper:hover span.arrowDown:after {
             border-color: var(--accent-gold-light);
         }
+
         .flatpickr-time .numInputWrapper:hover {
             background-color: var(--primary-light);
         }
 
-        /* Stiluri pentru radio buttons (mode) */
         .radio-group {
             display: flex;
             gap: calc(var(--spacing-unit) * 3);
@@ -277,7 +278,7 @@
             align-items: center;
             cursor: pointer;
             color: var(--text-light);
-            font-weight: normal; /* Suprascrie font-weight: 500 de la form-group label */
+            font-weight: normal;
         }
 
         .radio-group input[type="radio"] {
@@ -293,7 +294,7 @@
             transition: all 0.2s ease;
             position: relative;
             cursor: pointer;
-            flex-shrink: 0; /* Prevents shrinking in flex container */
+            flex-shrink: 0;
         }
 
         .radio-group input[type="radio"]:checked {

@@ -1,15 +1,286 @@
-﻿@{
-    ViewData["Title"] = "Admin Panel";
+﻿@model DashboardStats
+@{
+    ViewData["Title"] = "Admin Dashboard";
 }
+<style>
+    .dashboard{
+        padding-top: 80px;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="dashboard container-fluid mt-custom-margin mt-20">
+    <h1 class="admin-dashboard-title">Admin Dashboard</h1>
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="card-title-text">Total Users</p>
+                            <h3 class="card-main-stat">@Model.TotalUsers</h3>
+                        </div>
+                        <div class="card-icon-amber">
+                            <i class="fa-solid fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                    <hr class="card-separator">
+                    <div class="small-stats-section">
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last 24h:</span>
+                            <span class="small-stat-value">@Model.UsersLastDay</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last Week:</span>
+                            <span class="small-stat-value">@Model.UsersLastWeek</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last Month:</span>
+                            <span class="small-stat-value">@Model.UsersLastMonth</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<h2>Admin Panel</h2>
+        <div class="col-md-6 col-lg-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="card-title-text">Total Matches</p>
+                            <h3 class="card-main-stat">@Model.TotalMatches</h3>
+                        </div>
+                        <div class="card-icon-amber">
+                            <i class="fa-solid fa-gamepad fa-2x"></i>
+                        </div>
+                    </div>
+                    <hr class="card-separator">
+                    <div class="small-stats-section">
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last 24h:</span>
+                            <span class="small-stat-value">@Model.MatchesLastDay</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last Week:</span>
+                            <span class="small-stat-value">@Model.MatchesLastWeek</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last Month:</span>
+                            <span class="small-stat-value">@Model.MatchesLastMonth</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<p>Test</p>
+        <div class="col-md-6 col-lg-4">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="card-title-text">Total Tournaments</p>
+                            <h3 class="card-main-stat">@Model.TotalTournaments</h3>
+                        </div>
+                        <div class="card-icon-amber">
+                            <i class="fa-solid fa-trophy fa-2x"></i>
+                        </div>
+                    </div>
+                    <hr class="card-separator">
+                    <div class="small-stats-section">
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last 24h:</span>
+                            <span class="small-stat-value">@Model.TournamentsLastDay</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last Week:</span>
+                            <span class="small-stat-value">@Model.TournamentsLastWeek</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small-stat-label">Last Month:</span>
+                            <span class="small-stat-value">@Model.TournamentsLastMonth</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<ul>
-    <li>
-        <a class="btn btn-dark" asp-action="Add" asp-controller="Admin">
-            Create an official game
-        </a>
-    </li>
-</ul>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h3 class="chart-title">User Growth</h3>
+                    <div class="chart-container">
+                        <canvas id="userGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h3 class="chart-title">Platform Activity</h3>
+                    <div class="chart-container">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4"></div>
+        <div class="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-center">
+            <a asp-controller="Admin" asp-action="Add" class="btn btn-warning create-game-btn">
+                <i class="fa-solid fa-plus me-2"></i>
+                Create Official Game
+            </a>
+        </div>
+    </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        Chart.defaults.color = '#A7F3D0';
+        Chart.defaults.borderColor = 'rgba(16, 185, 129, 0.2)';
+
+        // user chart
+        const userCtx = document.getElementById('userGrowthChart').getContext('2d');
+        new Chart(userCtx, {
+            type: 'line',
+            data: {
+                labels: ['24h', '7d', '30d', 'Total'],
+                datasets: [{
+                    label: 'Users',
+                    data: [@Model.UsersLastDay, @Model.UsersLastWeek, @Model.UsersLastMonth, @Model.TotalUsers],
+                    borderColor: '#34D399',
+                    backgroundColor: 'rgba(52, 211, 153, 0.15)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#34D399',
+                    pointBorderColor: '#10B981',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(23, 26, 26, 0.9)',
+                        titleColor: '#A7F3D0',
+                        bodyColor: '#A7F3D0',
+                        borderColor: '#10B981',
+                        borderWidth: 1,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(16, 185, 129, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            color: '#A7F3D0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(16, 185, 129, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            color: '#A7F3D0'
+                        }
+                    }
+                }
+            }
+        });
+
+        // activity chart
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        new Chart(activityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['24h', '7d', '30d', 'Total'],
+                datasets: [{
+                    label: 'Matches',
+                    data: [@Model.MatchesLastDay, @Model.MatchesLastWeek, @Model.MatchesLastMonth, @Model.TotalMatches],
+                    backgroundColor: '#34D399',
+                    borderRadius: 4,
+                    hoverBackgroundColor: '#10B981'
+                },
+                {
+                    label: 'Tournaments',
+                    data: [@Model.TournamentsLastDay, @Model.TournamentsLastWeek, @Model.TournamentsLastMonth, @Model.TotalTournaments],
+                    backgroundColor: '#F59E0B',
+                    borderRadius: 4,
+                    hoverBackgroundColor: '#D97706'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 14,
+                            padding: 15,
+                            font: {
+                                size: 11
+                            },
+                            color: '#A7F3D0'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(23, 26, 26, 0.9)',
+                        titleColor: '#A7F3D0',
+                        bodyColor: '#A7F3D0',
+                        borderColor: '#10B981',
+                        borderWidth: 1,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(16, 185, 129, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            color: '#A7F3D0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(16, 185, 129, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            color: '#A7F3D0'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

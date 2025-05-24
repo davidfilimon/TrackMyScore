@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TrackMyScore.Database;
@@ -10,13 +11,15 @@ namespace TrackMyScore.Controllers
     public class AdminController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly StatsService _stats;
 
-        public AdminController(AppDbContext context)
+        public AdminController(AppDbContext context, StatsService stats)
         {
             _context = context;
+            _stats = stats;
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             string email = HttpContext.Session.GetString("email");
 
@@ -32,7 +35,9 @@ namespace TrackMyScore.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            return View();
+            var model = await _stats.GetStatsAsync();
+
+            return View(model);
         }
 
         [HttpGet]
