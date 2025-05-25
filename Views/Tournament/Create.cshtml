@@ -397,7 +397,7 @@
 
 
     <script>
-        // Start of original JavaScript functions (UNCHANGED)
+        // tournament mode
         let mode = "single";
 
         function toggleTournamentMode(tournamentMode){
@@ -409,18 +409,14 @@
                 $("#playerNumberDiv").show();
             }
         }
-        // End of original JavaScript functions (UNCHANGED)
 
-        // Inițializarea Flatpickr
         document.addEventListener('DOMContentLoaded', function() {
-            // Preia variabilele CSS din root
             const rootStyles = getComputedStyle(document.documentElement);
             const inputBg = rootStyles.getPropertyValue('--input-bg').trim();
             const textLight = rootStyles.getPropertyValue('--text-light').trim();
             const inputBorder = rootStyles.getPropertyValue('--input-border').trim();
-            const textMuted = rootStyles.getPropertyValue('--text-muted').trim(); // Adăugat pentru placeholder
-
-            // Inițializare pentru selectorul de dată
+            const textMuted = rootStyles.getPropertyValue('--text-muted').trim(); 
+            // date selector
             flatpickr("input[name='startDate']", {
                 dateFormat: "Y-m-d",
                 altInput: true,
@@ -465,7 +461,7 @@
                         altInput.style.border = `1px solid ${inputBorder}`;
                         altInput.style.setProperty('box-shadow', 'none', 'important');
                         if (!altInput.value) {
-                            altInput.style.color = textMuted; // Setează culoarea placeholder-ului
+                            altInput.style.color = textMuted;
                         }
                     }
                 },

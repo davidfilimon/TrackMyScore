@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ro.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 
     <style>
@@ -312,19 +313,6 @@
     </div>
 
     <script>
-        let tournamentMode = 'single';
-
-        // function for toggling tournament mode
-        function toggleTournamentMode(mode){
-            tournamentMode = mode;
-
-            if(mode == 'team'){
-                $('#playerNumberDiv').show();
-            } else {
-                $('#playerNumberDiv').hide();
-            }
-        }
-
         // flatpickr date selector and time selector
         document.addEventListener('DOMContentLoaded', function() {
             const rootStyles = getComputedStyle(document.documentElement);

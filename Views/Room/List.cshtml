@@ -347,3 +347,23 @@
     </div>
 
 </body>
+
+<script>
+    // room search function
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('rSearch');
+        const roomCols   = document.querySelectorAll('.room-section .row > [class*="col-"]');
+
+        searchInput.addEventListener('keyup', function () {
+        const term = searchInput.value.trim().toLowerCase();
+
+        roomCols.forEach(col => {
+            const titleEl = col.querySelector('.room-card-title');
+            if (!titleEl) return;
+
+            const titleText = titleEl.textContent.trim().toLowerCase();
+            col.style.display = titleText.includes(term) ? '' : 'none';
+        });
+        });
+    });
+</script>
