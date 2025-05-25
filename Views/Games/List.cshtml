@@ -216,7 +216,6 @@
                     <thead>
                         <tr>
                             <th>Title</th>
-                            <th>Description</th>
                             <th>Max Players</th>
                             <th>Difficulty</th>
                             <th>Actions</th>
@@ -229,7 +228,6 @@
                             {
                                 <tr class="game-row" data-title="@game.Title.ToLower()">
                                     <td>@game.Title</td>
-                                    <td>@game.Description</td>
                                     <td>@game.MaxPlayers</td>
                                     <td>@game.Difficulty</td>
                                     <td>
@@ -268,7 +266,7 @@
                     <thead>
                         <tr>
                             <th>Title</th>
-                            <th>Description</th>
+                            <th>Author</th>
                             <th>Max Players</th>
                             <th>Difficulty</th>
                             <th>Actions</th>
@@ -281,7 +279,7 @@
                             {
                                 <tr class="game-row" data-title="@game.Title.ToLower()">
                                     <td>@game.Title</td>
-                                    <td>@game.Description</td>
+                                    <td>@game.Author.Username</td>
                                     <td>@game.MaxPlayers</td>
                                     <td>@game.Difficulty</td>
                                     <td>

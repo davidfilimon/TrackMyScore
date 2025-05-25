@@ -587,12 +587,8 @@
                 data: {
                     matchId: matchId
                 },
-                success: function (response) {
-                    if (response.success) {
-                        location.reload();
-                    } else {
-                        alert(response.message);
-                    }
+                success: function () {
+                    window.location.reload();
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while ending the match.');
@@ -610,7 +606,7 @@
                     participantId: participantId
                 },
                 success: function () {
-                    location.reload();
+                    window.location.reload();
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while adding a point.');
@@ -628,7 +624,7 @@
                     participantId: participantId
                 },
                 success: function () {
-                    location.reload();
+                    window.location.reload();
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while removing a point.');
@@ -646,7 +642,7 @@
                     teamId: teamId
                 },
                 success: function () {
-                    location.reload();
+                    window.location.reload();
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while adding a point.');
@@ -664,7 +660,7 @@
                     teamId: teamId
                 },
                 success: function () {
-                    location.reload();
+                    window.location.reload();
                 },
                 error: function (xhr, status, error) {
                     alert('An error occurred while removing a point.');
@@ -680,8 +676,8 @@
                 data: {
                     id: roomId
                 },
-                success: function (data) {
-                    location.reload();
+                success: function() {
+                    window.location.reload();
                 },
                 error: function (xhr, status, error) {
                     alert("There was an error starting the team match.");
@@ -811,7 +807,7 @@
                 type: 'POST',
                 data: { roomId: roomId },
                 success: function () {
-                    location.reload();
+                    window.location.reload();
                 },
                 error: function () {
                     alert('Failed to start the match.');
@@ -852,7 +848,7 @@
                     teamNames: teamNames
                 },
                 success: function () {
-                    location.reload();
+                    window.location.reload();
                 },
                 error: function () {
                     alert('Failed to start the match.');

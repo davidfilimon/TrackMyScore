@@ -102,6 +102,7 @@
   }
   .btn-action:hover {
     background-color: var(--accent-gold-light) !important;
+    cursor: pointer;
   }
 
   .btn-danger-custom {
@@ -179,3 +180,44 @@
     </div>
   </div>
 </div>
+<script>
+  // function for making a game offical or removing it - ajax
+    function toggleOfficial(gameId, element) {
+        $.ajax({
+            type: 'POST',
+            url: '/a/toggleofficial/' + gameId,
+            success: function () {
+                let text = element.innerText;
+                if (text == "Change to official status") {
+                    element.innerText = "Remove official status";
+                } else {
+                    element.innerText = "Change to official status";
+                }
+                location.reload();
+            },
+            error: function () {
+                alert("Error on changing the official status of the game. Reload and try again!");
+            }
+        });
+    }
+
+    function toggleFavorite(gameId, element) {
+        $.ajax({
+            type: 'POST',
+            url: '/Games/togglefavorite/' + gameId,
+            success: function (response) {
+                let icon = element.querySelector("i");
+                if (icon.classList.contains("fa-solid")) {
+                    icon.classList.remove("fa-solid");
+                    icon.classList.add("fa-regular");
+                } else {
+                    icon.classList.remove("fa-regular");
+                    icon.classList.add("fa-solid");
+                }
+            },
+            error: function () {
+                alert("Error on changing the favorite status of the game. Reload and try again!");
+            }
+        });
+    }
+</script>

@@ -16,12 +16,6 @@ namespace TrackMyScore.Controllers
             _followerService = followerService;
         }
 
-        [HttpGet("test/{followingId}")]
-        public IActionResult Test(int followingId)
-        {
-            return Ok($"Test passed for {followingId}");
-        }
-
         [HttpPost("follow/{followingId}")]
         public async Task<IActionResult> Follow(int followingId)
         {

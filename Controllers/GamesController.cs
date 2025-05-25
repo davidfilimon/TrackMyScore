@@ -18,7 +18,9 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var games = await _context.Games.ToListAsync();
+            var games = await _context.Games
+                .Include(g => g.Author)
+                .ToListAsync();
 
             return View(games);
         }

@@ -437,7 +437,7 @@
         }
       </div>
     </div>
-    <!-- middle right: Winner panel -->
+    <!-- winner panel -->
     <div class="winner-panel">
       <div class="winner-card align-items-center">
         <h2><i class="fa-solid fa-crown"></i> Winner</h2>
@@ -627,10 +627,8 @@
             url: '/Tournament/JoinSingle',
             type: 'POST',
             data: { id, code },
-            success: function(data) {
-                if (data.success) {
-                    location.reload();
-                }
+            success: function() {
+                window.location.reload();
             },
             error: function(xhr, status, error) {
                 console.error('Error joining tournament:', error);
@@ -643,13 +641,9 @@
             url: '/Tournament/JoinTeam',
             type: 'POST',
             data: { id, code, teammates, teamName },
-            success: function(data) {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
+            success: function() {
+                window.location.reload();
+            },
             },
             error: function(xhr, status, error) {
                 console.error('Error joining tournament:', error);
@@ -663,10 +657,8 @@
                 url: '/Tournament/Leave',
                 type: 'POST',
                 data: { id },
-                success: function(data) {
-                    if (data.success) {
-                        location.reload();
-                    }
+                success: function() {
+                    window.location.reload();
                 },
                 error: function(xhr, status, error) {
                     console.error('Error leaving tournament:', error);
@@ -680,8 +672,8 @@
             url: "/Tournament/EndStage",
             type: "POST",
             data: { id: tournamentId },
-            success: function(data) {
-                location.reload();
+            success: function() {
+                window.location.reload();
             },
             error: function(xhr, status, error) {
                 console.error('Error ending the stage:', error);
@@ -695,8 +687,8 @@
                 url: "/Tournament/EndTournament",
                 type: "POST",
                 data: { tournamentId: @Model.Tournament.Id },
-                success: function(data) {
-                    location.reload();
+                success: function() {
+                  window.location.reload();
                 },
                 error: function(xhr, status, error) {
                     console.error('Error ending the tournament:', error);

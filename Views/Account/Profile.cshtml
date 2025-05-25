@@ -1,457 +1,540 @@
 ﻿@using TrackMyScore.Services
-@model TrackMyScore.Models.UserGamesModel;
+@model TrackMyScore.Models.UserGamesModel
 @{
     int loggedUser = (int) ViewData["loggedUserId"];
-    var profileUser = Model.User;
     var customGames = Model.CustomGames;
     var matches = Model.Matches;
     var tournaments = Model.Tournaments;
 }
-@inject FollowerService followerService;
-@inject UserService userService;
+@inject FollowerService followerService
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@Model.User.Username - TrackMyScore</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>@Model.User.Username - TrackMyScore</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    :root {
+        --primary-dark: #1A3C2A;
+        --primary:      #2A5940;
+        --primary-light:#3B7A5A;
+        --accent-gold:  #D4AF37;
+        --accent-gold-light:#F0D875;
+        --card-bg:      #234134;
+        --text-light:   #E8F5E9;
+        --text-muted:   #A7C0A7;
+        --spacing:      8px;
+    }
+
+    body {
+        background: var(--primary-dark);
+        color: var(--text-light);
+        font-family: 'Segoe UI', sans-serif;
+        padding-top: 80px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 0 var(--spacing);
+    }
+
+    .profile-header {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: calc(var(--spacing)*3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        margin-bottom: calc(var(--spacing)*3);
+        position: relative;
+    }
+
+    .profile-header .avatar {
+        width: 56px; height: 56px;
+        background: var(--accent-gold);
+        color: var(--primary-dark);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .profile-header h2 {
+        margin: 0 0 0 1rem;
+        font-weight: 600;
+        color: var(--accent-gold);
+    }
+
+    .profile-header .admin-button {
+        position: absolute;
+        top: var(--spacing);
+        right: var(--spacing);
+        color: var(--accent-gold);
+        transition: transform .7s;
+    }
+
+    .profile-header .admin-button:hover {
+        transform: rotate(360deg);
+        color: var(--accent-gold-light);
+    }
+
+    .follow-btn {
+        background: var(--primary);
+        color: var(--text-light);
+        border: 2px solid var(--primary-light);
+        transition: all .3s;
+    }
+
+    .follow-btn:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+    }
+
+    .followers-counts a {
+        color: var(--text-light);
+        text-decoration: none;
+    }
     
-    <style>
-        :root {
-            --primary-dark: #1A3C2A;
-            --primary: #2A5940;
-            --primary-light: #3B7A5A;
-            --accent-gold: #D4AF37;
-            --accent-gold-light: #F0D875;
-            --text-light: #E8F5E9;
-            --text-muted: #A7C0A7;
-            --card-bg: #234134;
-            --error: #CF6679;
-            --success: #4CAF50;
-        }
+    .followers-counts a:hover {
+        color: var(--accent-gold);
+    }
+    
+    .nav-tabs {
+        margin-bottom: calc(var(--spacing)*2);
+        border-bottom: none;
+    }
 
-        body {
-            background-color: var(--primary-dark);
-            color: var(--text-light);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            padding-top: 80px;
-        }
+    .nav-tabs .nav-link {
+        color: var(--text-muted);
+        border: none;
+        padding: .75rem 1.5rem;
+    }
 
-        .profile-header {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+    .nav-tabs .nav-link.active {
+        background: var(--card-bg);
+        color: var(--accent-gold);
+    }
 
-        .admin-button-container {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-        }
+    .tab-content {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: calc(var(--spacing)*3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
 
-        .admin-button {
-            color: var(--accent-gold);
-            transition: transform 0.7s ease-in-out;
-            cursor: pointer;
-        }
+    .tab-pane h3 {
+        color: var(--accent-gold);
+        margin-bottom: calc(var(--spacing)*2);
+    }
 
-        .admin-button:hover {
-            transform: rotate(360deg);
-            color: var(--accent-gold-light);
-        }
+    .card-item {
+        background: var(--primary);
+        border-radius: 8px;
+        padding: calc(var(--spacing)*2);
+        margin-bottom: calc(var(--spacing)*2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform .2s, background .3s;
+    }
 
-        .follow-container {
-            margin-top: 1rem;
-        }
+    .card-item:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+    }
 
-        .follow-btn {
-            background-color: var(--primary);
-            color: var(--text-light);
-            border: 2px solid var(--primary-light);
-            transition: all 0.3s ease;
-        }
+    .card-item .info {
+        color: var(--text-light);
+    }
 
-        .follow-btn:hover {
-            background-color: var(--primary-light);
-            color: var(--text-light);
-            transform: translateY(-2px);
-        }
+    .details-btn {
+        background: var(--accent-gold);
+        color: var(--primary-dark);
+        border: none;
+        transition: all .3s;
+    }
 
-        .follow-section a {
-            color: var(--text-light);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+    .details-btn:hover {
+        background: var(--accent-gold-light);
+        transform: translateY(-2px);
+    }
 
-        .follow-section a:hover {
-            color: var(--accent-gold);
-        }
+    .games-list, .tournaments-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
 
-        .nav-tabs {
-            border-bottom: none;
-            margin-bottom: 1rem;
-        }
+    .modal-content {
+        background: var(--card-bg);
+        color: var(--text-light);
+    }
 
-        .nav-tabs .nav-link {
-            color: var(--text-muted);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            transition: all 0.3s ease;
-        }
+    .modal-header {
+        border-bottom: 1px solid var(--primary-light);
+    }
 
-        .nav-tabs .nav-link.active {
-            background-color: var(--card-bg);
-            color: var(--accent-gold);
-            border: none;
-        }
+    .follower-item {
+        padding: calc(var(--spacing)*1);
+        border-bottom: 1px solid var(--primary-light);
+    }
 
-        .tab-content {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+    .follower-item:last-child {
+        border-bottom: none;
+    }
 
-        .games {
-            background-color: var(--primary);
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            transition: all 0.3s ease;
-        }
+    .select-filter {
+        background-color: var(--primary);
+        color: var(--text-light);
+        border: 2px solid var(--primary-light);
+    }
 
-        .games:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+    .select-filter option {
+        background-color: var(--primary-dark);
+        color: var(--text-light);
+    }
 
-        .details-btn {
-            background-color: var(--accent-gold);
-            color: var(--primary-dark);
-            border: none;
-            transition: all 0.3s ease;
-        }
+    .select-filter:focus {
+        border-color: var(--accent-gold);
+        box-shadow: 0 0 0 .25rem rgba(212,175,55,.25);
+    }
 
-        .details-btn:hover {
-            background-color: var(--accent-gold-light);
-            transform: translateY(-2px);
-        }
+    .popup-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
 
-        .modal-content {
-            background-color: var(--card-bg);
-            color: var(--text-light);
-        }
+    .popup-content {
+        background: var(--card-bg);
+        color: var(--text-light);
+        padding: calc(var(--spacing) * 3);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        width: 90%;
+        max-width: 400px;
+        position: relative;
+    }
 
-        .modal-header {
-            border-bottom: 1px solid var(--primary-light);
-        }
-
-        .modal-header .btn-close {
-            color: var(--text-light);
-        }
-
-        .follower-item {
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--primary-light);
-        }
-
-        .follower-item:last-child {
-            border-bottom: none;
-        }
-
-        .heart-icons {
-            color: var(--accent-gold);
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .heart-icons:hover {
-            transform: scale(1.2);
-        }
-
-        .followers-btn{
-            color: var(--text-light);
-            padding-left: 2px;
-        }
-    </style>
+    .close-btn {
+        position: absolute;
+        top: calc(var(--spacing) * 1);
+        right: calc(var(--spacing) * 1);
+        font-size: 1.5rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color .2s;
+    }
+    .close-btn:hover {
+        color: var(--accent-gold-light);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="profile-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0">@Model.User.Username</h2>
-                @if (Model.User.isAdmin == true && loggedUser == Model.User.Id)
-                {
-                    <div class="admin-button-container">
-                        <a asp-controller="Admin" asp-action="Dashboard" title="Admin Dashboard">
-                            <i class="fa-solid fa-gear admin-button fs-4"></i>
-                        </a>
-                    </div>
-                }
-            </div>
-            
-            <div class="follow-container">
-                @if (loggedUser != 0 && loggedUser != Model.User.Id)
-                {
-                    @if (await followerService.IsFollowing(loggedUser, Model.User.Id))
-                    {
-                        <button type="submit" class="btn follow-btn" id="unfollow-btn" onclick="unfollow(@Model.User.Id, this)">
-                            Unfollow
-                        </button>
-                    }
-                    else
-                    {
-                        <button type="submit" class="btn follow-btn" id="follow-btn" onclick="follow(@Model.User.Id, this)">
-                            Follow
-                        </button>
-                    }
-                } else if (loggedUser == Model.User.Id){
-                    <button type="submit" class="btn follow-btn" id="edit-profile" onclick="">
-                        Edit Profile
-                    </button>   
-                }
-            </div>
-
-            <div class="d-flex gap-4 mt-3">
-            <a href="#" 
-                class="btn fw-bold followers-btn" 
-                data-bs-toggle="modal" 
-                data-bs-target="#followersModal">
-                @await followerService.GetNumberFollowers(Model.User.Id) Followers
-            </a>
-            <a href="#" 
-                class="btn fw-bold followers-btn" 
-                data-bs-toggle="modal" 
-                data-bs-target="#followingModal">
-                @await followerService.GetNumberFollowing(Model.User.Id) Following
-            </a>
-            </div>
-        </div>
-
-        <ul class="nav nav-tabs" id="profileTabs">
-            <li class="nav-item">
-                <a class="nav-link active" id="info-tab" data-bs-toggle="tab" href="#info">Info</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history">Game History</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="tournament-tab" data-bs-toggle="tab" href="#tournaments">Tournament History</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="stats-tab" data-bs-toggle="tab" href="#stats">Statistics</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="added-games-tab" data-bs-toggle="tab" href="#addedGames">Custom games</a>
-            </li>
-            
-        </ul>
-
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="info">
-                <h3 class="mb-4">Player Info</h3>
-                <p>Player since: @Model.User.AccountCreationDate</p>
-                <p>Respect points: @Model.User.RespectPoints</p>
-            </div>
-
-            <div class="tab-pane fade" id="history">
-                <h3 class="mb-4">Match History</h3>
-                @if(Model.Matches.Any()){
-                    @foreach(var match in matches){
-                        @if(match.Match.Room.Stage == -2){
-                            <div class="games">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold">@match.Match.Room.Name</div>
-                                        <div class="text-muted">@match.Match.Room.Game.Title</div>
-                                        <div>@match.Match.StartDate</div>
-                                        <div>Mode: @match.Match.Room.Mode</div>
-                                        @if (@match.Match.Winner != string.Empty)
-                                        {
-                                            <div>Winner: @match.Match.Winner</div>
-                                        }
-                                    </div>
-                                    <a class="btn details-btn" asp-action="CurrentRoom" asp-controller="Room" asp-route-id="@match.Match.Room.Id">
-                                        View Details
-                                    </a>
-                                </div>
-                            </div>
-                        }
-                    }
-                }
-            </div>
-
-            <div class="tab-pane fade" id="stats">
-                <h3 class="mb-4">Statistics</h3>
-                <p>Statistics coming soon...</p>
-            </div>
-
-            <div class="tab-pane fade" id="tournaments">
-                <h3 class="mb-4">Tournament History</h3>
-                @if (tournaments.Any())
-                {
-                    @foreach (var tournament in tournaments)
-                    {
-                        <div class="games">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-bold">@tournament.Name</div>
-                                    <div class="text-muted">@tournament.StartDate</div>
-                                    <div>Type: @tournament.Type</div>
-                                    <div>Winner: @tournament.Winner</div>
-                                </div>
-                            </div>
-                            <a class="btn details-btn" asp-action="CurrentTournament" asp-controller="Tournament" asp-route-id="@tournament.Id">
-                                View Details
-                            </a>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">No tournaments found.</p>
-                }
-            </div>
-
-            <div class="tab-pane fade" id="addedGames">
-                <h3 class="mb-4">Custom Added Games</h3>
-                @if (customGames.Any())
-                {
-                    @foreach (var game in customGames)
-                    {
-                        <div class="games">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-bold">@game.Title</div>
-                                    <div>Author: @game.Author.Username</div>
-                                    <div>Difficulty: @game.Difficulty</div>
-                                    <div>Maximum players: @game.MaxPlayers</div>
-                                </div>
-                            </div>
-                            <a class="btn details-btn" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
-                                View Details
-                            </a>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">No custom games found.</p>
-                }
-            </div>
-        </div>
+  <div class="container">
+    <div class="profile-header d-flex align-items-center">
+      <div class="avatar">@Model.User.Username[0].ToString().ToUpper()</div>
+      <h2>@Model.User.Username</h2>
+      @if (Model.User.isAdmin && loggedUser==Model.User.Id)
+      {
+        <a asp-controller="Admin" asp-action="Dashboard" class="admin-button">
+          <i class="fa-solid fa-gear fa-lg"></i>
+        </a>
+      }
+    </div>
+    <div class="d-flex mb-3">
+      @if (loggedUser != 0 && loggedUser != Model.User.Id)
+      {
+        var isFollowing = await followerService.IsFollowing(loggedUser, Model.User.Id);
+        @if(isFollowing){
+        <button onclick="unfollow(@Model.User.Id)" class="btn follow-btn me-3">
+          Unfollow
+        </button>
+        } else {
+        <button onclick="follow(@Model.User.Id)" class="btn follow-btn me-3">
+            Follow
+        </button>
+        }  
+      } else if (loggedUser == Model.User.Id){
+        <button onclick = "editProfile()" class="btn follow-btn me-3">Edit Profile</button>
+      }
+      <div class="followers-counts d-flex gap-3 mt-2">
+        <a href="#" data-bs-toggle="modal" data-bs-target="#followersModal">
+          @await followerService.GetNumberFollowers(Model.User.Id) Followers
+        </a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#followingModal">
+          @await followerService.GetNumberFollowing(Model.User.Id) Following
+        </a>
+      </div>
     </div>
 
-    <!-- Followers Modal -->
-    <div class="modal fade" id="followersModal" tabindex="-1" aria-labelledby="followersModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Followers</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    @foreach (var follower in await followerService.GetFollowers(Model.User.Id))
-                    {
-                        <div class="follower-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>@follower.Username</span>
-                                <a href="@Url.Action("Profile", "Account", new { id = follower.Id })" class="btn details-btn btn-sm">
-                                    View Profile
-                                </a>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
+    <ul class="nav nav-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#info">Info</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#history">History</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tournaments">Tournaments</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#stats">Stats</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#custom">Custom Games</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <div id="info" class="tab-pane fade show active">
+        <h3>Player Info</h3>
+        <p>Since: @Model.User.AccountCreationDate</p>
+        <p>Respect: @Model.User.RespectPoints</p>
+      </div>
+      <div id="history" class="tab-pane fade">
+    <h3>Match History</h3>
+
+    <div class="d-flex gap-3 mb-3 align-items-center">
+      <label class="mb-0">Month:</label>
+      <select id="matchMonthFilter" class="form-select w-auto select-filter">
+        <option value="">All</option>
+        @for(int m = 1; m <= 12; m++){
+          <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+        }
+      </select>
+      <label class="mb-0">Year:</label>
+      <select id="matchYearFilter" class="form-select w-auto select-filter">
+        <option value="">All</option>
+        @for(int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--){
+          <option value="@y">@y</option>
+        }
+      </select>
     </div>
 
-    <!-- Following Modal -->
-    <div class="modal fade" id="followingModal" tabindex="-1" aria-labelledby="followingModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Following</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    @foreach (var following in await followerService.GetFollowing(Model.User.Id))
-                    {
-                        <div class="follower-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>@following.Username</span>
-                                <a href="@Url.Action("Profile", "Account", new { id = following.Id })" class="btn details-btn btn-sm">
-                                    View Profile
-                                </a>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
+    <div class="games-list">
+      @foreach(var m in matches.Where(x=>x.Match.Room.Stage==-2))
+      {
+        var dt = m.Match.StartDate;
+        <div class="card-item match-item"
+             data-month="@dt.Month" data-year="@dt.Year">
+          <div class="info">
+            <strong>@m.Match.Room.Name</strong><br />
+            @m.Match.Room.Game.Title – @dt.ToString("yyyy-MM-dd")<br />
+            Winner: @m.Match.Winner
+          </div>
+          <a asp-controller="Room" asp-action="CurrentRoom" asp-route-id="@m.Match.Room.Id"
+             class="btn details-btn">View</a>
         </div>
+      }
+      @if(!matches.Any(x=>x.Match.Room.Stage==-2))
+      {
+        <p class="text-muted">No matches yet.</p>
+      }
+    </div>
+  </div>
+
+  <div id="tournaments" class="tab-pane fade">
+    <h3>Tournament History</h3>
+
+    <div class="d-flex gap-3 mb-3 align-items-center">
+      <label class="mb-0">Month:</label>
+      <select id="tournMonthFilter" class="form-select w-auto select-filter">
+        <option value="">All</option>
+        @for(int m = 1; m <= 12; m++){
+          <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+        }
+      </select>
+      <label class="mb-0">Year:</label>
+      <select id="tournYearFilter" class="form-select w-auto select-filter">
+        <option value="">All</option>
+        @for(int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--){
+          <option value="@y">@y</option>
+        }
+      </select>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="tournaments-list">
+      @foreach(var t in tournaments)
+      {
+        var dt = t.StartDate;
+        <div class="card-item tourn-item"
+             data-month="@dt.Month" data-year="@dt.Year">
+          <div class="info">
+            <strong>@t.Name</strong><br />
+            @dt.ToString("yyyy-MM-dd") – Winner: @t.Winner
+          </div>
+          <a asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@t.Id"
+             class="btn details-btn">View</a>
+        </div>
+      }
+      @if(!tournaments.Any())
+      {
+        <p class="text-muted">No tournaments.</p>
+      }
+    </div>
+  </div>
+      <div id="stats" class="tab-pane fade">
+        <h3>Statistics</h3>
+        <p>Coming soon…</p>
+      </div>
+      <div id="custom" class="tab-pane fade">
+        <h3>Custom Games</h3>
+        <div class="games-list">
+          @foreach(var g in customGames)
+          {
+            <div class="card-item">
+              <div class="info">
+                <strong>@g.Title</strong><br />
+                By @g.Author.Username – Players: @g.MaxPlayers
+              </div>
+              <a asp-controller="Games" asp-action="Details" asp-route-id="@g.Id" class="btn details-btn">
+                View
+              </a>
+            </div>
+          }
+          @if(!customGames.Any()) { <p class="text-muted">No custom games.</p> }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Followers Modal -->
+  <div class="modal fade" id="followersModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5>Followers</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          @foreach(var u in await followerService.GetFollowers(Model.User.Id))
+          {
+            <div class="follower-item d-flex justify-content-between" data-user-id="@u.Id">
+              <span>@u.Username</span>
+              <a asp-controller="Account" asp-action="Profile" asp-route-id="@u.Id" class="btn details-btn btn-sm">View</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Following Modal -->
+  <div class="modal fade" id="followingModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5>Following</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          @foreach(var u in await followerService.GetFollowing(Model.User.Id))
+          {
+            <div class="follower-item d-flex justify-content-between" data-user-id="@u.Id">
+              <span>@u.Username</span>
+              <a asp-controller="Account" asp-action="Profile" asp-route-id="@u.Id" class="btn details-btn btn-sm">View</a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div id="editPopup" class="popup-overlay">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup()">&times;</span>
+        <h3>Edit Profile</h3>
+        <form method="post" asp-controller="Account" asp-action="EditProfile">
+        <input type="hidden" name="Id" value="@Model.User.Id" />
+        <div class="mb-2">
+            <label>Username:</label>
+            <input type="text" name="Name" value="@Model.User.Username" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <label>Email:</label>
+            <input type="email" name="Email" value="@Model.User.Email" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Save</button>
+        </form>
+    </div>
+    </div>
+
+
     <script>
-        function follow(userId, button) {
-            fetch(`/api/follow/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+    function toggleFavorite(gameId, element) {
+        $.ajax({
+            type: 'POST',
+            url: '/Games/togglefavorite/' + gameId,
+            success: function (response) {
+                let icon = element.querySelector("i");
+                if (icon.classList.contains("fa-solid")) {
+                    icon.classList.remove("fa-solid");
+                    icon.classList.add("fa-regular");
+                } else {
+                    icon.classList.remove("fa-regular");
+                    icon.classList.add("fa-solid");
                 }
-            })
-            .then(response => {
-                if (response.ok) {
-                    button.textContent = 'Unfollow';
-                    button.onclick = () => unfollow(userId, button);
-                    location.reload();
-                }
-            });
-        }
+            },
+            error: function () {
+                alert("Error on changing the favorite status of the game. Reload and try again!");
+            }
+        });
+    }
 
-        function unfollow(userId, button) {
-            fetch(`/api/unfollow/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    button.textContent = 'Follow';
-                    button.onclick = () => follow(userId, button);
-                    location.reload();
-                }
-            });
+    // ajax functions for following and unfollowing
+    function follow(id) {
+    $.ajax({
+        type: 'POST',
+        url: '/follower/follow/' + id,
+        success: function () {
+        window.location.reload();
+        },
+        error: function () {
+        alert("Error on following the user. Please try again!");
         }
+    });
+    }
 
-        function toggleFavorite(gameId, element) {
-            fetch(`/api/games/${gameId}/favorite`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    const icon = element.querySelector('i');
-                    if (icon.classList.contains('fa-regular')) {
-                        icon.classList.remove('fa-regular');
-                        icon.classList.add('fa-solid');
-                    } else {
-                        icon.classList.remove('fa-solid');
-                        icon.classList.add('fa-regular');
-                    }
-                }
-            });
+    function unfollow(id) {
+    $.ajax({
+        type: 'POST',
+        url: '/follower/unfollow/' + id,
+        success: function () {
+        window.location.reload();
+        },
+        error: function () {
+        alert("Error on unfollowing the user. Please try again!");
         }
+    });
+    }
+
+
+        function setupFilter(selectMonthId, selectYearId, itemClass) {
+        const monthSel = document.getElementById(selectMonthId);
+        const yearSel  = document.getElementById(selectYearId);
+        function filter() {
+        const m = monthSel.value;
+        const y = yearSel.value;
+        document.querySelectorAll('.' + itemClass).forEach(el => {
+            const em = el.getAttribute('data-month');
+            const ey = el.getAttribute('data-year');
+            let show = true;
+            if (m && em !== m) show = false;
+            if (y && ey !== y) show = false;
+            el.style.display = show ? '' : 'none';
+        });
+        }
+        monthSel.addEventListener('change', filter);
+        yearSel.addEventListener('change', filter);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setupFilter('matchMonthFilter','matchYearFilter','match-item');
+        setupFilter('tournMonthFilter','tournYearFilter','tourn-item');
+    });
+
+    function editProfile() {
+        document.getElementById("editPopup").style.display = "flex";
+    }
+
+    function closePopup() {
+        document.getElementById("editPopup").style.display = "none";
+    }
+
     </script>
 </body>
 </html>
