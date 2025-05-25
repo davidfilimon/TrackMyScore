@@ -119,7 +119,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe)
         {
             User user = await _authenticationService.Login(email, password);
 
@@ -129,26 +129,29 @@ namespace TrackMyScore.Controllers
                 return View();
             }
 
-            // cookies for storing login info and not having to log in every single time
-            var cookieOptions = new CookieOptions() 
+            if (rememberMe)
             {
-                // Expires = DateTime.UtcNow.AddDays(7), // adding 7 days as an expiration date for the cookies, so you have to log in each week
-                Secure = true, // send only through https
-                HttpOnly = true, // protection against js access
-                IsEssential = true // gdpr
-            };
+                // cookies for storing login info and not having to log in every single time if the remember me checkbox in checked
+                var cookieOptions = new CookieOptions()
+                {
+                    // Expires = DateTime.UtcNow.AddDays(7), // adding 7 days as an expiration date for the cookies, so you have to log in each week
+                    Secure = false, // send only through https if true
+                    HttpOnly = true, // protection against js access
+                    IsEssential = true // gdpr
+                };
 
-            // setting the cookies values
-            Response.Cookies.Append("userId", user.Id.ToString(), cookieOptions);
-            Response.Cookies.Append("email", user.Email, cookieOptions);
-            Response.Cookies.Append("username", user.Username, cookieOptions);
+                // setting the cookies values
+                Response.Cookies.Append("userId", user.Id.ToString(), cookieOptions);
+                Response.Cookies.Append("email", user.Email, cookieOptions);
+                Response.Cookies.Append("username", user.Username, cookieOptions);
 
+            }
+            
             // setting viewdata for the views
 
-            ViewData["userId"] = Request.Cookies["userId"];
-            ViewData["username"] = Request.Cookies["username"];
-            ViewData["email"] = Request.Cookies["email"];
-
+            ViewData["userId"] = user.Id.ToString();
+            ViewData["username"] = user.Username;
+            ViewData["email"] = user.Email;
 
             // setting up the values for the current session
 
