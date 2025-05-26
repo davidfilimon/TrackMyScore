@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Threading.Tasks;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
 
@@ -19,12 +20,36 @@ namespace TrackMyScore.Services
         {
             User user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if(user == null || decrypt(user.Password) != password)
+            if (user == null || decrypt(user.Password) != password)
             {
                 return null;
             }
 
             return user;
+        }
+
+        public bool PasswordMatch(User user, string oldPassword)
+        {
+            if (user == null || decrypt(user.Password) != oldPassword)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool ChangePassword(User user, string password)
+        {
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.Password = encrypt(password);
+            _context.SaveChanges();
+
+            return true; 
         }
 
         private static string decrypt(string encoded)
@@ -38,6 +63,23 @@ namespace TrackMyScore.Services
             string result = new string(decodedChar);
             return result;
         }
+
+        private static string encrypt(string password)
+        {
+            try
+            {
+                byte[] encData_byte = new byte[password.Length];
+                encData_byte = Encoding.UTF8.GetBytes(password);
+                string encoded = Convert.ToBase64String(encData_byte);
+                return encoded;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error in base64Encode" + ex.Message);
+            }
+        }
+        
+        
 
     }
 }

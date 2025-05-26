@@ -12,13 +12,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TrackMyScore</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <!-- font-awesome link -->
-
-    <style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <style>
 
         :root {
-        --horizontal-padding: 1rem;
-        --navbar-height: 70px;
+            --horizontal-padding: 1rem !important;
+            --navbar-height: 70px !important;
         }
 
         *{
@@ -30,51 +28,153 @@
             color: #00241B;
         }
 
-        .navbar {
+        #mainNavbar {
             background-color: #00241B;
         }
 
-            .navbar .navbar-brand {
-                color: #B5FFE1;
-            }
-
-        .navbar-nav .nav-link {
-            color: #B5FFE1;
+        #mainNavbar .navbar-brand {
+            color: #B5FFE1 !important;
+            font-size: 1.2rem !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            padding: 8px 15px !important;
+            border-radius: 5px !important;
+            background-color: #00241B !important;
+            transition: none !important;
+            font-family: Arial, sans-serif !important;
+            white-space: nowrap !important;
+            display: inline-block !important;
+            width: 162px !important;
+            margin: 0 20px !important;
         }
 
-            .navbar-nav .nav-link:hover {
-                color: #65B891;
-            }
-
-        .navbar-toggler-icon {
-            background-color: #B5FFE1;
+        #mainNavbar .navbar-brand:hover {
+            background-color: #00241B !important;
+            color: #B5FFE1 !important;
         }
 
-        .navbar-nav .nav-item .nav-link i {
-            margin-right: 5px;
+        #trackMyScoreBrand {
+            color: #FFFFFF !important;
+            font-family: Arial;
         }
 
-        .search-bar {
-            border-radius: 20px !important;
-            padding: 5px 15px !important;
-            color: black !important;
-            background-color: #FFFFFF !important;
+        #trackMyScoreBrand:hover {
+            color: #B5FFE1 !important;
+            background-color: transparent !important;
+            font-family: Arial;
         }
 
-        .search-button {
-            font-size: 1.2rem;
+        #navbarToggler {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        #navbarToggler .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28181, 255, 225, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+            background-color: transparent !important;
         }
 
-        .nav-item a {
+
+        #mainNavbar .navbar-nav .nav-link {
+            color: #B5FFE1 !important;
             border-radius: 5px;
             padding: 8px 15px;
             transition: all 0.3s ease;
         }
 
-            .nav-item a:hover {
-                background-color: #65B891;
-                color: #00241B;
-            }
+        #mainNavbar .navbar-nav .nav-link:hover {
+            background-color: #65B891;
+            color: #00241B !important;
+        }
+
+        #mainNavbar .navbar-nav .nav-item .nav-link i {
+            margin-right: 5px !important;
+            color: #B5FFE1 !important; 
+        }
+
+        #mainNavbar .navbar-nav .nav-item .nav-link:hover i {
+            color: #00241B !important; 
+        }
+
+        #mainSearchInput {
+            border-radius: 20px !important;
+            padding: 5px 15px !important;
+            padding-right: 10px !important;
+            color: black !important;
+            background-color: #FFFFFF !important;
+        }
+
+        #mainSearchButton {
+            font-size: 1.2rem;
+            padding-right: 30px;
+        }
+
+        #mainSearchIcon {
+            color: #FFFFFF !important;
+        }
+        
+        #mainSearchButton:hover #mainSearchIcon {
+            color: #65B891 !important;
+        }
+
+
+        #profileIconLink i {
+            color: #FFFFFF !important;
+            transition: color 0.3s ease;
+        }
+
+        #profileIconLink:hover i {
+            color: #00241B !important;
+        }
+
+        #profileIconLink:hover {
+            background-color: #65B891;
+            cursor: pointer;
+        }
+
+        #logoutIconLink i {
+            color: #FFFFFF !important;
+            transition: color 0.3s ease;
+        }
+        
+        #logoutIconLink:hover i {
+            color: #00241B !important;
+        }
+
+        #logoutIconLink:hover {
+            background-color: #65B891;
+            cursor: pointer;
+        }
+
+        #loginIconLink i {
+            color: #FFFFFF !important;
+            transition: color 0.3s ease;
+        }
+        
+        #loginIconLink:hover i {
+            color: #00241B !important;
+        }
+
+        #loginIconLink:hover {
+            background-color: #65B891;
+            cursor: pointer;
+        }
+
+        #mainNavbar > .container-fluid {
+            max-width: none !important;
+            width: 100% !important;
+            padding-left: var(--horizontal-padding) !important;
+            padding-right: var(--horizontal-padding) !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .page-container {
+            max-width: 100%;
+            margin: 0 auto !important;
+            padding-left: var(--horizontal-padding) !important;
+            padding-right: var(--horizontal-padding) !important;
+            padding-top: calc(var(--navbar-height) + 1rem) !important;
+        }
 
         .welcome-alert {
             background-color: #B5FFE1;
@@ -94,168 +194,121 @@
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-            .custom-card .card-header {
-                background-color: #4E878C;
-                border-radius: 10px 10px 0 0;
-            }
-
-            .custom-card .list-group-item {
-                background-color: #93E5AB;
-                color: #00241B;
-                border: none;
-                border-radius: 5px;
-                margin: 5px 0;
-            }
-
-                .custom-card .list-group-item:hover { 
-                    background-color: #B5FFE1 !important;
-                    cursor: pointer !important;
-                }
-
-        .navbar .navbar-brand {
-            color: #B5FFE1 !important;
-            font-size: 1.2rem !important;
-            font-weight: bold !important;
-            text-decoration: none !important;
-            padding: 8px 15px !important;
-            border-radius: 5px !important;
-            background-color: #00241B !important;
-            transition: none !important;
+        .custom-card .card-header {
+            background-color: #4E878C;
+            border-radius: 10px 10px 0 0;
         }
 
-            .navbar .navbar-brand:hover {
-                background-color: #00241B !important;
-                color: #B5FFE1 !important; 
-            }
-
-        #trackmyscore {
-                color: #FFFFFF !important;
-                font-family:Arial ;
-        }
-
-            #trackmyscore:hover {
-                    color: #B5FFE1 !important;
-                    background-color: transparent !important;
-                    font-family: Arial;
-            }
-
-        .navbar .navbar-brand {
-            color: #B5FFE1 !important;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-decoration: none;
-            padding: 8px 15px;
+        .custom-card .list-group-item {
+            background-color: #93E5AB;
+            color: #00241B;
+            border: none;
             border-radius: 5px;
-            background-color: #00241B;
-            transition: none;
+            margin: 5px 0;
         }
 
-        #mainNavbar > .container-fluid {
-        max-width: none    !important;
-        width: 100%        !important;
-        padding-left:  var(--horizontal-padding) !important;
-        padding-right: var(--horizontal-padding) !important;
-        margin: 0          !important;
-        display: flex      !important;
-        align-items: center!important;
+        .custom-card .list-group-item:hover {
+            background-color: #B5FFE1 !important;
+            cursor: pointer !important;
         }
 
-        #mainNavbar .navbar-brand {
-        font-family: Arial, sans-serif !important;
-        font-size:    1.2rem        !important;
-        font-weight:  bold          !important;
-        white-space:  nowrap        !important;
-        
-        display:      inline-block  !important;
-        width:        162px         !important;
-        
-        padding:      0             !important;
-        margin:       0 20px        !important;
+        @@media (max-width: 991.98px) {
+            #mainSearchBarForm {
+                width: 100%;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+
+            #mainSearchInput {
+                width: 100%;
+            }
+
+            #profileNavItem,
+            #logoutNavItem,
+            #loginNavItem {
+                margin: 0 !important;
+                width: 100%;
+            }
+
+            #profileIconLink,
+            #logoutIconLink,
+            #loginIconLink {
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                width: 100%;
+                padding: 8px 15px !important;
+                border-radius: 5px;
+            }
+
+            #profileIconLink i,
+            #logoutIconLink i,
+            #loginIconLink i {
+                margin-right: 5px;
+            }
+
+            #profileIconLink span,
+            #logoutIconLink span,
+            #loginIconLink span {
+                display: inline-block;
+            }
         }
-
-        .page-container {
-        max-width: 100%;           
-        margin: 0 auto !important;
-        padding-left:  var(--horizontal-padding) !important;
-        padding-right: var(--horizontal-padding) !important;
-        padding-top:   calc(var(--navbar-height) + 1rem) !important;   
-        }
-
-        #mainNavbar .nav-link,
-        #mainNavbar .nav-link:hover {
-        color: #FFFFFF !important;
-        }
-
-        #mainNavbar .nav-link i {
-        color: #FFFFFF !important;
-        }
-
-        i {
-            color: #FFFFFF !important;
-        }
-
-
     </style>
-
-
 </head>
 <body>
     <nav class="navbar navbar-expand-lg fixed-top navbar-white" id="mainNavbar">
         <div class="container-fluid">
-            <a id="trackmyscore" class="btn navbar-brand" asp-controller="Home" asp-action="Index">
-                    TrackMyScore
-            </a>  
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <a id="trackMyScoreBrand" class="btn navbar-brand" asp-controller="Home" asp-action="Index">
+                TrackMyScore
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" id="navbarToggler">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
+                    <li class="nav-item" id="gamesNavItem">
                         <a class="nav-link" asp-controller="Games" asp-action="List">
                             <i class="fa-solid fa-gamepad"></i> Games
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="playNavItem">
                         <a class="nav-link" asp-controller="Room" asp-action="List">
                             <i class="fa-solid fa-play"></i> Play
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" id="tournamentsNavItem">
                         <a class="nav-link" asp-controller="Tournament" asp-action="List">
                             <i class="fa-solid fa-trophy"></i> Tournaments
                         </a>
                     </li>
                 </ul>
 
-                <!-- search bar -->
-                <form class="d-flex me-auto" asp-controller="Account" asp-action="Search" method="get">
-                    <input class="form-control me-2 search-bar" type="search" name="query" placeholder="Search" aria-label="Search" autocomplete="off">
-                    <button class="btn nav-link" type="submit">
-                        <i class="fa-solid fa-magnifying-glass search-button"></i>
+                <form class="d-flex ms-auto" asp-controller="Account" asp-action="Search" method="get" id="mainSearchBarForm">
+                    <input class="form-control me-2" type="search" name="query" placeholder="Search" aria-label="Search" autocomplete="off" id="mainSearchInput">
+                    <button class="btn nav-link" type="submit" id="mainSearchButton">
+                        <i class="fa-solid fa-magnifying-glass" id="mainSearchIcon"></i>
                     </button>
                 </form>
-                
-                <div class="nav-item m-2">
-                    <a class="nav-link" asp-controller="Account" asp-action="Profile" asp-route-id="@user?.Id">
-                        <i class="fa-solid fa-user"></i> 
-                    </a>
-                </div>
-
 
                 <ul class="navbar-nav">
+                    <li class="nav-item" id="profileNavItem">
+                        <a class="nav-link" asp-controller="Account" asp-action="Profile" asp-route-id="@user?.Id" id="profileIconLink">
+                            <i class="fa-solid fa-user"></i> <span>Profile</span>
+                        </a>
+                    </li>
                     @if (username != null)
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Logout">
-                                <i class="fa-solid fa-right-from-bracket"></i> 
+                        <li class="nav-item" id="logoutNavItem">
+                            <a class="nav-link" asp-controller="Account" asp-action="Logout" id="logoutIconLink">
+                                <i class="fa-solid fa-right-from-bracket"></i>
                             </a>
                         </li>
                     }
                     else
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Account" asp-action="Login">
-                                <i class="fa-solid fa-right-to-bracket"></i> Login
+                        <li class="nav-item" id="loginNavItem">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login" id="loginIconLink">
+                                <i class="fa-solid fa-right-to-bracket"></i>
                             </a>
                         </li>
                     }
@@ -264,16 +317,12 @@
         </div>
     </nav>
 
-
-
-
-    <div class="container">
+    <div class="container page-container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

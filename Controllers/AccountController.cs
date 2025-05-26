@@ -5,6 +5,8 @@ using TrackMyScore.Database;
 using TrackMyScore.Models;
 using TrackMyScore.Services;
 using Microsoft.AspNetCore.Http;
+using System.Net.Mail;
+using System.Net;
 
 namespace TrackMyScore.Controllers
 {
@@ -25,7 +27,7 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> Profile(int? id)
         {
-            var email = HttpContext.Session.GetString("email");  
+            var email = HttpContext.Session.GetString("email");
 
             if (email == null)
             {
@@ -34,7 +36,7 @@ namespace TrackMyScore.Controllers
 
             var loggedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if(loggedUser == null)
+            if (loggedUser == null)
             {
                 return RedirectToAction("Login", "Account");
             }
@@ -44,7 +46,7 @@ namespace TrackMyScore.Controllers
 
             var profileUserId = id ?? loggedUserId; // searches for logged user if there is no id given
 
-            var profileUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == profileUserId); 
+            var profileUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == profileUserId);
 
             if (profileUser == null)
             {
@@ -94,10 +96,16 @@ namespace TrackMyScore.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
         [HttpPost]
         public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword)
         {
-            if(password == confirmPassword)
+            if (password == confirmPassword)
             {
                 var (success, message) = await _createAccountService.Register(username, email, password);
 
@@ -123,7 +131,7 @@ namespace TrackMyScore.Controllers
         {
             User user = await _authenticationService.Login(email, password);
 
-            if(user == null) 
+            if (user == null)
             {
                 ViewData["LoginError"] = "Email or password error";
                 return View();
@@ -146,7 +154,7 @@ namespace TrackMyScore.Controllers
                 Response.Cookies.Append("username", user.Username, cookieOptions);
 
             }
-            
+
             // setting viewdata for the views
 
             ViewData["userId"] = user.Id.ToString();
@@ -167,14 +175,15 @@ namespace TrackMyScore.Controllers
             // deleting data
             HttpContext.Session.Clear();
             Response.Cookies.Delete("email");
-            Response.Cookies.Delete("username");    
+            Response.Cookies.Delete("username");
 
             return RedirectToAction("Index", "Home");
         }
 
         public async Task<IActionResult> Search(string query)
         {
-            if(query.IsNullOrEmpty()){
+            if (query.IsNullOrEmpty())
+            {
                 return View("Results", new List<User>()); // returns an empty list
             }
 
@@ -186,6 +195,126 @@ namespace TrackMyScore.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<IActionResult> EditProfile(int userId, string username, int photoId, string oldPassword, string newPassword, string confirmPassword)
+        {
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Profile not found." });
+            }
+
+            if (username != user.Username)
+            {
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Username == username);
+
+                if (existingUser != null)
+                {
+                    return Json(new { success = false, message = "Username already in use." });
+                }
+                HttpContext.Session.SetString("username", username);
+                user.Username = username;
+
+            }
+
+            if (!oldPassword.IsNullOrEmpty() && !newPassword.IsNullOrEmpty() && !confirmPassword.IsNullOrEmpty())
+            {
+                if (confirmPassword == newPassword)
+                {
+
+                    if (newPassword == oldPassword)
+                    {
+                        return Json(new { success = false, message = "The new password cannot be the old password." });
+                    }
+
+                    if (!_authenticationService.PasswordMatch(user, oldPassword))
+                    {
+                        return Json(new { success = false, message = "Old password does not match." });
+                    }
+
+                    if (_authenticationService.ChangePassword(user, newPassword))
+                    {
+                        await _context.SaveChangesAsync();
+                        return Json(new { success = true, message = "Password successfully changed." });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Password did not change." });
+                    }
+                }
+
+            }
+
+            user.Picture = photoId;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Account details edited successfully" });
+
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                ViewBag.Error = "Please enter your email address.";
+                return View();
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                ViewBag.Error = "No account found for that email.";
+                return View();
+            }
+
+            // generate a new password
+            var newPassword = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            if (!_authenticationService.ChangePassword(user, newPassword))
+            {
+                return Json(new { success = false, message = "User not found." });
+            }
+            await _context.SaveChangesAsync();
+
+            // send the new password by email
+            var smtpHost = "smtp.gmail.com";      // your SMTP host
+            var smtpPort = 587;
+            var smtpUser = "trackmyscore00@gmail.com";
+            var smtpPass = "mhcv aooa kyiz jdil";
+
+            using var client = new SmtpClient(smtpHost, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUser, smtpPass),
+                EnableSsl = true
+            };
+            // mail message
+            var msg = new MailMessage
+            {
+                From = new MailAddress(smtpUser, "TrackMyScore"),
+                Subject = "Your TrackMyScore password has been reset",
+                Body = $@"
+                Hello {user.Username},
+
+                You have requested a password reset. Your new temporary password is:
+
+                    {newPassword}
+
+                Please log in with this password, then change it in your profile settings.
+
+                — The TrackMyScore Team
+                "
+            };
+            msg.To.Add(email);
+            await client.SendMailAsync(msg);
+
+            ViewBag.Success = "An email with your new password has been sent. Please check your inbox.";
+            return View();
+        }
 
     }
 }

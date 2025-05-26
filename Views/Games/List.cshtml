@@ -6,13 +6,6 @@
 }
 @inject UserService userService
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - TrackMyScore</title>
-    <link href="https://cdn.jsdelivr.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
 <style>
     :root {
         --primary-dark: #1A3C2A;
@@ -33,13 +26,11 @@
     }
 
     body {
-        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         background-color: var(--primary-dark);
         color: var(--text-light);
         min-height: 100vh;
         line-height: 1.5;
-        padding: calc(var(--spacing-unit) * 10) calc(var(--spacing-unit) * 4) calc(var(--spacing-unit) * 4);
-
     }
 
     .container-fluid {
@@ -56,12 +47,14 @@
         flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
+        gap: 1rem;
     }
 
     .header-section h2 {
         color: var(--text-light);
         font-weight: 600;
-        margin-bottom: 0; 
+        margin-bottom: 0;
+        flex-shrink: 0;
     }
 
     .btn-add-game {
@@ -74,6 +67,7 @@
         transition: all 0.3s ease;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         text-decoration: none;
+        flex-shrink: 0;
     }
 
     .btn-add-game:hover, .btn-add-game:focus {
@@ -84,7 +78,8 @@
     }
 
     .search-bar1 {
-        width: 50%;
+        flex-grow: 1;
+        max-width: 500px;
     }
 
     .search-input1 {
@@ -94,6 +89,7 @@
         padding: calc(var(--spacing-unit) * 1.5);
         border-radius: 8px;
         transition: all 0.3s ease;
+        width: 100%;
     }
 
     .search-input1:focus {
@@ -124,7 +120,7 @@
 
     .table {
         color: var(--text-light);
-        margin-bottom: 0; /* Remove default table margin */
+        margin-bottom: 0;
     }
 
     .table thead th {
@@ -146,15 +142,15 @@
         vertical-align: middle;
     }
 
-    .heart {
-        color: var(--accent-gold); /* Changed initial color for better visibility */
+    .heart-icons {
+        color: var(--accent-gold) !important;
         transition: color 0.3s ease, transform 0.2s ease;
         font-size: 1.2rem;
         padding-right: calc(var(--spacing-unit) * 2);
     }
 
-    .heart:hover {
-        color: var(--accent-gold-light);
+    .heart-icons:hover {
+        color: var(--accent-gold-light) !important;
         cursor: pointer;
         transform: scale(1.1);
     }
@@ -182,141 +178,129 @@
         color: var(--text-muted);
         font-style: italic;
     }
-
-    @@media (min-width: 768px) {
-        .header-section .btn-add-game {
-            margin-left: calc(var(--spacing-unit) * 3); 
-        }
-        .search-bar {
-            width: auto;
-            margin-top: 0;
-            flex-grow: 1;
-            margin-left: calc(var(--spacing-unit) * 3);
-        }
-    }
 </style>
-<body>
-    <div class="page-container">
-        <div class="header-section">
-            <h2>Board Game List</h2>
-            <div class="d-flex align-items-center flex-grow-1 justify-content-end">
-                <div class="search-bar1">
-                    <input type="text" id="gameSearch" class="form-control search-input1" placeholder="Search games...">
-                </div>
-                <a class="btn btn-add-game" asp-action="AddGame" asp-controller="Games">
-                    <i class="fa-solid fa-plus me-2"></i> Add Game
-                </a>
-            </div>
-        </div>
 
-        <div class="game-section mb-4">
-            <h3>Official Games</h3>
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Max Players</th>
-                            <th>Difficulty</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="officialGamesTableBody">
-                        @if (Model.Any(g => g.IsOfficial))
-                        {
-                            @foreach (var game in Model.Where(g => g.IsOfficial))
-                            {
-                                <tr class="game-row" data-title="@game.Title.ToLower()">
-                                    <td>@game.Title</td>
-                                    <td>@game.MaxPlayers</td>
-                                    <td>@game.Difficulty</td>
-                                    <td>
-                                        <a onclick="toggleFavorite(@game.Id, this)" class="d-inline-block align-middle">
-                                            @if (await userService.IsGameFavorite(@game.Id))
-                                            {
-                                                <i class="fa-regular fa-heart heart-icons"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="fa-solid fa-heart heart-icons"></i>
-                                            }
-                                        </a>
-                                        <a class="btn btn-details d-inline-block align-middle" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
-                                            Details
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="5" class="no-games-message">No official games found.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+<div class="container-fluid">
+    <div class="header-section">
+        <h2>Board Game List</h2>
+        <div class="d-flex align-items-center flex-grow-1 justify-content-end gap-3">
+            <div class="search-bar1">
+                <input type="text" id="gameSearch" class="form-control search-input1" placeholder="Search games...">
             </div>
-        </div>
-
-        <div class="game-section">
-            <h3>Unofficial Games</h3>
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Author</th>
-                            <th>Max Players</th>
-                            <th>Difficulty</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="unofficialGamesTableBody">
-                        @if (Model.Any(g => !g.IsOfficial))
-                        {
-                            @foreach (var game in Model.Where(g => !g.IsOfficial))
-                            {
-                                <tr class="game-row" data-title="@game.Title.ToLower()">
-                                    <td>@game.Title</td>
-                                    <td>@game.Author.Username</td>
-                                    <td>@game.MaxPlayers</td>
-                                    <td>@game.Difficulty</td>
-                                    <td>
-                                        <a onclick="toggleFavorite(@game.Id, this)" class="d-inline-block align-middle">
-                                            @if (await userService.IsGameFavorite(@game.Id))
-                                            {
-                                                <i class="fa-regular fa-heart heart-icons"></i>
-                                            }
-                                            else
-                                            {
-                                                <i class="fa-solid fa-heart heart-icons"></i>
-                                            }
-                                        </a>
-                                        <a class="btn btn-details d-inline-block align-middle" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
-                                            Details
-                                        </a>
-                                        <a class="btn btn-danger btn-details ms-2 d-inline-block align-middle" asp-action="Delete" asp-controller="Games" asp-route-id="@game.Id">
-                                            Delete
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="5" class="no-games-message">No unofficial games found.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+            <a class="btn btn-add-game" asp-action="AddGame" asp-controller="Games">
+                <i class="fa-solid fa-plus me-2"></i> Add Game
+            </a>
         </div>
     </div>
 
+    <div class="game-section mb-4">
+        <h3>Official Games</h3>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Max Players</th>
+                        <th>Difficulty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="officialGamesTableBody">
+                    @if (Model.Any(g => g.IsOfficial))
+                    {
+                        @foreach (var game in Model.Where(g => g.IsOfficial))
+                        {
+                            <tr class="game-row" data-title="@game.Title.ToLower()">
+                                <td>@game.Title</td>
+                                <td>@game.MaxPlayers</td>
+                                <td>@game.Difficulty</td>
+                                <td>
+                                    <a onclick="toggleFavorite(@game.Id, this)" class="d-inline-block align-middle">
+                                        @if (!await userService.IsGameFavorite(@game.Id))
+                                        {
+                                            <i class="fa-solid fa-heart heart-icons"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-heart heart-icons"></i>
+                                        }
+                                    </a>
+                                    <a class="btn btn-details d-inline-block align-middle" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                        Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="no-games-message">No official games found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="game-section">
+        <h3>Unofficial Games</h3>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Max Players</th>
+                        <th>Difficulty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="unofficialGamesTableBody">
+                    @if (Model.Any(g => !g.IsOfficial))
+                    {
+                        @foreach (var game in Model.Where(g => !g.IsOfficial))
+                        {
+                            <tr class="game-row" data-title="@game.Title.ToLower()">
+                                <td>@game.Title</td>
+                                <td>@game.Author.Username</td>
+                                <td>@game.MaxPlayers</td>
+                                <td>@game.Difficulty</td>
+                                <td>
+                                    <a onclick="toggleFavorite(@game.Id, this)" class="d-inline-block align-middle">
+                                        @if (!await userService.IsGameFavorite(@game.Id))
+                                        {
+                                            <i class="fa-solid fa-heart heart-icons"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-heart heart-icons"></i>
+                                        }
+                                    </a>
+                                    <a class="btn btn-details d-inline-block align-middle" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                        Details
+                                    </a>
+                                    <a class="btn btn-danger btn-details ms-2 d-inline-block align-middle" asp-action="Delete" asp-controller="Games" asp-route-id="@game.Id">
+                                        Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="no-games-message">No unofficial games found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
     <script>
-        // toggling favorite game
+        // Toggling favorite game
         async function toggleFavorite(gameId, element) {
             console.log(`Toggling favorite for game ID: ${gameId}`);
             try {
@@ -345,7 +329,7 @@
                 alert('An error occurred. Please try again.');
             }
         }
-        // game search function
+        // Game search function
         document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('gameSearch');
 
@@ -356,12 +340,11 @@
                 gameRows.forEach(row => {
                     const title = row.getAttribute('data-title');
                     if (title.includes(searchTerm)) {
-                        row.style.display = ''; 
+                        row.style.display = '';
                     } else {
-                        row.style.display = 'none'; 
+                        row.style.display = 'none';
                     }
                 });
             });
         });
     </script>
-</body>

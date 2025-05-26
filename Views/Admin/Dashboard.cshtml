@@ -2,12 +2,9 @@
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
-<style>
-    .dashboard{
-        padding-top: 80px;
-    }
-</style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<body>
+
 <div class="dashboard container-fluid mt-custom-margin mt-20">
     <h1 class="admin-dashboard-title">Admin Dashboard</h1>
     <div class="row g-4 mb-4">
@@ -137,8 +134,8 @@
     </div>
     </div>
 </div>
+</body>
 
-@section Scripts {
     <script>
         Chart.defaults.color = '#A7F3D0';
         Chart.defaults.borderColor = 'rgba(16, 185, 129, 0.2)';
@@ -283,4 +280,3 @@
             }
         });
     </script>
-}

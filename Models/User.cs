@@ -24,6 +24,8 @@ namespace TrackMyScore.Models
         [Required]
         public bool isAdmin { get; set; }
 
+        public int Picture { set; get; } = 0;
+
 
         public ICollection<Followers> followers;
         public ICollection<Followers> followings;

@@ -18,7 +18,6 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
   <meta charset="utf-8" />
   <title>@ViewData["Title"] - TrackMyScore</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -44,7 +43,6 @@
     body {
       background: var(--primary-dark);
       color: var(--text-light);
-      padding-top: 80px;
       min-height: 100vh;
     }
     .tournament-page {
@@ -295,11 +293,19 @@
     }
 
     .bracket-subtitle {
-    text-align: center;
-    color: var(--accent-gold-light);
-    font-size: 1rem;
-    margin-bottom: calc(var(--spacing) * 1.5);
+      text-align: center;
+      color: var(--accent-gold-light);
+      font-size: 1rem;
+      margin-bottom: calc(var(--spacing) * 1.5);
     }
+    .bracket-section {
+      grid-column:1 / -1;
+      margin-top: calc(var(--spacing)*3 + 20px);
+      background-color: var(--card-bg); 
+      border-radius: 12px;
+      padding: calc(var(--spacing) * 4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
 
     .round-headers {
     display: flex;
@@ -329,7 +335,6 @@
         font-weight: bold;
     }
   </style>
-</head>
 <body>
   <div class="tournament-page">
 
@@ -344,7 +349,9 @@
           @if(tour.Type == "team"){
             <div class="info-item"><i class="fa-solid fa-users"></i><span>@tour.MaxPlayers players per team</span></div>
           }
+          @if(tour.Host == Model.LoggedUser){
           <div class="info-item"><i class="fa-solid fa-key"></i><span>Code: @tour.Code</span></div>
+          }
           <div class="info-item"><i class="fa-solid fa-user"></i><span>Host: @tour.Host.Username</span></div>
         </div>
 

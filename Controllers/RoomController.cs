@@ -34,42 +34,69 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            User loggedUser = await GetLoggedUserAsync();
+            var user = await GetLoggedUserAsync();
 
-            var roomList = await _context.Rooms
-                .Where(r => r.Stage == -1 && r.Tournament == null)
-                .Where(r => r.Host != loggedUser)
-                .Where(r => !_context.JoinRooms.Any(jr => jr.Room == r && jr.User == loggedUser))
-                .Include(r => r.Host)
-                .Include(r => r.Game)
-                .Include(r => r.Tournament)
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            var joins = await _context.JoinRooms
+                .Where(j => j.Room.Stage == -1
+                        && j.Room.Tournament == null
+                        && j.User.Id != user.Id
+                        && j.Room.Host.Id != user.Id)
+                .Include(j => j.Room)
+                    .ThenInclude(r => r.Host)
+                .Include(j => j.Room)
+                    .ThenInclude(r => r.Game)
                 .ToListAsync();
 
-            var joinedRooms = await _context.JoinRooms
-                .Where(r => r.User == loggedUser && r.Room.Tournament == null)
-                .Include(r => r.Room)
-                .Include(r => r.User)
-                .Include(r => r.Room.Game)
-                .Include(r => r.Room.Tournament)
-                .ToListAsync();
+            var distinctRooms = await _context.Rooms
+            .Where(r => r.Stage == -1 && r.Tournament == null)
+            .Where(r => r.Host.Id != user.Id)
+            .Where(r => !_context.JoinRooms
+                            .Any(jr => jr.Room.Id == r.Id 
+                                    && jr.User.Id == user.Id))
+            .Include(r => r.Host)
+            .Include(r => r.Game)
+            .ToListAsync();
 
-            var joinedPlayers = new Dictionary<Room, List<User>>();
-
-            foreach (var room in joinedRooms)
+            var joinedPlayersInRoomList = new Dictionary<int, List<User>>();
+            foreach (var room in distinctRooms)
             {
                 var players = await _context.JoinRooms
-                    .Where(r => r.Room.Id == room.Room.Id)
-                    .Include(r => r.User)
-                    .Select(r => r.User)
+                    .Where(j => j.Room.Id == room.Id)
+                    .Select(j => j.User)
                     .ToListAsync();
-
-                joinedPlayers.Add(room.Room, players);
+                joinedPlayersInRoomList[room.Id] = players;
             }
 
+            var myJoins = await _context.JoinRooms
+                .Where(j => j.Room.Stage >= -1 && j.User.Id == user.Id && j.Room.Tournament == null)
+                .Include(j => j.Room).ThenInclude(r => r.Host)
+                .Include(j => j.Room).ThenInclude(r => r.Game)
+                .ToListAsync();
 
-            var roomListModel = new RoomListModel(joinedRooms, roomList, joinedPlayers, joinedPlayers.Count);
+            var joinedPlayers = new Dictionary<int, List<User>>();
+            foreach (var jr in myJoins)
+            {
+                if (!joinedPlayers.ContainsKey(jr.Room.Id))
+                {
+                    var players = await _context.JoinRooms
+                        .Where(j => j.Room.Id == jr.Room.Id)
+                        .Select(j => j.User)
+                        .ToListAsync();
+                    joinedPlayers[jr.Room.Id] = players;
+                }
+            }
 
-            return View(roomListModel);
+            var model = new RoomListModel(
+                joinedRooms: myJoins,
+                roomList: distinctRooms,
+                joinedPlayers: joinedPlayers,
+                joinedPlayersInRoomList: joinedPlayersInRoomList
+            );
+
+            return View(model);
         }
 
         [HttpGet]
