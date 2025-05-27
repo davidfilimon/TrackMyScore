@@ -442,7 +442,7 @@
              data-month="@dt.Month" data-year="@dt.Year">
           <div class="info">
             <strong>@t.Name</strong><br />
-            @dt.ToString("yyyy-MM-dd") – Winner: @t.Winner
+            @dt.ToString("yyyy-MM-dd") - Winner: @t.Winner
           </div>
           <a asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@t.Id"
               class="btn details-btn">View</a>
@@ -454,10 +454,80 @@
       }
     </div>
   </div>
-      <div id="stats" class="tab-pane fade">
-        <h3>Statistics</h3>
-        <p>Coming soon…</p>
-      </div>
+<div id="stats" class="tab-pane fade">
+    <h3>Statistics</h3>
+    <div class="statistics-grid">
+        <div class="card-item">
+            <div class="info">
+                <strong>Total Matches Played:</strong>
+                <span class="ms-2">@Model.TotalMatchesPlayed</span>
+            </div>
+        </div>
+        <div class="card-item">
+            <div class="info">
+                <strong>Matches Won:</strong>
+                <span class="ms-2">@Model.MatchesWon</span>
+            </div>
+        </div>
+        @if (Model.TotalMatchesPlayed > 0)
+        {
+            <div class="card-item">
+                <div class="info">
+                    <strong>Match Win Rate:</strong>
+                    @{
+                        double matchWinRate = (double)Model.MatchesWon / Model.TotalMatchesPlayed * 100;
+                    }
+                    <span class="ms-2">@matchWinRate.ToString("F2")%</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card-item">
+                <div class="info">
+                    <strong>Match Win Rate:</strong>
+                    <span class="ms-2">N/A</span>
+                </div>
+            </div>
+        }
+
+        <hr style="border-color: var(--primary-light); margin: 2rem 0;" />
+
+        <div class="card-item">
+            <div class="info">
+                <strong>Total Tournaments Played:</strong>
+                <span class="ms-2">@Model.TotalTournamentsPlayed</span>
+            </div>
+        </div>
+        <div class="card-item">
+            <div class="info">
+                <strong>Tournaments Won:</strong>
+                <span class="ms-2">@Model.TournamentsWon</span>
+            </div>
+        </div>
+        @if (Model.TotalTournamentsPlayed > 0)
+        {
+            <div class="card-item">
+                <div class="info">
+                    <strong>Tournament Win Rate:</strong>
+                    @{
+                        double tournWinRate = (double)Model.TournamentsWon / Model.TotalTournamentsPlayed * 100;
+                    }
+                    <span class="ms-2">@tournWinRate.ToString("F2")%</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card-item">
+                <div class="info">
+                    <strong>Tournament Win Rate:</strong>
+                    <span class="ms-2">N/A</span>
+                </div>
+            </div>
+        }
+        </div>
+</div>
       <div id="custom" class="tab-pane fade">
         <h3>Custom Games</h3>
         <div class="games-list">
@@ -466,7 +536,7 @@
             <div class="card-item">
               <div class="info">
                 <strong>@g.Title</strong><br />
-                By @g.Author.Username – Players: @g.MaxPlayers
+                By @g.Author.Username - Players: @g.MaxPlayers
               </div>
               <a asp-controller="Games" asp-action="Details" asp-route-id="@g.Id" class="btn details-btn">
                 View

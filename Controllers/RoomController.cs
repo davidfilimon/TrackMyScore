@@ -290,7 +290,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Start(int roomId, Dictionary<int, string> teamAssignments, Dictionary<int, string> roles)
+        public async Task<IActionResult> Start(int roomId, Dictionary<string, string> teamAssignments, Dictionary<string, string> roles, List<string> teamNames)
         {
             var room = await _context.Rooms
                 .Include(r => r.Game)
@@ -303,8 +303,18 @@ namespace TrackMyScore.Controllers
             if (room.Host == null)
                 return Json(new { success = false, message = "Room host not found." });
 
-            if (teamAssignments == null || roles == null)
-                return Json(new { success = false, message = "Team assignments or roles not provided." });
+            if (teamAssignments == null || !teamAssignments.Any())
+                return Json(new { success = false, message = "Team assignments not provided or empty." });
+
+            if (roles == null)
+            {
+                roles = new Dictionary<string, string>();
+            }
+            
+            if (teamNames == null || !teamNames.Any())
+            {
+                return Json(new { success = false, message = "Team names not provided." });
+            }
 
             room.Stage = 0;
             room.Mode = "team";
@@ -318,29 +328,50 @@ namespace TrackMyScore.Controllers
 
             await _context.Matches.AddAsync(match);
 
+            var createdTeams = new Dictionary<string, Team>();
+
+            foreach (var teamName in teamNames.Distinct())
+            {
+                var newTeam = new Team
+                {
+                    Name = teamName,
+                };
+                await _context.Teams.AddAsync(newTeam);
+                createdTeams.Add(teamName, newTeam);
+            }
+
             foreach (var assignment in teamAssignments)
             {
-                if (string.IsNullOrEmpty(assignment.Value)) continue;
+                if (!int.TryParse(assignment.Key, out int playerId))
+                {
+                    return Json(new { success = false, message = $"Invalid player ID format for assignment: {assignment.Key}" });
+                }
 
-                var player = await _context.Users.FindAsync(assignment.Key);
+                string assignedTeamName = assignment.Value;
+                if (string.IsNullOrEmpty(assignedTeamName)) continue;
+
+                var player = await _context.Users.FindAsync(playerId);
                 if (player == null) continue;
 
-                string role = roles.TryGetValue(assignment.Key, out var r) ? r : "Player";
-
-                Team team = new Team
+                string playerRole = "Player";
+                if (roles.TryGetValue(assignment.Key, out var r) && !string.IsNullOrEmpty(r))
                 {
-                    Name = assignment.Value
-                };
+                    playerRole = r;
+                }
+
+                if (!createdTeams.TryGetValue(assignedTeamName, out Team assignedTeam))
+                {
+                    return Json(new { success = false, message = $"Team '{assignedTeamName}' not found among created teams." });
+                }
 
                 Participant participant = new Participant
                 {
-                    Role = role,
+                    Role = playerRole,
                     Match = match,
                     User = player,
-                    Team = team,
+                    Team = assignedTeam,
                     Score = 0
                 };
-                await _context.Teams.AddAsync(team);
                 await _context.Participants.AddAsync(participant);
             }
 

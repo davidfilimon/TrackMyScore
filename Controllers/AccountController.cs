@@ -71,12 +71,62 @@ namespace TrackMyScore.Controllers
                 .Select(p => p.Tournament)
                 .ToListAsync();
 
+            var participatedMatchesAndTeams = await _context.Participants
+                .Include(p => p.Match)
+                    .ThenInclude(m => m.Room)
+                        .ThenInclude(r => r.Game)
+                .Include(p => p.Team)
+                .Where(p => p.UserId == profileUser.Id)
+                .ToListAsync();
+
+            var totalMatchesPlayed = participatedMatchesAndTeams
+                                        .Select(p => p.MatchId)
+                                        .Distinct()
+                                        .Count();
+
+            var matchesWon = participatedMatchesAndTeams.Count(p =>
+            {
+                if (string.IsNullOrEmpty(p.Match.Winner))
+                {
+                    return false;
+                }
+
+                if (p.Match.Winner == profileUser.Username)
+                {
+                    return true;
+                }
+
+                if (p.Team != null && p.Match.Winner == p.Team.Name)
+                {
+                    return true;
+                }
+
+                return false;
+            });
+
+            var participatedTournaments = await _context.Players
+                .Include(p => p.Tournament)
+                .Where(p => p.User.Id == profileUser.Id)
+                .ToListAsync();
+
+            var totalTournamentsPlayed = participatedTournaments.Select(p => p.TournamentId).Distinct().Count();
+
+            var tournamentsWon = participatedTournaments
+            .Count(p =>
+                p.Eliminated == false &&
+                !string.IsNullOrEmpty(p.Tournament.Winner)
+            );
+
             var model = new UserGamesModel
             {
                 User = profileUser,
                 CustomGames = games,
                 Matches = matches,
-                Tournaments = tournaments
+                Tournaments = tournaments,
+                TotalMatchesPlayed = totalMatchesPlayed,
+                MatchesWon = matchesWon,
+                TotalTournamentsPlayed = totalTournamentsPlayed,
+                TournamentsWon = tournamentsWon
             };
 
             return View(model);
@@ -282,7 +332,7 @@ namespace TrackMyScore.Controllers
             await _context.SaveChangesAsync();
 
             // send the new password by email
-            var smtpHost = "smtp.gmail.com";      // your SMTP host
+            var smtpHost = "smtp.gmail.com";      // SMTP host
             var smtpPort = 587;
             var smtpUser = "trackmyscore00@gmail.com";
             var smtpPass = "mhcv aooa kyiz jdil";

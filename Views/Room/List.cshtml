@@ -265,7 +265,17 @@
                     <div class="room-info"><strong>Description:</strong> @room.Game.Description</div>
 
                     <div class="room-players">
-                    Players: @playersInRoom.Count / @room.Game.MaxPlayers
+                    @if (room.Tournament == null && room.Mode == "pending")
+                    {
+                        <p><strong>Players:</strong> @playersInRoom.Count / @room.Game.MaxPlayers (single mode) - @(Math.Pow(room.Game.MaxPlayers, 2)) (team mode)</p>
+                    }
+                    else if (room.Tournament == null && room.Mode == "single"){
+                        <p><strong>Players:</strong> @playersInRoom.Count / @room.Game.MaxPlayers (single mode)</p>
+
+                    } 
+                    else if (room.Tournament == null && room.Mode == "single"){
+                        <p><strong>Players:</strong> @playersInRoom.Count / @(Math.Pow(room.Game.MaxPlayers, 2)) (team mode)</p>
+                    }
                     </div>
 
                     <div class="room-status @(room.Stage == -1 ? "status-waiting"
@@ -328,7 +338,17 @@
                     <div class="room-info"><strong>Description:</strong> @room.Game.Description</div>
 
                     <div class="room-players">
-                    Players: @playersInMyRoom.Count / @room.Game.MaxPlayers
+                    @if (room.Tournament == null && room.Mode == "pending")
+                    {
+                        <p><strong>Players:</strong> @playersInMyRoom.Count / @room.Game.MaxPlayers (single mode) - @(Math.Pow(room.Game.MaxPlayers, 2)) (team mode)</p>
+                    }
+                    else if (room.Tournament == null && room.Mode == "single"){
+                        <p><strong>Players:</strong> @playersInMyRoom.Count / @room.Game.MaxPlayers (single mode)</p>
+
+                    } 
+                    else if (room.Tournament == null && room.Mode == "single"){
+                        <p><strong>Players:</strong> @playersInMyRoom.Count / @(Math.Pow(room.Game.MaxPlayers, 2)) (team mode)</p>
+                    }
                     </div>
 
                     <div class="room-status @(room.Stage == -1 ? "status-waiting"
