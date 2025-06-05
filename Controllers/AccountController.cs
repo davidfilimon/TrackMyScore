@@ -28,26 +28,22 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> Profile(int? id)
         {
             var email = HttpContext.Session.GetString("email");
-
             if (email == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var loggedUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-            if (loggedUser == null)
+            var loggedUserEntity = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (loggedUserEntity == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var loggedUserId = loggedUser.Id;
+            var loggedUserId = loggedUserEntity.Id;
             ViewData["loggedUserId"] = loggedUserId;
 
-            var profileUserId = id ?? loggedUserId; // searches for logged user if there is no id given
-
+            var profileUserId = id ?? loggedUserId;
             var profileUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == profileUserId);
-
             if (profileUser == null)
             {
                 return RedirectToAction("Index", "Home");
@@ -57,80 +53,140 @@ namespace TrackMyScore.Controllers
 
             var games = await _context.Games
                 .Where(g => g.Author == profileUser)
-                .ToListAsync();
+                .ToListAsync() 
+                ?? new List<Game>();
 
-            var matches = await _context.Participants
-                .Include(p => p.Match)
-                    .ThenInclude(m => m.Room)
-                        .ThenInclude(g => g.Game)
-                        .Where(p => p.User.Id == profileUser.Id)
-                    .ToListAsync();
-
-            var tournaments = await _context.Players
+            var singleMatches = await _context.Players
                 .Where(p => p.User.Id == profileUser.Id)
-                .Select(p => p.Tournament)
-                .ToListAsync();
+                .Select(p => p.Match)
+                .ToListAsync()
+                ?? new List<Match>();
 
-            var participatedMatchesAndTeams = await _context.Participants
+            var teamMatches = await _context.TeamPlayers
+                .Where(p => p.User.Id == profileUser.Id)
+                .Select(p => p.Match)
+                .ToListAsync()
+                ?? new List<Match>();
+
+            var allMatches = singleMatches.Concat(teamMatches).ToList() 
+                            ?? new List<Match>();
+
+            var tournamentsSingle = await _context.Players
                 .Include(p => p.Match)
-                    .ThenInclude(m => m.Room)
-                        .ThenInclude(r => r.Game)
+                    .ThenInclude(p => p.Tournament)
+                .Where(p => p.User.Id == profileUser.Id && p.Match.Tournament.IsActive == false && p.Match.Tournament.Stage > 1)
+                .Select(p => p.Match.Tournament)
+                .ToListAsync()
+                ?? new List<Tournament>();
+
+            var tournamentsTeam = await _context.TeamPlayers
+                .Include(p => p.Match)
+                    .ThenInclude(p => p.Tournament)
                 .Include(p => p.Team)
-                .Where(p => p.UserId == profileUser.Id)
-                .ToListAsync();
+                .Where(p => p.User.Id == profileUser.Id && p.Match.Tournament.IsActive == false && p.Match.Tournament.Stage > 1)
+                .Select(p => p.Match.Tournament)
+                .ToListAsync()
+                ?? new List<Tournament>();
 
-            var totalMatchesPlayed = participatedMatchesAndTeams
-                                        .Select(p => p.MatchId)
-                                        .Distinct()
-                                        .Count();
+            var tournaments = tournamentsSingle.Concat(tournamentsTeam).ToList();
 
-            var matchesWon = participatedMatchesAndTeams.Count(p =>
+            var matchWinners = new Dictionary<int, string>();
+            var tournamentWinners = new Dictionary<int, string>();
+
+            foreach (var match in singleMatches)
             {
-                if (string.IsNullOrEmpty(p.Match.Winner))
+                var playersInMatch = await _context.Players
+                    .Include(p => p.User)
+                    .Where(p => p.MatchId == match.Id)
+                    .ToListAsync()
+                    ?? new List<Player>();
+
+                if (!playersInMatch.Any())
                 {
-                    return false;
+                    matchWinners[match.Id] = "";
+                    continue;
                 }
 
-                if (p.Match.Winner == profileUser.Username)
+                int maxScore = playersInMatch.Max(p => p.Score);
+                var winnerName = playersInMatch.First(p => p.Score == maxScore);
+                matchWinners[match.Id] = winnerName.User.Username;
+            }
+
+            foreach (var match in teamMatches)
+            {
+                var playersInMatch = await _context.TeamPlayers
+                    .Include(p => p.User)
+                    .Include(p => p.Team)
+                    .Where(p => p.MatchId == match.Id)
+                    .ToListAsync()
+                    ?? new List<TeamPlayer>();
+
+                if (!playersInMatch.Any())
                 {
-                    return true;
+                    matchWinners[match.Id] = "";
+                    continue;
                 }
 
-                if (p.Team != null && p.Match.Winner == p.Team.Name)
+                int maxScore = playersInMatch.Max(p => p.Team.Score);
+                var winnerTeam = playersInMatch.First(p => p.Team.Score == maxScore);
+                matchWinners[match.Id] = winnerTeam.Team.Name;
+            }
+
+            var totalMatchesPlayed = allMatches.Count;
+            int matchesWon = 0;
+
+            foreach (var match in allMatches)
+            {
+                if (!matchWinners.ContainsKey(match.Id))
                 {
-                    return true;
+                    continue;
                 }
 
-                return false;
-            });
+                string winner = matchWinners[match.Id];
+                if (match.Mode == "single")
+                {
+                    if (winner == profileUser.Username)
+                    {
+                        matchesWon++;
+                    }
+                }
+                else if (match.Mode == "team")
+                {
+                    var teamPlayersInMatch = await _context.TeamPlayers
+                        .Include(tp => tp.Team)
+                        .Include(tp => tp.User)
+                        .Where(tp => tp.MatchId == match.Id)
+                        .ToListAsync()
+                        ?? new List<TeamPlayer>();
 
-            var participatedTournaments = await _context.Players
-                .Include(p => p.Tournament)
-                .Where(p => p.User.Id == profileUser.Id)
-                .ToListAsync();
+                    string winningTeamName = winner;
+                    bool userWasOnWinningTeam = teamPlayersInMatch
+                        .Any(tp => tp.UserId == profileUser.Id && tp.Team.Name == winningTeamName);
 
-            var totalTournamentsPlayed = participatedTournaments.Select(p => p.TournamentId).Distinct().Count();
-
-            var tournamentsWon = participatedTournaments
-            .Count(p =>
-                p.Eliminated == false &&
-                !string.IsNullOrEmpty(p.Tournament.Winner)
-            );
+                    if (userWasOnWinningTeam)
+                    {
+                        matchesWon++;
+                    }
+                }
+            }
 
             var model = new UserGamesModel
             {
                 User = profileUser,
                 CustomGames = games,
-                Matches = matches,
+                Matches = allMatches,
                 Tournaments = tournaments,
+                MatchWinners = matchWinners,
+                TournamentWinners = tournamentWinners,
                 TotalMatchesPlayed = totalMatchesPlayed,
                 MatchesWon = matchesWon,
-                TotalTournamentsPlayed = totalTournamentsPlayed,
-                TournamentsWon = tournamentsWon
+                TotalTournamentsPlayed = tournaments.Count,
+                TournamentsWon = 0
             };
 
             return View(model);
         }
+
 
         [HttpGet]
         public IActionResult Login()

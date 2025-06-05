@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TrackMyScore.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCommit : Migration
+    public partial class initialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,8 @@ namespace TrackMyScore.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,7 +36,8 @@ namespace TrackMyScore.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AccountCreationDate = table.Column<DateOnly>(type: "date", nullable: false),
                     RespectPoints = table.Column<int>(type: "int", nullable: false),
-                    isAdmin = table.Column<bool>(type: "bit", nullable: false)
+                    isAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    Picture = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,7 +82,8 @@ namespace TrackMyScore.Migrations
                     MaxPlayers = table.Column<int>(type: "int", nullable: false),
                     Difficulty = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AuthorId = table.Column<int>(type: "int", nullable: false),
-                    IsOfficial = table.Column<bool>(type: "bit", nullable: false)
+                    IsOfficial = table.Column<bool>(type: "bit", nullable: false),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,6 +91,34 @@ namespace TrackMyScore.Migrations
                     table.ForeignKey(
                         name: "FK_Games_Users_AuthorId",
                         column: x => x.AuthorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tournaments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RoomCount = table.Column<int>(type: "int", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Stage = table.Column<int>(type: "int", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Reward = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    HostId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tournaments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tournaments_Users_HostId",
+                        column: x => x.HostId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
@@ -120,36 +151,36 @@ namespace TrackMyScore.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Tournaments",
+                name: "Matches",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RoomCount = table.Column<int>(type: "int", nullable: false),
-                    MaxPlayers = table.Column<int>(type: "int", nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Stage = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Reward = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StopDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Stage = table.Column<int>(type: "int", nullable: false),
+                    Mode = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     HostId = table.Column<int>(type: "int", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GameId = table.Column<int>(type: "int", nullable: false),
-                    Winner = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    TournamentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tournaments", x => x.Id);
+                    table.PrimaryKey("PK_Matches", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tournaments_Games_GameId",
+                        name: "FK_Matches_Games_GameId",
                         column: x => x.GameId,
                         principalTable: "Games",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
-                        name: "FK_Tournaments_Users_HostId",
+                        name: "FK_Matches_Tournaments_TournamentId",
+                        column: x => x.TournamentId,
+                        principalTable: "Tournaments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Matches_Users_HostId",
                         column: x => x.HostId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -163,23 +194,18 @@ namespace TrackMyScore.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    TournamentId = table.Column<int>(type: "int", nullable: false),
-                    Eliminated = table.Column<bool>(type: "bit", nullable: false),
-                    TeamId = table.Column<int>(type: "int", nullable: true),
-                    RespectPoints = table.Column<int>(type: "int", nullable: false)
+                    MatchId = table.Column<int>(type: "int", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false),
+                    Reward = table.Column<int>(type: "int", nullable: false),
+                    Eliminated = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Players", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Players_Teams_TeamId",
-                        column: x => x.TeamId,
-                        principalTable: "Teams",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Players_Tournaments_TournamentId",
-                        column: x => x.TournamentId,
-                        principalTable: "Tournaments",
+                        name: "FK_Players_Matches_MatchId",
+                        column: x => x.MatchId,
+                        principalTable: "Matches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
@@ -191,120 +217,34 @@ namespace TrackMyScore.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Rooms",
+                name: "TeamPlayers",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Stage = table.Column<int>(type: "int", nullable: false),
-                    Mode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    HostId = table.Column<int>(type: "int", nullable: false),
-                    GameId = table.Column<int>(type: "int", nullable: false),
-                    TournamentId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Rooms", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Rooms_Games_GameId",
-                        column: x => x.GameId,
-                        principalTable: "Games",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Rooms_Tournaments_TournamentId",
-                        column: x => x.TournamentId,
-                        principalTable: "Tournaments",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Rooms_Users_HostId",
-                        column: x => x.HostId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "JoinRooms",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    RoomId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_JoinRooms", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_JoinRooms_Rooms_RoomId",
-                        column: x => x.RoomId,
-                        principalTable: "Rooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_JoinRooms_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Matches",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Winner = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RoomId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Matches", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Matches_Rooms_RoomId",
-                        column: x => x.RoomId,
-                        principalTable: "Rooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Participants",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     MatchId = table.Column<int>(type: "int", nullable: false),
-                    TeamId = table.Column<int>(type: "int", nullable: true),
-                    Score = table.Column<int>(type: "int", nullable: false)
+                    Eliminated = table.Column<bool>(type: "bit", nullable: false),
+                    Reward = table.Column<int>(type: "int", nullable: false),
+                    TeamId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Participants", x => x.Id);
+                    table.PrimaryKey("PK_TeamPlayers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Participants_Matches_MatchId",
+                        name: "FK_TeamPlayers_Matches_MatchId",
                         column: x => x.MatchId,
                         principalTable: "Matches",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
-                        name: "FK_Participants_Teams_TeamId",
+                        name: "FK_TeamPlayers_Teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "Teams",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
-                        name: "FK_Participants_Users_UserId",
+                        name: "FK_TeamPlayers_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -337,44 +277,24 @@ namespace TrackMyScore.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_JoinRooms_RoomId",
-                table: "JoinRooms",
-                column: "RoomId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_JoinRooms_UserId",
-                table: "JoinRooms",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_RoomId",
+                name: "IX_Matches_GameId",
                 table: "Matches",
-                column: "RoomId");
+                column: "GameId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Participants_MatchId",
-                table: "Participants",
-                column: "MatchId");
+                name: "IX_Matches_HostId",
+                table: "Matches",
+                column: "HostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Participants_TeamId",
-                table: "Participants",
-                column: "TeamId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Participants_UserId",
-                table: "Participants",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Players_TeamId",
-                table: "Players",
-                column: "TeamId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Players_TournamentId",
-                table: "Players",
+                name: "IX_Matches_TournamentId",
+                table: "Matches",
                 column: "TournamentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Players_MatchId",
+                table: "Players",
+                column: "MatchId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Players_UserId",
@@ -382,24 +302,19 @@ namespace TrackMyScore.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rooms_GameId",
-                table: "Rooms",
-                column: "GameId");
+                name: "IX_TeamPlayers_MatchId",
+                table: "TeamPlayers",
+                column: "MatchId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rooms_HostId",
-                table: "Rooms",
-                column: "HostId");
+                name: "IX_TeamPlayers_TeamId",
+                table: "TeamPlayers",
+                column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rooms_TournamentId",
-                table: "Rooms",
-                column: "TournamentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tournaments_GameId",
-                table: "Tournaments",
-                column: "GameId");
+                name: "IX_TeamPlayers_UserId",
+                table: "TeamPlayers",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tournaments_HostId",
@@ -417,13 +332,10 @@ namespace TrackMyScore.Migrations
                 name: "Followers");
 
             migrationBuilder.DropTable(
-                name: "JoinRooms");
-
-            migrationBuilder.DropTable(
-                name: "Participants");
-
-            migrationBuilder.DropTable(
                 name: "Players");
+
+            migrationBuilder.DropTable(
+                name: "TeamPlayers");
 
             migrationBuilder.DropTable(
                 name: "Matches");
@@ -432,13 +344,10 @@ namespace TrackMyScore.Migrations
                 name: "Teams");
 
             migrationBuilder.DropTable(
-                name: "Rooms");
+                name: "Games");
 
             migrationBuilder.DropTable(
                 name: "Tournaments");
-
-            migrationBuilder.DropTable(
-                name: "Games");
 
             migrationBuilder.DropTable(
                 name: "Users");

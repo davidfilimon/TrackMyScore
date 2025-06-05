@@ -5,25 +5,25 @@
 namespace TrackMyScore.Migrations
 {
     /// <inheritdoc />
-    public partial class ProfilePicture : Migration
+    public partial class dbFix : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Picture",
-                table: "Users",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.DropColumn(
+                name: "Type",
+                table: "Tournaments");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Picture",
-                table: "Users");
+            migrationBuilder.AddColumn<string>(
+                name: "Type",
+                table: "Tournaments",
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "");
         }
     }
 }

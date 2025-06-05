@@ -1,0 +1,450 @@
+﻿@model MatchListModel
+
+@{
+    ViewData["Title"] = "Room List";
+    var hosted    = Model.HostedMatches;
+    var joined    = Model.JoinedMatches;
+    var available = Model.AvailableMatches;
+    var joinedOnly = joined.Where(jm => hosted.All(h => h.Id != jm.Id))
+                           .ToList();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TrackMyScore</title>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        crossorigin="anonymous"
+    />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous"
+    />
+</head>
+
+<style>
+    :root {
+        --primary-dark: #1A3C2A;
+        --primary: #2A5940;
+        --primary-light: #3B7A5A;
+        --accent-gold: #D4AF37;
+        --accent-gold-light: #F0D875;
+        --accent-wood: #966F33;
+        --text-light: #E8F5E9;
+        --text-muted: #ffffff;
+        --card-bg: #234134;
+        --input-bg: #1A3C2A;
+        --input-border: #3B7A5A;
+        --input-focus: #D4AF37;
+        --error: #CF6679;
+        --success: #4CAF50;
+        --spacing-unit: 8px;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: var(--primary-dark);
+        color: var(--text-light);
+        min-height: 100vh;
+        line-height: 1.5;
+    }
+
+    .container-fluid {
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .header-section {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: calc(var(--spacing-unit) * 3);
+        margin-bottom: calc(var(--spacing-unit) * 4);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-section h1 {
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    .btn-create-room {
+        background-color: var(--accent-gold);
+        border: none;
+        color: var(--primary-dark);
+        font-weight: 600;
+        padding: calc(var(--spacing-unit) * 1.5)
+                 calc(var(--spacing-unit) * 3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+
+    .btn-create-room:hover,
+    .btn-create-room:focus {
+        background-color: var(--accent-gold-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: var(--primary-dark);
+    }
+
+    .search-bar {
+        width: 50%;
+    }
+
+    .search-input {
+        background-color: var(--input-bg);
+        border: 2px solid var(--input-border);
+        color: var(--text-light);
+        padding: calc(var(--spacing-unit) * 1.5);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        background-color: var(--input-bg);
+        border-color: var(--input-focus);
+        color: var(--text-light);
+        box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+    }
+
+    .search-input::placeholder {
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+
+    .room-section {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: calc(var(--spacing-unit) * 4);
+        margin-bottom: calc(var(--spacing-unit) * 4);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .room-section h3 {
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: calc(var(--spacing-unit) * 3);
+    }
+
+    .room-card {
+        background-color: var(--primary);
+        border-radius: 10px;
+        padding: calc(var(--spacing-unit) * 3);
+        margin-bottom: calc(var(--spacing-unit) * 3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        scroll-snap-align: start;
+    }
+
+    .room-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .room-card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-light);
+        margin-bottom: calc(var(--spacing-unit) * 1.5);
+    }
+
+    .room-info {
+        font-size: 0.95rem;
+        margin-bottom: calc(var(--spacing-unit) * 1);
+        color: var(--text-muted);
+    }
+
+    .room-info strong {
+        color: var(--text-light);
+    }
+
+    .room-status {
+        font-style: italic;
+        color: var(--text-muted);
+        margin-top: calc(var(--spacing-unit) * 1.5);
+        padding: calc(var(--spacing-unit) * 1)
+                 calc(var(--spacing-unit) * 2);
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    .status-waiting {
+        background-color: rgba(212, 175, 55, 0.2);
+        color: var(--accent-gold);
+        border: 1px solid var(--accent-gold);
+    }
+
+    .status-ongoing {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: var(--success);
+        border: 1px solid var(--success);
+    }
+
+    .status-ended {
+        background-color: rgba(207, 102, 121, 0.2);
+        color: var(--error);
+        border: 1px solid var(--error);
+    }
+
+    .btn-view-details {
+        background-color: var(--accent-gold);
+        border: none;
+        color: var(--primary-dark);
+        font-weight: 600;
+        padding: calc(var(--spacing-unit) * 1.5)
+                 calc(var(--spacing-unit) * 3);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        margin-top: calc(var(--spacing-unit) * 2);
+    }
+
+    .btn-view-details:hover {
+        background-color: var(--accent-gold-light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        color: var(--primary-dark);
+    }
+
+    .no-rooms-message {
+        text-align: center;
+        padding: calc(var(--spacing-unit) * 3);
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    .horizontal-scroll {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        scroll-snap-type: x mandatory;
+    }
+
+    .horizontal-scroll > .room-card-wrapper {
+        flex: 0 0 300px;
+    }
+</style>
+
+<body>
+    <div class="container-fluid">
+        <div class="header-section">
+            <h1>Active Rooms</h1>
+
+            <div class="search-bar">
+                <input
+                    type="text"
+                    id="rSearch"
+                    class="form-control search-input"
+                    placeholder="Search rooms by name..."
+                    autocomplete="off"
+                />
+            </div>
+
+            <a class="btn btn-create-room"
+               asp-controller="Match"
+               asp-action="Create">
+                <i class="fa-solid fa-plus me-2"></i> Create Room
+            </a>
+        </div>
+
+        <div class="room-section mb-4">
+            <h3>Available Rooms to Join</h3>
+            <div class="horizontal-scroll" id="availableScroll">
+                @if (available.Any())
+                {
+                    @foreach (var room in available)
+                    {
+                        <div class="room-card-wrapper">
+                            <div class="room-card">
+                                <div class="room-card-title">@room.Name</div>
+                                <div class="room-info">
+                                    <strong>Host:</strong> @room.Host.Username
+                                </div>
+                                <div class="room-info">
+                                    <strong>Game:</strong> @room.Game.Title
+                                </div>
+                                <div class="room-info">
+                                    <strong>Description:</strong> @room.Game.Description
+                                </div>
+                                <div class="room-status @(room.Stage == -1 ? "status-waiting"
+                                                    : room.Stage == 0   ? "status-ongoing"
+                                                                        : "status-ended")">
+                                    @if (room.Stage == -1)
+                                    {
+                                        <i class="fa-solid fa-clock me-1"> Waiting for host to start</i>
+                                    }
+                                    else if (room.Stage == 0)
+                                    {
+                                        <i class="fa-solid fa-play me-1"> Ongoing match</i> 
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-flag-checkered me-1"> Match ended</i>
+                                    }
+                                </div>
+                                <a class="btn btn-view-details mt-3"
+                                   asp-controller="Match"
+                                   asp-action="CurrentMatch"
+                                   asp-route-id="@room.Id">
+                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="no-rooms-message">
+                            No rooms available to join.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="room-section">
+            <h3>Your Hosted or Joined Rooms</h3>
+            <div class="horizontal-scroll" id="yourScroll">
+                @if (hosted.Any() || joined.Any())
+                {
+                    @foreach (var room in hosted)
+                    {
+                        <div class="room-card-wrapper">
+                            <div class="room-card">
+                                <div class="room-card-title">@room.Name</div>
+                                <div class="room-info">
+                                    <strong>Host (You):</strong> @room.Host.Username
+                                </div>
+                                <div class="room-info">
+                                    <strong>Game:</strong> @room.Game.Title
+                                </div>
+                                <div class="room-info">
+                                    <strong>Description:</strong> @room.Game.Description
+                                </div>
+                                <div class="room-status @(room.Stage == -1 ? "status-waiting"
+                                                    : room.Stage == 0   ? "status-ongoing"
+                                                                        : "status-ended")">
+                                    @if (room.Stage == -1)
+                                    {
+                                        <i class="fa-solid fa-clock me-1"> Waiting for you to start</i>
+                                    }
+                                    else if (room.Stage == 0)
+                                    {
+                                        <i class="fa-solid fa-play me-1"> Ongoing match</i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-flag-checkered me-1"> Match ended</i>
+                                    }
+                                </div>
+                                <a class="btn btn-view-details mt-3"
+                                   asp-controller="Match"
+                                   asp-action="CurrentMatch"
+                                   asp-route-id="@room.Id">
+                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    @foreach (var room in joinedOnly)
+                    {
+                        <div class="room-card-wrapper">
+                            <div class="room-card">
+                                <div class="room-card-title">@room.Name</div>
+                                <div class="room-info">
+                                    <strong>Host:</strong> @room.Host.Username
+                                </div>
+                                <div class="room-info">
+                                    <strong>Game:</strong> @room.Game.Title
+                                </div>
+                                <div class="room-info">
+                                    <strong>Description:</strong> @room.Game.Description
+                                </div>
+                                <div class="room-status @(room.Stage == -1 ? "status-waiting"
+                                                    : room.Stage == 0   ? "status-ongoing"
+                                                                        : "status-ended")">
+                                    @if (room.Stage == -1)
+                                    {
+                                        <i class="fa-solid fa-clock me-1"> Waiting for host to start</i>
+                                    }
+                                    else if (room.Stage == 0)
+                                    {
+                                        <i class="fa-solid fa-play me-1"> Ongoing match</i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-flag-checkered me-1"> Match ended</i> 
+                                    }
+                                </div>
+                                <a class="btn btn-view-details mt-3"
+                                   asp-controller="Match"
+                                   asp-action="CurrentMatch"
+                                   asp-route-id="@room.Id">
+                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="no-rooms-message">
+                            You haven't joined or hosted any active rooms.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+            document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('rSearch');
+
+            searchInput.addEventListener('keyup', function () {
+                const term = searchInput.value.trim().toLowerCase();
+
+                document.querySelectorAll('#availableScroll .room-card-wrapper').forEach(wrapper => {
+                    const titleEl = wrapper.querySelector('.room-card-title');
+                    if (!titleEl) return;
+                    const titleText = titleEl.textContent.trim().toLowerCase();
+                    wrapper.style.display = titleText.includes(term) ? '' : 'none';
+                });
+
+                document.querySelectorAll('#yourScroll .room-card-wrapper').forEach(wrapper => {
+                    const titleEl = wrapper.querySelector('.room-card-title');
+                    if (!titleEl) return;
+                    const titleText = titleEl.textContent.trim().toLowerCase();
+                    wrapper.style.display = titleText.includes(term) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"
+    ></script>
+</body>
+</html>

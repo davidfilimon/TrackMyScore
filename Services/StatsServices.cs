@@ -42,7 +42,7 @@ public class StatsService
             UsersLastWeek = await _db.Users.CountAsync(u => u.AccountCreationDate >= DateOnly.FromDateTime(weekAgo)),
             UsersLastMonth = await _db.Users.CountAsync(u => u.AccountCreationDate >= DateOnly.FromDateTime(monthAgo)),
 
-            // MATCHES
+            // // MATCHES
             TotalMatches = await _db.Matches.CountAsync(),
             MatchesLastDay = await _db.Matches.CountAsync(m => m.StartDate >= today),
             MatchesLastWeek = await _db.Matches.CountAsync(m => m.StartDate >= weekAgo),

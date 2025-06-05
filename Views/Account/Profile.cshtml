@@ -1,11 +1,12 @@
 ﻿@using TrackMyScore.Services
 @model TrackMyScore.Models.UserGamesModel
 @{
-    int loggedUser = (int) ViewData["loggedUserId"];
-    var customGames = Model.CustomGames;
-    var matches = Model.Matches;
-    var tournaments = Model.Tournaments;
+    int loggedUser = (int)ViewData["loggedUserId"];
+    var customGames = Model.CustomGames ?? new List<Game>();
+    var matches = Model.Matches ?? new List<Match>();
+    var tournaments = Model.Tournaments ?? new List<Tournament>();
     int pictureId = Model.User.Picture;
+    var matchWinners = Model.MatchWinners ?? new Dictionary<int, string>();
 }
 @inject FollowerService followerService
 
@@ -32,9 +33,9 @@
         --spacing:        8px;
     }
 
-    .form-control
-    {
+    .form-control {
       background-color: var(--primary-light);
+      color: var(--text-light);
     }
 
     body {
@@ -187,27 +188,27 @@
     .follower-item {
         padding: calc(var(--spacing)*1);
         border-bottom: 1px solid var(--primary-light);
-        display: flex; /* Adăugat */
-        align-items: center; /* Adăugat */
-        gap: 10px; /* Adăugat spațiu între elemente */
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .follower-item:last-child {
         border-bottom: none;
     }
 
-    .follower-item .user-info { /* Adăugat un div pentru nume și avatar */
+    .follower-item .user-info {
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    .follower-item .user-avatar { /* Stil pentru avatarul din modal */
-        width: 40px; /* Dimensiune mai mică pentru avatar în modal */
+    .follower-item .user-avatar {
+        width: 40px;
         height: 40px;
         border-radius: 50%;
         object-fit: cover;
-        background-color: var(--accent-gold); /* Fallback background */
+        background-color: var(--accent-gold);
         color: var(--primary-dark);
         display: flex;
         align-items: center;
@@ -315,38 +316,38 @@
 <body>
   <div class="container">
     <div class="profile-header d-flex align-items-center">
-      @if(@Model.User.Picture == 0){
+      @if (Model.User.Picture == 0) {
         <div class="avatar">@Model.User.Username[0].ToString().ToUpper()</div>
       } else {
         <img 
-        class="avatar" 
-        src="~/images/avatars/avatar-@(pictureId).png" 
-        alt="@Model.User.Username" 
-        width="128" height="128" />
+          class="avatar" 
+          src="~/images/avatars/avatar-@(pictureId).png" 
+          alt="@Model.User.Username" 
+          width="128" height="128" />
       }
       <h2>@Model.User.Username</h2>
-      @if (Model.User.isAdmin && loggedUser==Model.User.Id)
-      {
+      @if (Model.User.isAdmin && loggedUser == Model.User.Id) {
         <a asp-controller="Admin" asp-action="Dashboard" class="admin-button">
           <i class="fa-solid fa-gear fa-lg"></i>
         </a>
       }
     </div>
+
     <div class="d-flex mb-3">
-      @if (loggedUser != 0 && loggedUser != Model.User.Id)
-      {
+      @if (loggedUser != 0 && loggedUser != Model.User.Id) {
         var isFollowing = await followerService.IsFollowing(loggedUser, Model.User.Id);
-        @if(isFollowing){
-        <button onclick="unfollow(@Model.User.Id)" class="btn follow-btn me-3">
-          Unfollow
-        </button>
+        @if(isFollowing) {
+          <button onclick="unfollow(@Model.User.Id)" class="btn follow-btn me-3">
+            Unfollow
+          </button>
         } else {
-        <button onclick="follow(@Model.User.Id)" class="btn follow-btn me-3">
+          <button onclick="follow(@Model.User.Id)" class="btn follow-btn me-3">
             Follow
-        </button>
+          </button>
         } 
-      } else if (loggedUser == Model.User.Id){
-        <button onclick = "editProfile()" class="btn follow-btn me-3">Edit Profile</button>
+      }
+      else if (loggedUser == Model.User.Id) {
+        <button onclick="editProfile()" class="btn follow-btn me-3">Edit Profile</button>
       }
       <div class="followers-counts d-flex gap-3 mt-2">
         <a href="#" data-bs-toggle="modal" data-bs-target="#followersModal">
@@ -369,181 +370,175 @@
     <div class="tab-content">
       <div id="info" class="tab-pane fade show active">
         <h3>Player Info</h3>
-        <p>Since: @Model.User.AccountCreationDate</p>
+        <p>Since: @Model.User.AccountCreationDate.ToString("yyyy-MM-dd")</p>
         <p>Respect: @Model.User.RespectPoints</p>
       </div>
+
       <div id="history" class="tab-pane fade">
-    <h3>Match History</h3>
+        <h3>Match History</h3>
 
-    <div class="d-flex gap-3 mb-3 align-items-center">
-      <label class="mb-0">Month:</label>
-      <select id="matchMonthFilter" class="form-select w-auto select-filter">
-        <option value="">All</option>
-        @for(int m = 1; m <= 12; m++){
-          <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
-        }
-      </select>
-      <label class="mb-0">Year:</label>
-      <select id="matchYearFilter" class="form-select w-auto select-filter">
-        <option value="">All</option>
-        @for(int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--){
-          <option value="@y">@y</option>
-        }
-      </select>
-    </div>
+        <div class="d-flex gap-3 mb-3 align-items-center">
+          <label class="mb-0">Month:</label>
+          <select id="matchMonthFilter" class="form-select w-auto select-filter">
+            <option value="">All</option>
+            @for (int m = 1; m <= 12; m++) {
+              <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+            }
+          </select>
+          <label class="mb-0">Year:</label>
+          <select id="matchYearFilter" class="form-select w-auto select-filter">
+            <option value="">All</option>
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--) {
+              <option value="@y">@y</option>
+            }
+          </select>
+        </div>
 
-    <div class="games-list">
-      @foreach(var m in matches.Where(x=>x.Match.Room.Stage==-2))
-      {
-        var dt = m.Match.StartDate;
-        <div class="card-item match-item"
-             data-month="@dt.Month" data-year="@dt.Year">
-          <div class="info">
-            <strong>@m.Match.Room.Name</strong><br />
-            @m.Match.Room.Game.Title – @dt.ToString("yyyy-MM-dd")<br />
-            Winner: @m.Match.Winner
+        <div class="games-list">
+          @foreach (var m in matches.Where(x => x != null && x.Game != null && x.StartDate != null && x.Stage == -2)) {
+            var dt = m.StartDate;
+            <div class="card-item match-item"
+                 data-month="@dt.Month" data-year="@dt.Year">
+              <div class="info">
+                <strong>@m.Name</strong><br/>
+                @m.Game.Title - @dt.ToString("yyyy-MM-dd")<br/>
+                Winner: @matchWinners.GetValueOrDefault(m.Id, "N/A")
+              </div>
+              <a asp-controller="Match" asp-action="CurrentMatch" asp-route-id="@m.Id"
+                  class="btn details-btn">View</a>
+            </div>
+          }
+          @if (!matches.Any(x => x != null && x.Game != null && x.StartDate != null && x.Stage == -2)) {
+            <p>No matches yet.</p>
+          }
+        </div>
+      </div>
+
+      <div id="tournaments" class="tab-pane fade">
+        <h3>Tournament History</h3>
+
+        <div class="d-flex gap-3 mb-3 align-items-center">
+          <label class="mb-0">Month:</label>
+          <select id="tournMonthFilter" class="form-select w-auto select-filter">
+            <option value="">All</option>
+            @for (int m = 1; m <= 12; m++) {
+              <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+            }
+          </select>
+          <label class="mb-0">Year:</label>
+          <select id="tournYearFilter" class="form-select w-auto select-filter">
+            <option value="">All</option>
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--) {
+              <option value="@y">@y</option>
+            }
+          </select>
+        </div>
+
+        <div class="tournaments-list">
+          @foreach (var t in tournaments.Where(t => t != null && t.StartDate != null)) {
+            var dt = t.StartDate;
+            <div class="card-item tourn-item"
+                 data-month="@dt.Month" data-year="@dt.Year">
+              <div class="info">
+                <strong>@t.Name</strong><br/>
+                @dt.ToString("yyyy-MM-dd") - Winner:
+              </div>
+              <a asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@t.Id"
+                  class="btn details-btn">View</a>
+            </div>
+          }
+          @if (!tournaments.Any(t => t != null && t.StartDate != null)) {
+            <p>No tournaments.</p>
+          }
+        </div>
+      </div>
+
+      <div id="stats" class="tab-pane fade">
+        <h3>Statistics</h3>
+        <div class="statistics-grid">
+          <div class="card-item mb-3">
+            <div class="info">
+              <strong>Total Matches Played:</strong>
+              <span class="ms-2">@Model.TotalMatchesPlayed</span>
+            </div>
           </div>
-          <a asp-controller="Room" asp-action="CurrentRoom" asp-route-id="@m.Match.Room.Id"
-              class="btn details-btn">View</a>
-        </div>
-      }
-      @if(!matches.Any(x=>x.Match.Room.Stage==-2))
-      {
-        <p class="text-muted">No matches yet.</p>
-      }
-    </div>
-  </div>
-
-  <div id="tournaments" class="tab-pane fade">
-    <h3>Tournament History</h3>
-
-    <div class="d-flex gap-3 mb-3 align-items-center">
-      <label class="mb-0">Month:</label>
-      <select id="tournMonthFilter" class="form-select w-auto select-filter">
-        <option value="">All</option>
-        @for(int m = 1; m <= 12; m++){
-          <option value="@m">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
-        }
-      </select>
-      <label class="mb-0">Year:</label>
-      <select id="tournYearFilter" class="form-select w-auto select-filter">
-        <option value="">All</option>
-        @for(int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--){
-          <option value="@y">@y</option>
-        }
-      </select>
-    </div>
-
-    <div class="tournaments-list">
-      @foreach(var t in tournaments)
-      {
-        var dt = t.StartDate;
-        <div class="card-item tourn-item"
-             data-month="@dt.Month" data-year="@dt.Year">
-          <div class="info">
-            <strong>@t.Name</strong><br />
-            @dt.ToString("yyyy-MM-dd") - Winner: @t.Winner
+          <div class="card-item mb-3">
+            <div class="info">
+              <strong>Matches Won:</strong>
+              <span class="ms-2">@Model.MatchesWon</span>
+            </div>
           </div>
-          <a asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@t.Id"
-              class="btn details-btn">View</a>
-        </div>
-      }
-      @if(!tournaments.Any())
-      {
-        <p class="text-muted">No tournaments.</p>
-      }
-    </div>
-  </div>
-<div id="stats" class="tab-pane fade">
-    <h3>Statistics</h3>
-    <div class="statistics-grid">
-        <div class="card-item">
-            <div class="info">
-                <strong>Total Matches Played:</strong>
-                <span class="ms-2">@Model.TotalMatchesPlayed</span>
+          @if (Model.TotalMatchesPlayed > 0) {
+            <div class="card-item mb-3">
+              <div class="info">
+                <strong>Match Win Rate:</strong>
+                @{
+                    double matchWinRate = (double)Model.MatchesWon / Model.TotalMatchesPlayed * 100;
+                }
+                <span class="ms-2">@matchWinRate.ToString("F2")%</span>
+              </div>
             </div>
-        </div>
-        <div class="card-item">
-            <div class="info">
-                <strong>Matches Won:</strong>
-                <span class="ms-2">@Model.MatchesWon</span>
+          } else {
+            <div class="card-item mb-3">
+              <div class="info">
+                <strong>Match Win Rate:</strong>
+                <span class="ms-2">N/A</span>
+              </div>
             </div>
-        </div>
-        @if (Model.TotalMatchesPlayed > 0)
-        {
-            <div class="card-item">
-                <div class="info">
-                    <strong>Match Win Rate:</strong>
-                    @{
-                        double matchWinRate = (double)Model.MatchesWon / Model.TotalMatchesPlayed * 100;
-                    }
-                    <span class="ms-2">@matchWinRate.ToString("F2")%</span>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="card-item">
-                <div class="info">
-                    <strong>Match Win Rate:</strong>
-                    <span class="ms-2">N/A</span>
-                </div>
-            </div>
-        }
+          }
 
-        <hr style="border-color: var(--primary-light); margin: 2rem 0;" />
+          <hr style="border-color: var(--primary-light); margin: 2rem 0;" />
 
-        <div class="card-item">
+          <div class="card-item mb-3">
             <div class="info">
-                <strong>Total Tournaments Played:</strong>
-                <span class="ms-2">@Model.TotalTournamentsPlayed</span>
+              <strong>Total Tournaments Played:</strong>
+              <span class="ms-2">@Model.TotalTournamentsPlayed</span>
             </div>
-        </div>
-        <div class="card-item">
+          </div>
+          <div class="card-item mb-3">
             <div class="info">
-                <strong>Tournaments Won:</strong>
-                <span class="ms-2">@Model.TournamentsWon</span>
+              <strong>Tournaments Won:</strong>
+              <span class="ms-2">@Model.TournamentsWon</span>
             </div>
+          </div>
+          @if (Model.TotalTournamentsPlayed > 0) {
+            <div class="card-item mb-3">
+              <div class="info">
+                <strong>Tournament Win Rate:</strong>
+                @{
+                    double tournWinRate = (double)Model.TournamentsWon / Model.TotalTournamentsPlayed * 100;
+                }
+                <span class="ms-2">@tournWinRate.ToString("F2")%</span>
+              </div>
+            </div>
+          } else {
+            <div class="card-item mb-3">
+              <div class="info">
+                <strong>Tournament Win Rate:</strong>
+                <span class="ms-2">N/A</span>
+              </div>
+            </div>
+          }
         </div>
-        @if (Model.TotalTournamentsPlayed > 0)
-        {
-            <div class="card-item">
-                <div class="info">
-                    <strong>Tournament Win Rate:</strong>
-                    @{
-                        double tournWinRate = (double)Model.TournamentsWon / Model.TotalTournamentsPlayed * 100;
-                    }
-                    <span class="ms-2">@tournWinRate.ToString("F2")%</span>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="card-item">
-                <div class="info">
-                    <strong>Tournament Win Rate:</strong>
-                    <span class="ms-2">N/A</span>
-                </div>
-            </div>
-        }
-        </div>
-</div>
+      </div>
+
       <div id="custom" class="tab-pane fade">
         <h3>Custom Games</h3>
         <div class="games-list">
-          @foreach(var g in customGames)
-          {
+          @foreach (var g in customGames) {
             <div class="card-item">
               <div class="info">
-                <strong>@g.Title</strong><br />
-                By @g.Author.Username - Players: @g.MaxPlayers
+                <strong>@g.Title</strong><br/>
+                By @g.Author.Username – Players: @g.MaxPlayers
               </div>
               <a asp-controller="Games" asp-action="Details" asp-route-id="@g.Id" class="btn details-btn">
                 View
               </a>
             </div>
           }
-          @if(!customGames.Any()) { <p class="text-muted">No custom games.</p> }
+          @if (!customGames.Any()) {
+            <p>No custom games.</p>
+          }
         </div>
       </div>
     </div>
@@ -552,20 +547,22 @@
   <div class="modal fade" id="followersModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header"><h5>Followers</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header">
+          <h5>Followers</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
         <div class="modal-body">
-          @foreach(var u in await followerService.GetFollowers(Model.User.Id))
-          {
+          @foreach (var u in await followerService.GetFollowers(Model.User.Id)) {
             <div class="follower-item justify-content-between" data-user-id="@u.Id">
-                <div class="user-info">
-                    @if(u.Picture == 0){
-                        <div class="user-avatar">@u.Username[0].ToString().ToUpper()</div>
-                    } else {
-                        <img class="user-avatar" src="~/images/avatars/avatar-@(u.Picture).png" alt="@u.Username" />
-                    }
-                    <span>@u.Username</span>
-                </div>
-                <a asp-controller="Account" asp-action="Profile" asp-route-id="@u.Id" class="btn details-btn btn-sm">View</a>
+              <div class="user-info">
+                @if (u.Picture == 0) {
+                  <div class="user-avatar">@u.Username[0].ToString().ToUpper()</div>
+                } else {
+                  <img class="user-avatar" src="~/images/avatars/avatar-@(u.Picture).png" alt="@u.Username" />
+                }
+                <span>@u.Username</span>
+              </div>
+              <a asp-controller="Account" asp-action="Profile" asp-route-id="@u.Id" class="btn details-btn btn-sm">View</a>
             </div>
           }
         </div>
@@ -576,20 +573,22 @@
   <div class="modal fade" id="followingModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header"><h5>Following</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header">
+          <h5>Following</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
         <div class="modal-body">
-          @foreach(var u in await followerService.GetFollowing(Model.User.Id))
-          {
+          @foreach (var u in await followerService.GetFollowing(Model.User.Id)) {
             <div class="follower-item justify-content-between" data-user-id="@u.Id">
-                <div class="user-info">
-                    @if(u.Picture == 0){
-                        <div class="user-avatar">@u.Username[0].ToString().ToUpper()</div>
-                    } else {
-                        <img class="user-avatar" src="~/images/avatars/avatar-@(u.Picture).png" alt="@u.Username" />
-                    }
-                    <span>@u.Username</span>
-                </div>
-                <a asp-controller="Account" asp-action="Profile" asp-route-id="@u.Id" class="btn details-btn btn-sm">View</a>
+              <div class="user-info">
+                @if (u.Picture == 0) {
+                  <div class="user-avatar">@u.Username[0].ToString().ToUpper()</div>
+                } else {
+                  <img class="user-avatar" src="~/images/avatars/avatar-@(u.Picture).png" alt="@u.Username" />
+                }
+                <span>@u.Username</span>
+              </div>
+              <a asp-controller="Account" asp-action="Profile" asp-route-id="@u.Id" class="btn details-btn btn-sm">View</a>
             </div>
           }
         </div>
@@ -597,186 +596,178 @@
     </div>
   </div>
 
-    <div id="editPopup" class="popup-overlay" style="display:none;">
-      <div class="popup-content">
-        <span class="close-btn" onclick="closePopup()">&times;</span>
-        <h3>Edit Profile</h3>
-        <div id="editMessage" class="mb-3" style="display:none; padding:8px; border-radius:4px;"></div>
-        <form id="editForm" method="post" asp-controller="Account" asp-action="EditProfile">
-          <input type="hidden" name="userId" value="@Model.User.Id" />
-          <div class="mb-2">
-            <label>Username:</label>
-            <input type="text" name="username" value="@Model.User.Username" class="form-control" />
-          </div>
-          <div class="mb-2">
-            <label>Select Profile Picture:</label>
-            <div class="avatar-selection">
-              @for (int i = 1; i <= 8; i++)
-              {
-                  bool isChecked = (Model.User.Picture == i);
-                  <label>
-                    <input type="radio" name="photoId" value="@i" @(isChecked ? "checked" : "") hidden onchange="selectAvatar(this)" />
-                    <img src="~/images/avatars/avatar-@(i).png" class="avatar-option @(isChecked?"selected":"")" data-index="@i" />
-                  </label>
-              }
-            </div>
-          </div>
-          <div class="mb-2">
-            <div>
-              <label>Old password:</label>
-              <input type="password" name="oldPassword" class="form-control"/>
-            </div>
-            <div class="mb-2">
-              <label>New password:</label>
-              <input type="password" name="newPassword" class="form-control"/>
-            </div>
-            <div class="mb-2">
-              <label>Confirm password:</label>
-              <input type="password" name="confirmPassword" class="form-control"/>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary mt-2">Save</button>
-        </form>
-      </div>
-    </div>
-
-    <script>
-    function toggleFavorite(gameId, element) {
-        $.ajax({
-            type: 'POST',
-            url: '/Games/togglefavorite/' + gameId,
-            success: function (response) {
-                let icon = element.querySelector("i");
-                if (icon.classList.contains("fa-solid")) {
-                    icon.classList.remove("fa-solid");
-                    icon.classList.add("fa-regular");
-                } else {
-                    icon.classList.remove("fa-regular");
-                    icon.classList.add("fa-solid");
-                }
-            },
-            error: function () {
-                alert("Error on changing the favorite status of the game. Reload and try again!");
+  <div id="editPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-content">
+      <span class="close-btn" onclick="closePopup()">&times;</span>
+      <h3>Edit Profile</h3>
+      <div id="editMessage" class="mb-3"></div>
+      <form id="editForm" method="post" asp-controller="Account" asp-action="EditProfile">
+        <input type="hidden" name="userId" value="@Model.User.Id" />
+        <div class="mb-2">
+          <label>Username:</label>
+          <input type="text" name="username" value="@Model.User.Username" class="form-control" />
+        </div>
+        <div class="mb-2">
+          <label>Select Profile Picture:</label>
+          <div class="avatar-selection">
+            @for (int i = 1; i <= 8; i++) {
+              bool isChecked = (Model.User.Picture == i);
+              <label>
+                <input type="radio" name="photoId" value="@i" @(isChecked ? "checked" : "") hidden onchange="selectAvatar(this)" />
+                <img src="~/images/avatars/avatar-@(i).png" class="avatar-option @(isChecked? "selected" : "")" data-index="@i" />
+              </label>
             }
-        });
+          </div>
+        </div>
+        <div class="mb-2">
+          <div>
+            <label>Old password:</label>
+            <input type="password" name="oldPassword" class="form-control"/>
+          </div>
+          <div class="mb-2">
+            <label>New password:</label>
+            <input type="password" name="newPassword" class="form-control"/>
+          </div>
+          <div class="mb-2">
+            <label>Confirm password:</label>
+            <input type="password" name="confirmPassword" class="form-control"/>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Save</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function toggleFavorite(gameId, element) {
+      $.ajax({
+        type: 'POST',
+        url: '/Games/togglefavorite/' + gameId,
+        success: function (response) {
+          let icon = element.querySelector("i");
+          if (icon.classList.contains("fa-solid")) {
+            icon.classList.remove("fa-solid");
+            icon.classList.add("fa-regular");
+          } else {
+            icon.classList.remove("fa-regular");
+            icon.classList.add("fa-solid");
+          }
+        },
+        error: function () {
+          alert("Error on changing the favorite status of the game. Reload and try again!");
+        }
+      });
     }
 
     function follow(id) {
-        $.ajax({
-            type: 'POST',
-            url: '/follower/follow/' + id,
-            success: function () {
-                window.location.reload();
-            },
-            error: function () {
-                alert("Error on following the user. Please try again!");
-            }
-        });
+      $.ajax({
+        type: 'POST',
+        url: '/follower/follow/' + id,
+        success: function () {
+          window.location.reload();
+        },
+        error: function () {
+          alert("Error on following the user. Please try again!");
+        }
+      });
     }
 
     function unfollow(id) {
-        $.ajax({
-            type: 'POST',
-            url: '/follower/unfollow/' + id,
-            success: function () {
-                window.location.reload();
-            },
-            error: function () {
-                alert("Error on unfollowing the user. Please try again!");
-            }
-        });
+      $.ajax({
+        type: 'POST',
+        url: '/follower/unfollow/' + id,
+        success: function () {
+          window.location.reload();
+        },
+        error: function () {
+          alert("Error on unfollowing the user. Please try again!");
+        }
+      });
     }
 
     function setupFilter(selectMonthId, selectYearId, itemClass) {
-        const monthSel = document.getElementById(selectMonthId);
-        const yearSel = document.getElementById(selectYearId);
-        function filter() {
-            const m = monthSel.value;
-            const y = yearSel.value;
-            document.querySelectorAll('.' + itemClass).forEach(el => {
-                const em = el.getAttribute('data-month');
-                const ey = el.getAttribute('data-year');
-                let show = true;
-                if (m && em !== m) show = false;
-                if (y && ey !== y) show = false;
-                el.style.display = show ? '' : 'none';
-            });
-        }
-        monthSel.addEventListener('change', filter);
-        yearSel.addEventListener('change', filter);
+      const monthSel = document.getElementById(selectMonthId);
+      const yearSel = document.getElementById(selectYearId);
+      function filter() {
+        const m = monthSel.value;
+        const y = yearSel.value;
+        document.querySelectorAll('.' + itemClass).forEach(el => {
+          const em = el.getAttribute('data-month');
+          const ey = el.getAttribute('data-year');
+          let show = true;
+          if (m && em !== m) show = false;
+          if (y && ey !== y) show = false;
+          el.style.display = show ? '' : 'none';
+        });
+      }
+      monthSel.addEventListener('change', filter);
+      yearSel.addEventListener('change', filter);
     }
 
-
     function editProfile() {
-        document.getElementById("editPopup").style.display = "flex";
+      document.getElementById("editPopup").style.display = "flex";
     }
 
     function closePopup() {
-        document.getElementById("editPopup").style.display = "none";
+      document.getElementById("editPopup").style.display = "none";
     }
 
     function selectAvatar(radio) {
-        document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
-        var idx = radio.value;
-        document.querySelector('.avatar-option[data-index="' + idx + '"]').classList.add('selected');
+      document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+      var idx = radio.value;
+      document.querySelector('.avatar-option[data-index="' + idx + '"]').classList.add('selected');
     }
 
     $(document).ready(function() {
-        console.log("Script loaded and DOM is ready.");
+      setupFilter('matchMonthFilter', 'matchYearFilter', 'match-item');
+      setupFilter('tournMonthFilter', 'tournYearFilter', 'tourn-item');
 
-        setupFilter('matchMonthFilter','matchYearFilter','match-item');
-        setupFilter('tournMonthFilter','tournYearFilter','tourn-item');
+      $('#editForm').on('submit', function(e) {
+        e.preventDefault();
 
-        $('#editForm').on('submit', function(e) {
-            e.preventDefault();
-            console.log("Form submission prevented!");
+        var data = $(this).serializeArray();
+        var pwd = data.find(f => f.name === 'newPassword').value;
+        var cpw = data.find(f => f.name === 'confirmPassword').value;
+        var editMessageDiv = $('#editMessage');
 
-            var data = $(this).serializeArray();
-            var pwd = data.find(f => f.name === 'newPassword').value;
-            var cpw = data.find(f => f.name === 'confirmPassword').value;
-            var editMessageDiv = $('#editMessage');
+        if ((pwd || cpw) && pwd !== cpw) {
+          editMessageDiv
+            .removeClass('success error')
+            .addClass('error')
+            .text('Passwords do not match')
+            .show();
+          return;
+        }
 
-            if ((pwd || cpw) && pwd !== cpw) {
-                editMessageDiv
-                    .removeClass('success error')
-                    .addClass('error')
-                    .text('Passwords do not match')
-                    .show();
-                return;
+        $.ajax({
+          url: '/Account/EditProfile',
+          type: 'POST',
+          data: data,
+          success: function(response) {
+            if (response.success) {
+              editMessageDiv
+                .removeClass('error')
+                .addClass('success')
+                .text(response.message)
+                .show();
+            } else {
+              editMessageDiv
+                .removeClass('success')
+                .addClass('error')
+                .text(response.message)
+                .show();
             }
-
-            $.ajax({
-                url: '/Account/EditProfile',
-                type: 'POST',
-                data: data,
-                success: function(response) {
-                    console.log("AJAX Success:", response); 
-                    if (response.success) {
-                        editMessageDiv
-                            .removeClass('error')
-                            .addClass('success')
-                            .text(response.message)
-                            .show();
-                    } else {
-                        editMessageDiv
-                            .removeClass('success')
-                            .addClass('error')
-                            .text(response.message)
-                            .show();
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", status, error, xhr.responseText); 
-                    editMessageDiv
-                        .removeClass('success error')
-                        .addClass('error')
-                        .text('Error updating profile. Please try again. Check console for details.')
-                        .show();
-                }
-            });
+          },
+          error: function(xhr, status, error) {
+            editMessageDiv
+              .removeClass('success error')
+              .addClass('error')
+              .text('Error updating profile. Please try again.')
+              .show();
+          }
         });
-
+      });
     });
-    </script>
+  </script>
 </body>
 </html>

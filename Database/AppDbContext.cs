@@ -14,13 +14,11 @@ namespace TrackMyScore.Database
         public DbSet<Game> Games { get; set; }
         public DbSet<Followers> Followers { get; set; }
         public DbSet<FavoriteGame> FavoriteGames { get; set; }
-        public DbSet<Room> Rooms { get; set; }
         public DbSet<Match> Matches { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
-        public DbSet<JoinRoom> JoinRooms { get; set; }
         public DbSet<Team> Teams { get; set; }
-        public DbSet<Participant> Participants { get; set; }
         public DbSet<Player> Players { get; set; }
+        public DbSet<TeamPlayer> TeamPlayers { get; set; }
 
     }
 }

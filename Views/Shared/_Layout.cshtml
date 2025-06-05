@@ -75,13 +75,13 @@
 
         #mainNavbar .navbar-nav .nav-link {
             color: #B5FFE1 !important;
-            border-radius: 5px;
-            padding: 8px 15px;
+            border-radius: 5px !important;
+            padding: 8px 15px !important;
             transition: all 0.3s ease;
         }
 
         #mainNavbar .navbar-nav .nav-link:hover {
-            background-color: #65B891;
+            background-color: #65B891 !important;
             color: #00241B !important;
         }
 
@@ -100,11 +100,13 @@
             padding-right: 10px !important;
             color: black !important;
             background-color: #FFFFFF !important;
+            height: 40px !important;
         }
 
         #mainSearchButton {
             font-size: 1.2rem;
-            padding-right: 30px;
+            padding-right: 20px;
+            padding-left: 1px;
         }
 
         #mainSearchIcon {
@@ -176,42 +178,6 @@
             padding-top: calc(var(--navbar-height) + 1rem) !important;
         }
 
-        .welcome-alert {
-            background-color: #B5FFE1;
-            color: #00241B;
-            border: none;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            padding: 15px;
-        }
-
-        .custom-card {
-            background-color: #65B891;
-            border-radius: 10px;
-            color: white;
-            margin: 20px;
-            padding: 20px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .custom-card .card-header {
-            background-color: #4E878C;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .custom-card .list-group-item {
-            background-color: #93E5AB;
-            color: #00241B;
-            border: none;
-            border-radius: 5px;
-            margin: 5px 0;
-        }
-
-        .custom-card .list-group-item:hover {
-            background-color: #B5FFE1 !important;
-            cursor: pointer !important;
-        }
-
         @@media (max-width: 991.98px) {
             #mainSearchBarForm {
                 width: 100%;
@@ -253,6 +219,10 @@
                 display: inline-block;
             }
         }
+
+        #mainSearchBarForm{
+            padding-left: 5px !important;
+        }
     </style>
 </head>
 <body>
@@ -272,7 +242,7 @@
                         </a>
                     </li>
                     <li class="nav-item" id="playNavItem">
-                        <a class="nav-link" asp-controller="Room" asp-action="List">
+                        <a class="nav-link" asp-controller="Match" asp-action="List">
                             <i class="fa-solid fa-play"></i> Play
                         </a>
                     </li>
@@ -291,18 +261,18 @@
                 </form>
 
                 <ul class="navbar-nav">
+                    @if (username != null)
+                    {
                     <li class="nav-item" id="profileNavItem">
                         <a class="nav-link" asp-controller="Account" asp-action="Profile" asp-route-id="@user?.Id" id="profileIconLink">
                             <i class="fa-solid fa-user"></i> <span>Profile</span>
                         </a>
                     </li>
-                    @if (username != null)
-                    {
-                        <li class="nav-item" id="logoutNavItem">
-                            <a class="nav-link" asp-controller="Account" asp-action="Logout" id="logoutIconLink">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                            </a>
-                        </li>
+                    <li class="nav-item" id="logoutNavItem">
+                        <a class="nav-link" asp-controller="Account" asp-action="Logout" id="logoutIconLink">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </a>
+                    </li>
                     }
                     else
                     {

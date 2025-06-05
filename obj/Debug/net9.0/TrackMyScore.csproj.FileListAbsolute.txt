@@ -150,6 +150,7 @@ D:\TrackMyScore\obj\Debug\net9.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.cs
 D:\TrackMyScore\obj\Debug\net9.0\scopedcss\bundle\TrackMyScore.styles.css
 D:\TrackMyScore\obj\Debug\net9.0\scopedcss\projectbundle\TrackMyScore.bundle.scp.css
 D:\TrackMyScore\obj\Debug\net9.0\compressed\qla6i1ffii-61n19gt1b8.gz
+D:\TrackMyScore\obj\Debug\net9.0\compressed\5erd8g1fec-8t21ciwlcw.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\0apgy4e1cf-nakmwdwsxp.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\0zf3lfia5o-st1cbwfwo5.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\syw134p19k-5p029spbuu.gz
@@ -218,4 +219,3 @@ D:\TrackMyScore\obj\Debug\net9.0\refint\TrackMyScore.dll
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyScore.pdb
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyScore.genruntimeconfig.cache
 D:\TrackMyScore\obj\Debug\net9.0\ref\TrackMyScore.dll
-D:\TrackMyScore\obj\Debug\net9.0\compressed\5erd8g1fec-8t21ciwlcw.gz

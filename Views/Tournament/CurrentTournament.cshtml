@@ -3,28 +3,28 @@
 @inject UserService userService
 
 @{
+    Layout = "_Layout";
     var tour = Model.Tournament;
-    var rooms = Model.Rooms.Where(r => r.Tournament.Id == tour.Id).ToList();
-    var players = Model.Players ?? Enumerable.Empty<Player>();
+    var singlePlayers = Model.SinglePlayers ?? Enumerable.Empty<Player>();
+    var teamPlayers = Model.TeamPlayers ?? Enumerable.Empty<TeamPlayer>();
     var teams = Model.Teams ?? Enumerable.Empty<Team>();
     var matches = Model.Matches;
-    int totalRounds = tour.Stage;
-    var currentStageRooms = rooms.Where(r => r.Stage == tour.Stage).ToList();
-    int leafCount = rooms.Count(r => r.Stage == 1);
-    int gridRows = leafCount * 2 - 1;
-    int totalCols = totalRounds + 1;
-    ViewData["Title"] = Model.Tournament.Name;
+    var maxCompletedStage = matches.Where(m => m.Stage > 0).Any()
+        ? matches.Where(m => m.Stage > 0).Max(m => m.Stage)
+        : 1;
+    int totalRounds = Math.Max(tour.Stage, maxCompletedStage);
+    string tournamentWinner = Model.TournamentWinner;
+    ViewData["Title"] = tour.Name;
 }
 
 <!DOCTYPE html>
-<html lang="en">
-  <meta charset="utf-8" />
-  <title>@ViewData["Title"] - TrackMyScore</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>@tour.Name – Bracket</title>
-  <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
-  <style>
+<meta charset="utf-8" />
+<title>@ViewData["Title"] - TrackMyScore</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
     :root {
       --primary-dark: #1A3C2A;
       --primary:      #2A5940;
@@ -52,7 +52,6 @@
       padding: calc(var(--spacing)*2);
     }
 
-    /* left panel */
     .details-card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -92,7 +91,6 @@
       min-width: 120px;
     }
 
-    /* right panel */
     .participants-card h2 {
       color: var(--accent-gold);
       font-size: 1.3rem;
@@ -140,16 +138,38 @@
       border-radius: 5px;
     }
 
-    /* bracket */
     .bracket-section {
       grid-column:1 / -1;
       margin-top: calc(var(--spacing)*3 + 20px);
+      background-color: var(--card-bg); 
+      border-radius: 12px;
+      padding: calc(var(--spacing) * 4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     }
     .bracket-title {
       text-align:center;
       color: var(--accent-gold);
       font-size:1.5rem;
       margin-bottom: calc(var(--spacing)*2);
+    }
+    .bracket-subtitle {
+      text-align: center;
+      color: var(--accent-gold-light);
+      font-size: 1rem;
+      margin-bottom: calc(var(--spacing) * 1.5);
+    }
+    .bracket-header-row {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(260px, max-content);
+      column-gap: 1.5rem;
+      padding: 0 2rem;
+      margin-bottom: calc(var(--spacing) * 2);
+    }
+    .round-header-label {
+      text-align: center;
+      color: var(--accent-gold);
+      font-weight: bold;
     }
     .bracket-container {
       display: grid;
@@ -161,67 +181,37 @@
       padding: 20px 2rem 2rem;
       align-items: start;
     }
-    .bracket-round {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      position: relative;
-    }
-    .round-header {
-      text-align:center;
-      color: var(--accent-gold);
-      font-weight:bold;
-      margin-bottom: calc(var(--spacing));
-    }
-    .round-matches {
-    display: grid;
-    grid-auto-rows: min-content;
-    row-gap: var(--spacing);
-    position: relative;
-    overflow: visible;
-    }
-
     .match-wrapper {
-    position: relative;
-    z-index: 1;
+      position: relative;
+      z-index: 1;
     }
-
     .match-wrapper::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: -12px;
-    width: 12px;
-    height: 2px;
-    background: var(--bracket-line);
-    transform: translateY(-50%);
-    z-index: 0;
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -12px;
+      width: 12px;
+      height: 2px;
+      background: var(--bracket-line);
+      transform: translateY(-50%);
+      z-index: 0;
     }
-
     .match-wrapper::after {
-    content: "";
-    position: absolute;
-    left: -12px;
-    top: 0;
-    width: 2px;
-    height: calc(100% + var(--spacing));
-    background: var(--bracket-line);
-    z-index: 0;
+      content: "";
+      position: absolute;
+      left: -12px;
+      top: 0;
+      width: 2px;
+      height: calc(100% + var(--spacing));
+      background: var(--bracket-line);
+      z-index: 0;
     }
-
     .round-matches .match-wrapper:nth-child(2n-1)::after {
-    clip-path: inset(0 0 calc(50% + var(--spacing)) 0);
+      clip-path: inset(0 0 calc(50% + var(--spacing)) 0);
     }
-
     .round-matches .match-wrapper:nth-child(2n)::after {
-    clip-path: inset(calc(50% + var(--spacing)) 0 0 0);
+      clip-path: inset(calc(50% + var(--spacing)) 0 0 0);
     }
-
-    .match-wrapper::before,
-    .match-wrapper::after {
-    z-index: -1;
-    }
-
     .match-card {
       background: var(--card-bg);
       border-radius:6px;
@@ -249,7 +239,6 @@
     .status-ongoing  { color: var(--accent-gold); }
     .status-completed{ color: var(--success); }
 
-    /* modal */
     .modal-content {
       background: var(--card-bg);
       color: var(--text-light);
@@ -268,249 +257,212 @@
     }
 
     .winner-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: calc(var(--spacing)*3);
-    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: calc(var(--spacing)*3);
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
     }
 
     .winner-card h2 {
-    color: var(--accent-gold);
-    font-size: 1.3rem;
-    margin-bottom: calc(var(--spacing)*1.5);
-    display: flex; align-items:center; gap: .5rem;
+      color: var(--accent-gold);
+      font-size: 1.3rem;
+      margin-bottom: calc(var(--spacing)*1.5);
+      display: flex; align-items:center; gap: .5rem;
     }
 
     .winner-name {
-    font-size: 1.2rem;
-    color: var(--text-light);
-    font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--text-light);
+      font-weight: 600;
     }
 
     .winner-pending {
-    font-style: italic;
-    color: var(--text-muted);
+      font-style: italic;
+      color: var(--text-muted);
     }
 
-    .bracket-subtitle {
-      text-align: center;
-      color: var(--accent-gold-light);
-      font-size: 1rem;
-      margin-bottom: calc(var(--spacing) * 1.5);
+    .alert-fixed {
+      position: fixed !important;
+      top: 120px !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      z-index: 99999 !important;
+      width: auto !important;
+      min-width: 300px !important;
+      max-width: 80% !important;
     }
-    .bracket-section {
-      grid-column:1 / -1;
-      margin-top: calc(var(--spacing)*3 + 20px);
-      background-color: var(--card-bg); 
-      border-radius: 12px;
-      padding: calc(var(--spacing) * 4);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  }
+</style>
 
-    .round-headers {
-    display: flex;
-    justify-content: start; 
-    gap: var(--spacing);
-    margin-bottom: var(--spacing);
-    }
+<div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;">
+    <span id="generalWarningMessageText"></span>
+</div>
+<div class="tournament-page">
 
-    .round-label {
-    display: inline-block;
-    color: var(--accent-gold);
-    font-weight: bold;
-    }
-
-    .bracket-header-row {
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: minmax(260px, max-content);
-        column-gap: 1.5rem;
-        padding: 0 2rem;
-        margin-bottom: calc(var(--spacing) * 2);
-    }
-
-    .round-header-label {
-        text-align: center;
-        color: var(--accent-gold);
-        font-weight: bold;
-    }
-  </style>
-<body>
-  <div class="tournament-page">
-
-    <!-- left -->
     <div class="tournament-details">
-      <div class="details-card">
-        <h1 class="tournament-title">@tour.Name</h1>
-        <div class="info-grid">
-          <div class="info-item"><i class="fa-solid fa-trophy"></i><span>Reward: @tour.Reward</span></div>
-          <div class="info-item"><i class="fa-solid fa-gamepad"></i><span>Game: @tour.Game.Title</span></div>
-          <div class="info-item"><i class="fa-solid fa-calendar"></i><span>@tour.StartDate</span></div>
-          @if(tour.Type == "team"){
-            <div class="info-item"><i class="fa-solid fa-users"></i><span>@tour.MaxPlayers players per team</span></div>
-          }
-          @if(tour.Host == Model.LoggedUser){
-          <div class="info-item"><i class="fa-solid fa-key"></i><span>Code: @tour.Code</span></div>
-          }
-          <div class="info-item"><i class="fa-solid fa-user"></i><span>Host: @tour.Host.Username</span></div>
-        </div>
+        <div class="details-card">
+            <h1 class="tournament-title">@tour.Name</h1>
+            <div class="info-grid">
+                <div class="info-item"><i class="fa-solid fa-trophy"></i><span>Reward: @tour.Reward</span></div>
+                <div class="info-item"><i class="fa-solid fa-gamepad"></i><span>@(matches.FirstOrDefault()?.Game?.Title ?? "N/A")</span></div>
+                <div class="info-item"><i class="fa-solid fa-calendar"></i><span>@tour.StartDate</span></div>
+                @if(matches.FirstOrDefault()?.Mode == "team"){
+                    <div class="info-item"><i class="fa-solid fa-users"></i><span>@(matches.FirstOrDefault()?.Game?.MaxPlayers ?? 0) players per team</span></div>
+                }
+                @if(tour.Host == Model.LoggedUser){
+                <div class="info-item"><i class="fa-solid fa-key"></i><span>Code: @tour.Code</span></div>
+                }
+                <div class="info-item"><i class="fa-solid fa-user"></i><span>Host: @tour.Host.Username</span></div>
+            </div>
 
-        @if(!string.IsNullOrEmpty(tour.Winner))
-        {
-          <div class="winner-banner"><i class="fa-solid fa-crown"></i><span>Winner: @tour.Winner</span></div>
-        }
+            @if(!string.IsNullOrEmpty(tournamentWinner))
+            {
+                <div class="winner-banner"><i class="fa-solid fa-crown"></i><span>Winner: @tournamentWinner</span></div>
+            }
 
-        <div class="tournament-actions">
-          @if(!tour.IsActive && string.IsNullOrEmpty(tour.Winner))
-          {
-            @if(players.Any(p=>p.User.Id==Model.LoggedUser.Id))
-            {
-              <button class="btn btn-danger" onclick="leaveTournament(@tour.Id)">
-                <i class="fa-solid fa-door-open"></i> Leave Tournament
-              </button>
-            }
-            else
-            {
-              <button class="btn btn-primary" onclick="openJoinModal()">
-                <i class="fa-solid fa-right-to-bracket"></i> Join Tournament
-              </button>
-            }
-          }
-          @if(Model.LoggedUser==tour.Host && !Model.Tournament.IsActive && tour.Winner == "")
-          {
-            <button class="btn btn-success" onclick="startTournament()">
-              <i class="fa-solid fa-play"></i> Start Tournament
-            </button>
-            <button class="btn btn-danger" onclick="deleteTournament()">
-              <i class="fa-solid fa-trash"></i> Delete Tournament
-            </button>
-          }
-          @if(tour.IsActive)
-          {
-            if (currentStageRooms.Count == 1 && currentStageRooms[0].Stage > 0)
-            {
-                <button class="btn btn-primary" onclick="endTournament()">
-                    <i class="fa-solid fa-flag-checkered"></i> End Tournament
-                </button>
-            }
-            else
-            {
-                <button class="btn btn-primary" onclick="endStage(@tour.Id)">
-                    <i class="fa-solid fa-forward"></i> End Stage
-                </button>
-            }
-          }
+            <div class="tournament-actions">
+                @if(!tour.IsActive && string.IsNullOrEmpty(tournamentWinner))
+                {
+                    @if(singlePlayers.Any(p => p.User.Id == Model.LoggedUser.Id) || teamPlayers.Any(p => p.UserId == Model.LoggedUser.Id))
+                    {
+                        <button class="btn btn-danger" onclick="leaveTournament(@tour.Id)">
+                            <i class="fa-solid fa-door-open"></i> Leave Tournament
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" onclick="openJoinModal()">
+                            <i class="fa-solid fa-right-to-bracket"></i> Join Tournament
+                        </button>
+                    }
+                }
+                @if(Model.LoggedUser==tour.Host && !Model.Tournament.IsActive && tournamentWinner == "")
+                {
+                    <button class="btn btn-success" onclick="startTournament()">
+                        <i class="fa-solid fa-play"></i> Start Tournament
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteTournament()">
+                        <i class="fa-solid fa-trash"></i> Delete Tournament
+                    </button>
+                }
+                @if(tour.IsActive)
+                {
+                    var currentStageMatches = matches.Where(m => m.Tournament == tour && m.Stage == tour.Stage).ToList();
+                    if (currentStageMatches.Count == 1 && tour.Stage > 0)
+                    {
+                        <button class="btn btn-primary" onclick="endTournament()">
+                            <i class="fa-solid fa-flag-checkered"></i> End Tournament
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" onclick="endStage(@tour.Id)">
+                            <i class="fa-solid fa-forward"></i> End Stage
+                        </button>
+                    }
+                }
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- right -->
     <div class="participants-panel">
-      <div class="participants-card">
-        @if(tour.Type=="single")
-        {
-          <h2><i class="fa-solid fa-users"></i> Participants</h2>
-          <div class="participants-list">
-            @foreach(var p in players)
+        <div class="participants-card">
+            @if(matches.FirstOrDefault()?.Mode=="single")
             {
-              <div class="participant-card">
-                <i class="fa-solid fa-user"></i>
-                <span>
-                    @p.User.Username
-                </span>
+                <h2><i class="fa-solid fa-users"></i> Participants</h2>
+                <div class="participants-list">
+                    @foreach(var p in singlePlayers)
+                    {
+                        @if (p != null && p.User != null){
+                        <div class="participant-card">
+                            <i class="fa-solid fa-user"></i>
+                            <span>@p.User.Username</span>
+                        </div>
+                        }
+                    }
                 </div>
             }
-          </div>
-        }
-        else
-        {
-          <h2><i class="fa-solid fa-users-group"></i> Teams</h2>
-          <div class="teams-list">
-            @foreach(var t in teams)
+            else
             {
-              <div class="team-item">
-                <div class="team-header">
-                  <i class="fa-solid fa-users"></i><h3>@t.Name</h3>
+                <h2><i class="fa-solid fa-users-group"></i> Teams</h2>
+                <div class="teams-list">
+                    @foreach(var t in teams)
+                    {
+                        <div class="team-item">
+                            <div class="team-header">
+                                <i class="fa-solid fa-users"></i><h3>@t.Name</h3>
+                            </div>
+                            <div class="team-members">
+                                @foreach(var p in teamPlayers.Where(x=>x.TeamId==t.Id))
+                                {
+                                    <div class="team-member"><i class="fa-solid fa-user"></i><span>@p.User.Username</span></div>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
-                <div class="team-members">
-                  @foreach(var p in players.Where(x=>x.Team?.Id==t.Id))
-                  {
-                    <div class="team-member"><i class="fa-solid fa-user"></i><span>@p.User.Username</span></div>
-                  }
-                </div>
-              </div>
             }
-          </div>
-        }
-      </div>
-    </div>
-    <!-- winner panel -->
-    <div class="winner-panel">
-      <div class="winner-card align-items-center">
-        <h2><i class="fa-solid fa-crown"></i> Winner</h2>
-        @if (!string.IsNullOrEmpty(tour.Winner))
-        {
-          <div class="winner-name">@tour.Winner</div>
-        }
-        else
-        {
-          <div class="winner-pending">Tournament did not end.</div>
-        }
-      </div>
+        </div>
     </div>
 
-    <!-- bracket -->
-    @if(tour.IsActive || !string.IsNullOrEmpty(tour.Winner))
+    <div class="winner-panel">
+        <div class="winner-card align-items-center">
+            <h2><i class="fa-solid fa-crown"></i> Winner</h2>
+            @if (!string.IsNullOrEmpty(tournamentWinner))
+            {
+                <div class="winner-name">@tournamentWinner</div>
+            }
+            else
+            {
+                <div class="winner-pending">Tournament is still played out.</div>
+            }
+        </div>
+    </div>
+
+    @if(tour.IsActive || !string.IsNullOrEmpty(tournamentWinner) || matches.Any())
     {
     <div class="bracket-section">
     <h2 class="bracket-title">Tournament Bracket</h2>
     <div class="bracket-subtitle">Round @tour.Stage</div>
 
     <div class="bracket-header-row">
-        @for(int rnd = 1; rnd <= totalRounds; rnd++)
+        @for (int rnd = 1; rnd <= totalRounds; rnd++)
         {
             <div class="round-header-label">Round @rnd</div>
         }
     </div>
     
     <div class="bracket-container">
-        @for(int rnd = 1; rnd <= totalRounds; rnd++)
+        @for (int rnd = 1; rnd <= totalRounds; rnd++)
         {
-            
-            var roundRooms = rooms.Where(r => r.Stage == rnd).ToList();
-        
-            @for(int idx = 0; idx < roundRooms.Count; idx++)
-            {
-                var room = roundRooms[idx];
-                var m = matches.FirstOrDefault(x => x.Room.Id == room.Id);
-                var stat = room.Stage == -1 ? "waiting"
-                         : room.Stage == 0 ? "ongoing"
-                         : "completed";
-                
-                int row = idx * (1 << rnd) + (1 << (rnd - 1));
-                int col = rnd; 
+            var roundMatches = matches
+                .Where(r =>
+                    (r.Stage > 0 && r.Stage == rnd)
+                    || (r.Stage <= 0 && tour.Stage == rnd)
+                )
+                .OrderBy(r => r.Id)
+                .ToList();
 
-                <div class="match-wrapper"
-                     style="grid-column: @col; grid-row: @row;">
+            for (int idx = 0; idx < roundMatches.Count; idx++)
+            {
+                var room = roundMatches[idx];
+                var stat = room.Stage == -1 ? "waiting"
+                             : room.Stage == 0   ? "ongoing"
+                                                 : "completed";
+                int row = idx * (1 << rnd) + (1 << (rnd - 1));
+                int col = rnd;
+
+                <div class="match-wrapper" style="grid-column: @col; grid-row: @row;">
                     <div class="match-card @stat">
                         <div class="match-header">
-                            <a asp-action="CurrentRoom"
-                               asp-controller="Room"
-                               asp-route-id="@room.Id">
+                            <a asp-action="CurrentMatch" asp-controller="Match" asp-route-id="@room.Id">
                                 @room.Name
                             </a>
                         </div>
                         <div class="match-info">
-                            @if(!string.IsNullOrEmpty(m?.Winner))
-                            {
-                                <div class="match-winner">
-                                    <i class="fa-solid fa-trophy"></i> @m.Winner
-                                </div>
-                            }
                             <div class="match-status">
-                                @(room.Stage==-1 ? "Waiting"
-                                  : room.Stage==0 ? "In Progress"
-                                  : "Completed")
+                                @(room.Stage == -1 ? "Waiting"
+                                  : room.Stage == 0   ? "In Progress"
+                                                      : "Completed")
                             </div>
                         </div>
                     </div>
@@ -519,72 +471,75 @@
         }
     </div>
 </div>
-}
-  </div>
-</body>
 
-  <!-- join Modal -->
-  <div class="modal fade" id="joinModal" tabindex="-1">
+    }
+</div>
+
+<div class="modal fade" id="joinModal" tabindex="-1">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Join Tournament</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Join Tournament</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            @if(matches.FirstOrDefault()?.Mode=="single")
+            {
+                <div class="modal-body">
+                    <form id="joinFormSingle" onsubmit="event.preventDefault(); joinTournamentSingle(@tour.Id,$('#code').val());">
+                        <div class="mb-3">
+                            <label class="form-label">Tournament Code</label>
+                            <input type="text" id="code" class="form-control" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Join</button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="modal-body">
+                    <form id="joinFormTeam" onsubmit="event.preventDefault(); joinTournamentTeam(@tour.Id,$('#code').val(),$('#teammates').val(),$('#teamName').val());">
+                        <div class="mb-3">
+                            <label class="form-label">Tournament Code</label>
+                            <input type="text" id="code" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Team Name</label>
+                            <input type="text" id="teamName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Teammates</label>
+                            @if(Model.MutualFollowers?.Any()==true)
+                            {
+                                <select id="teammates" class="form-select" multiple required>
+                                    @foreach(var u in Model.MutualFollowers)
+                                    {
+                                        <option value="@u.Id">@u.Username</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-primary mt-3">Create Team</button>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    No mutual followers available.
+                                </div>
+                                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                            }
+                        </div>
+                    </form>
+                </div>
+            }
         </div>
-        @if(tour.Type=="single")
-        {
-          <div class="modal-body">
-            <form id="joinFormSingle" onsubmit="event.preventDefault(); joinTournamentSingle(@tour.Id,$('#code').val());">
-              <div class="mb-3">
-                <label class="form-label">Tournament Code</label>
-                <input type="text" id="code" class="form-control" required />
-              </div>
-              <button type="submit" class="btn btn-primary">Join</button>
-            </form>
-          </div>
-        }
-        else
-        {
-          <div class="modal-body">
-            <form id="joinFormTeam" onsubmit="event.preventDefault(); joinTournamentTeam(@tour.Id,$('#code').val(),$('#teammates').val(),$('#teamName').val());">
-              <div class="mb-3">
-                <label class="form-label">Tournament Code</label>
-                <input type="text" id="code" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Team Name</label>
-                <input type="text" id="teamName" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Teammates</label>
-                @if(Model.MutualFollowers?.Any()==true)
-                {
-                  <select id="teammates" class="form-select" multiple required>
-                    @foreach(var u in Model.MutualFollowers)
-                    {
-                      <option value="@u.Id">@u.Username</option>
-                    }
-                  </select>
-                  <button type="submit" class="btn btn-primary mt-3">Create Team</button>
-                }
-                else
-                {
-                  <div class="alert alert-warning">
-                    No mutual followers available.
-                  </div>
-                  <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                }
-              </div>
-            </form>
-          </div>
-        }
-      </div>
     </div>
-    
+</div>
 
 <script>
     function closeModal() {
         $('#joinModal').modal('hide');
+    }
+
+    function openJoinModal() {
+        $('#joinModal').modal('show');
     }
 
     function startTournament() {
@@ -592,11 +547,11 @@
             url: '/Tournament/Start',
             type: 'POST',
             data: { id: @Model.Tournament.Id },
-            success: function(data) {
-                if (data.success) {
-                    location.reload();
+            success: function(response) {
+                if(response.success){
+                    window.location.reload();
                 } else {
-                    alert('Failed to start tournament: ' + data.message);
+                    showTemporaryPopup(response.message, true);
                 }
             },
             error: function(xhr, status, error) {
@@ -611,11 +566,11 @@
                 url: '/Tournament/Delete',
                 type: 'POST',
                 data: { id: @Model.Tournament.Id },
-                success: function(data) {
-                    if (data.success) {
-                        window.location.href = '/';
+                success: function(response) {
+                    if(response.success){
+                        window.location.reload();
                     } else {
-                        alert('Failed to delete tournament: ' + data.message);
+                        showTemporaryPopup(response.message, true);
                     }
                 },
                 error: function(xhr, status, error) {
@@ -625,17 +580,17 @@
         }
     }
 
-    function openJoinModal() {
-        $('#joinModal').modal('show');
-    }
-
     function joinTournamentSingle(id, code) {
         $.ajax({
             url: '/Tournament/JoinSingle',
             type: 'POST',
             data: { id, code },
-            success: function() {
-                window.location.reload();
+            success: function(response) {
+                if(response.success){
+                    window.location.reload();
+                } else {
+                    showTemporaryPopup(response.message, true);
+                }
             },
             error: function(xhr, status, error) {
                 console.error('Error joining tournament:', error);
@@ -648,9 +603,12 @@
             url: '/Tournament/JoinTeam',
             type: 'POST',
             data: { id, code, teammates, teamName },
-            success: function() {
-                window.location.reload();
-            },
+            success: function(response) {
+                if(response.success){
+                    window.location.reload();
+                } else {
+                    showTemporaryPopup(response.message, true);
+                }
             },
             error: function(xhr, status, error) {
                 console.error('Error joining tournament:', error);
@@ -659,19 +617,21 @@
     }
 
     function leaveTournament(id) {
-        if (confirm('Are you sure you want to leave this tournament?')) {
-            $.ajax({
-                url: '/Tournament/Leave',
-                type: 'POST',
-                data: { id },
-                success: function() {
+        $.ajax({
+            url: '/Tournament/Leave',
+            type: 'POST',
+            data: { id },
+            success: function(response) {
+                if(response.success){
                     window.location.reload();
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error leaving tournament:', error);
+                } else {
+                    showTemporaryPopup(response.message, true);
                 }
-            });
-        }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error leaving tournament:', error);
+            }
+        });
     }
 
     function endStage(tournamentId) {
@@ -679,8 +639,12 @@
             url: "/Tournament/EndStage",
             type: "POST",
             data: { id: tournamentId },
-            success: function() {
-                window.location.reload();
+            success: function(response) {
+                if(response.success){
+                    window.location.reload();
+                } else {
+                    showTemporaryPopup(response.message, true);
+                }
             },
             error: function(xhr, status, error) {
                 console.error('Error ending the stage:', error);
@@ -694,13 +658,34 @@
                 url: "/Tournament/EndTournament",
                 type: "POST",
                 data: { tournamentId: @Model.Tournament.Id },
-                success: function() {
-                  window.location.reload();
+                success: function(response) {
+                    if(response.success){
+                        window.location.reload();
+                    } else {
+                        showTemporaryPopup(response.message, true);
+                    }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error ending the tournament:', error);
                 }
             });
         }
+    }
+
+    function showTemporaryPopup(message, isError = true) {
+        const popupContainer = document.getElementById("generalWarningMessageContainer");
+        const popupText = document.getElementById("generalWarningMessageText");
+        if (!popupContainer || !popupText) return;
+        popupText.innerText = message;
+        if (isError) {
+            popupContainer.className = "alert alert-danger alert-fixed";
+        } else {
+            popupContainer.className = "alert alert-success alert-fixed";
+        }
+        popupContainer.style.display = "block";
+        setTimeout(() => {
+            popupContainer.style.display = "none";
+            popupText.innerText = "";
+        }, 5000);
     }
 </script>

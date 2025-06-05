@@ -1,0 +1,1415 @@
+﻿@model CurrentMatchModel
+
+@{
+    Layout = "_Layout";
+    var loggedUser = Model.LoggedUser;
+    var players = Model.Players;            // List<Player> for single mode
+    var teamPlayers = Model.TeamPlayers;    // List<TeamPlayer>
+    var match = Model.Match;                // Match
+    bool isParticipating = Model.Participant;
+    var teams = Model.Teams;                // List<Team>
+    ViewData["Title"] = match.Name;
+
+    var placeholderTeamMembers = teamPlayers
+        .Where(tp => tp.Team.Score == -100)
+        .ToList();
+
+    var existingTeams = teams
+        .Where(t => t.Score != -100)
+        .Distinct()
+        .ToList();
+
+    int maxTeams = match.Game.MaxPlayers;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>@ViewData["Title"] - TrackMyScore</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        crossorigin="anonymous"
+    />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous"
+    />
+    <script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+        crossorigin="anonymous"
+    ></script>
+
+    <style>
+        :root {
+            --primary-dark: #1A3C2A;
+            --primary: #2A5940;
+            --primary-light: #3B7A5A;
+            --accent-gold: #D4AF37;
+            --accent-gold-light: #F0D875;
+            --accent-wood: #966F33;
+            --text-light: #E8F5E9;
+            --text-muted: #ffffff;
+            --card-bg: #234134;
+            --input-bg: #1A3C2A;
+            --input-border: #3B7A5A;
+            --input-focus: #D4AF37;
+            --error: #CF6679;
+            --success: #4CAF50;
+            --spacing-unit: 8px;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container-match {
+            max-width: 1200px;
+            margin: auto;
+            padding: calc(var(--spacing-unit) * 4);
+        }
+
+        .room-details-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: calc(var(--spacing-unit) * 4);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: var(--text-light);
+        }
+
+        .room-details-section h2,
+        .room-details-section h3 {
+            color: var(--accent-gold);
+            margin-bottom: calc(var(--spacing-unit) * 3);
+            font-weight: 600;
+        }
+
+        .room-details-section p {
+            font-size: 1.1rem;
+            margin-bottom: calc(var(--spacing-unit) * 1.5);
+            color: var(--text-muted);
+        }
+
+        .room-details-section p strong {
+            color: var(--text-light);
+        }
+
+        .status-message {
+            padding: calc(var(--spacing-unit) * 1.5);
+            border-radius: 8px;
+            margin-top: calc(var(--spacing-unit) * 3);
+            margin-bottom: calc(var(--spacing-unit) * 3);
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-waiting {
+            background-color: rgba(212, 175, 55, 0.2);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+        }
+
+        .status-ended {
+            background-color: rgba(207, 102, 121, 0.2);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .status-ongoing {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .btn-action {
+            background-color: var(--accent-gold);
+            border: none;
+            color: var(--primary-dark);
+            font-weight: 600;
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-right: calc(var(--spacing-unit) * 2);
+        }
+
+        .btn-action:hover {
+            background-color: var(--accent-gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            color: var(--primary-dark);
+        }
+
+        .btn-danger-custom {
+            background-color: var(--error);
+            border: none;
+            color: var(--text-light);
+            font-weight: 600;
+            padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-danger-custom:hover {
+            background-color: darken(var(--error), 10%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+        }
+
+        .btn-add-team,
+        .btn-save-teams {
+            background-color: var(--accent-gold);
+            border: none;
+            color: var(--primary-dark);
+            font-weight: 600;
+            padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
+
+        .btn-add-team:hover,
+        .btn-save-teams:hover {
+            background-color: var(--accent-gold-light);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-assignment-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--primary-light);
+            border-radius: 12px;
+            padding: calc(var(--spacing-unit) * 3);
+            margin-top: calc(var(--spacing-unit) * 4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: var(--text-light);
+        }
+
+        .team-assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: calc(var(--spacing-unit) * 3);
+        }
+
+        .team-assignment-header h3 {
+            margin: 0;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .assignment-row {
+            display: flex;
+            gap: calc(var(--spacing-unit) * 3);
+        }
+
+        .assignment-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .assignment-column .column-header {
+            font-weight: 600;
+            margin-bottom: calc(var(--spacing-unit) * 1);
+            color: var(--text-light);
+        }
+
+        .column-list {
+            background-color: var(--primary);
+            border-radius: 8px;
+            min-height: 200px;
+            padding: calc(var(--spacing-unit) * 2);
+            border: 2px dashed var(--primary-light);
+            overflow-y: auto;
+            color: var(--text-light);
+        }
+
+        .table th,
+        .table td {
+            border-color: var(--primary-dark);
+            color: var(--text-light);
+        }
+
+        .table thead {
+            background-color: var(--primary-light);
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--primary-light);
+        }
+
+        .team-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--primary-light);
+            border-radius: 8px;
+            margin-bottom: calc(var(--spacing-unit) * 2);
+            overflow: hidden;
+        }
+
+        .team-card .team-header {
+            background-color: var(--primary-light);
+            padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+            border-bottom: 1px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-card .team-header input {
+            background-color: var(--text-light);
+            border: 1px solid var(--primary-dark);
+            color: var(--primary-dark);
+            font-weight: 600;
+            width: 60%;
+            padding: calc(var(--spacing-unit) * 0.5) calc(var(--spacing-unit) * 1);
+            border-radius: 4px;
+        }
+
+        .team-card .team-header .remove-team-btn {
+            background: none;
+            border: none;
+            color: var(--error);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .team-card .team-list {
+            min-height: 100px;
+            padding: calc(var(--spacing-unit) * 2);
+            color: var(--text-light);
+        }
+
+        .draggable-row {
+            cursor: grab;
+            background-color: var(--card-bg);
+            color: var(--text-light);
+        }
+
+        .draggable-player {
+            background-color: var(--card-bg);
+            border: 1px solid var(--primary-light);
+            border-radius: 6px;
+            padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 2);
+            margin-bottom: calc(var(--spacing-unit) * 1);
+            cursor: move;
+            color: var(--text-light);
+        }
+
+        .warningMessage {
+            background-color: var(--error);
+            color: var(--text-light);
+            padding: calc(var(--spacing-unit) * 2);
+            margin-bottom: 0;
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 2px solid #a7303f;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            display: none;
+        }
+
+        .alert-fixed {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            width: auto;
+            min-width: 300px;
+            max-width: 80%;
+        }
+
+        .table th,
+        .table td {
+            color: var(--text-light) !important;
+            background-color: var(--card-bg) !important;
+            border-radius: 2px;
+            border: 1px solid var(--text-light)
+        }
+
+        .table{
+            border-radius: 10px;
+            border: 1px solid var(--text-light)
+        }
+    </style>
+
+<div class="current-match">
+    <div class="container-match">
+
+        <!-- Room Details Section -->
+        <div class="room-details-section">
+            <h2>Room Details</h2>
+            <p><strong>Room Name:</strong> @match.Name</p>
+            <p><strong>Game:</strong> @match.Game.Title</p>
+            <p><strong>Host:</strong> @match.Host.Username</p>
+
+            @if (match.Mode == "single")
+            {
+                <p><strong>Game Mode:</strong> Free-for-All</p>
+            }
+            else
+            {
+                <p><strong>Game Mode:</strong> Team Mode</p>
+            }
+
+            @if (match.Tournament == null)
+            {
+                @if (match.Mode == "single")
+                {
+                    <p><strong>Players:</strong> @players.Count / @match.Game.MaxPlayers</p>
+                }
+                else
+                {
+                    <p><strong>Players:</strong> @teamPlayers.Count / @Math.Pow(match.Game.MaxPlayers, 2)</p>
+                }
+
+                <p><strong>Start Date:</strong> @match.StartDate.ToString("g")</p>
+            }
+            else
+            {
+                <p><strong>Tournament:</strong> @match.Tournament.Name</p>
+                <p><strong>Start Date:</strong> @match.StartDate.ToString("g")</p>
+            }
+
+            @if (match.Stage == -1 && match.Tournament == null)
+            {
+                <div class="status-message status-waiting">
+                    <i class="fa-solid fa-clock me-1"></i>Waiting for the host to start.
+                </div>
+            }
+            else if (match.Stage == -1 && match.Tournament != null)
+            {
+                <div class="status-message status-waiting">
+                    <i class="fa-solid fa-clock me-1"></i>Waiting for tournament bracket.
+                </div>
+            }
+            else if (match.Stage == 0)
+            {
+                <div class="status-message status-ongoing">
+                    <i class="fa-solid fa-play me-1"></i>Match is ongoing.
+                </div>
+            }
+            else if (match.Stage == -2)
+            {
+                <div class="status-message status-ended">
+                    <i class="fa-solid fa-flag-checkered me-1"></i>Match ended.
+                </div>
+            }
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                @if (match.Stage != -2 && match.Mode == "single")
+                {
+                    if (match.HostId != loggedUser.Id && match.Stage == -1)
+                    {
+                        if (isParticipating)
+                        {
+                            <button class="btn btn-danger-custom" onclick="leave(@match.Id)">
+                                <i class="fa-solid fa-person-walking-arrow-right me-2"></i>Leave Room
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-action" onclick="join(@match.Id)">
+                                <i class="fa-solid fa-right-to-bracket me-2"></i>Join Room
+                            </button>
+                        }
+                    }
+                    else if (match.HostId == loggedUser.Id)
+                    {
+                        if (match.Stage == -1)
+                        {
+                            <button id="startButtonSingle" class="btn btn-action" onclick="start(@match.Id)">
+                                <i class="fa-solid fa-play me-2"></i>Start Match
+                            </button>
+                            @if (match.Tournament == null)
+                            {
+                                <form method="post" asp-action="Delete" asp-controller="Match" asp-route-id="@match.Id" style="display: inline-block;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger-custom">
+                                        <i class="fa-solid fa-trash-can me-2"></i>Delete Room
+                                    </button>
+                                </form>
+                            }
+                        }
+                        else if (match.Stage == 0)
+                        {
+                            <button id="endMatchButton" class="btn btn-danger-custom" onclick="endMatch(@match.Id)">
+                                <i class="fa-solid fa-flag-checkered me-2"></i>End Match
+                            </button>
+                        }
+                    }
+                }
+                else if (match.Mode == "team")
+                {
+                    if (match.HostId != loggedUser.Id && match.Stage == -1)
+                    {
+                        if (isParticipating)
+                        {
+                            <button class="btn btn-danger-custom" onclick="leave(@match.Id)">
+                                <i class="fa-solid fa-person-walking-arrow-right me-2"></i>Leave Room
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-action" onclick="join(@match.Id)">
+                                <i class="fa-solid fa-right-to-bracket me-2"></i>Join Room
+                            </button>
+                        }
+                    }
+                    else if (match.HostId == loggedUser.Id)
+                    {
+                        if (match.Stage == 0)
+                        {
+                            <button id="endMatchButton" class="btn btn-danger-custom" onclick="endMatch(@match.Id)">
+                                <i class="fa-solid fa-flag-checkered me-2"></i>End Match
+                            </button>
+                        }
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Players in Room Section -->
+        <div class="room-details-section mt-4">
+            <h3>Players in Room</h3>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Player Username</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (match.Mode == "single")
+                    {
+                        @if (players != null && players.Any())
+                        {
+                            foreach (var player in players)
+                            {
+                                <tr>
+                                    <td>@player.User.Username</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="1">No players have joined this room yet.</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        @if (teamPlayers != null && teamPlayers.Any())
+                        {
+                            foreach (var tp in teamPlayers)
+                            {
+                                <tr>
+                                    <td>@tp.User.Username</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="1">No players have joined this room yet.</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Single-Mode Scoreboard -->
+        @if (match.Mode == "single")
+        {
+            <div class="room-details-section mt-4">
+                <h3>Match Participants (Single Mode)</h3>
+                <table class="table table-hover rounded-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Score</th>
+                            @if (match.Stage == 0 && match.HostId == loggedUser.Id)
+                            {
+                                <th>Add Point</th>
+                                <th>Remove Point</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (players != null && players.Any())
+                        {
+                            foreach (var participant in players)
+                            {
+                                <tr>
+                                    <td>@participant.User.Username</td>
+                                    <td>@participant.Score</td>
+                                    @if (match.Stage == 0 && match.HostId == loggedUser.Id)
+                                    {
+                                        <td>
+                                            <button class="btn btn-success" onclick="addPoint(@match.Id, @participant.Id)">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger" onclick="removePoint(@match.Id, @participant.Id)">
+                                                <i class="fa-solid fa-minus"></i>
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4">No participants in the current match (single mode).</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- Team-Mode Scoreboard -->
+        @if (match.Mode == "team" && match.Stage != -1)
+        {
+            <div class="room-details-section mt-4">
+                <h3>Match Teams and Scores (Team Mode)</h3>
+                <table class="table table-hover rounded-table">
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Score</th>
+                            <th>Members</th>
+                            @if (match.Stage == 0 && match.HostId == loggedUser.Id)
+                            {
+                                <th>Add Point</th>
+                                <th>Remove Point</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (teams != null && teams.Any())
+                        {
+                            foreach (var t in teams)
+                            {
+                                var teamScore = t.Score;
+                                var members = teamPlayers
+                                    .Where(tp => tp.TeamId == t.Id)
+                                    .Select(tp => tp.User.Username)
+                                    .ToList();
+                                <tr>
+                                    <td>@t.Name</td>
+                                    <td>@teamScore</td>
+                                    <td>
+                                        @if (members.Any())
+                                        {
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach (var username in members)
+                                                {
+                                                    <li>@username</li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span>No members assigned.</span>
+                                        }
+                                    </td>
+                                    @if (match.Stage == 0 && match.HostId == loggedUser.Id)
+                                    {
+                                        <td>
+                                            <button class="btn btn-success" onclick="addPoint(@match.Id, @t.Id)">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger" onclick="removePoint(@match.Id, @t.Id)">
+                                                <i class="fa-solid fa-minus"></i>
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5">No teams created for the current match (team mode).</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <input type="hidden" id="initialTeamCount" value="@existingTeams.Count()" />
+        <input type="hidden" id="maxTeamsAllowed" value="@maxTeams" />
+        <input type="hidden" id="matchId" value="@match.Id" />
+        <input type="hidden" id="loggedUserId" value="@loggedUser.Id" />
+
+        <!-- Team Assignment Section -->
+        @if (match.Mode == "team" && match.Stage == -1 && match.HostId == loggedUser.Id && match.Tournament == null)
+        {
+            <div class="team-assignment-container">
+                <div class="team-assignment-header">
+                    <h3>Assign Players to Teams</h3>
+                    <div>
+                        <button id="addTeamBtn" class="btn btn-add-team" onclick="addTeamContainer()">
+                            <i class="fa-solid fa-plus me-1"></i>Add Team
+                        </button>
+                        <button id="saveTeamsBtn" class="btn btn-save-teams" onclick="saveTeams(@match.Id)" disabled>
+                            <i class="fa-solid fa-save me-1"></i>Save Teams
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mb-4">
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    <strong>Instructions:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Drag players from "Unassigned Players" to team boxes</li>
+                        <li>You can move players between teams or back to unassigned</li>
+                        <li>All players must be assigned to a team before starting</li>
+                        <li>Maximum @maxTeams teams allowed for this game</li>
+                    </ul>
+                </div>
+
+                <div class="assignment-row">
+                    <!-- Unassigned Players Column -->
+                    <div class="assignment-column">
+                        <div class="column-header">
+                            Unassigned Players
+                            <span class="badge bg-primary ms-2" id="unassignedCount">@placeholderTeamMembers.Count()</span>
+                        </div>
+                        <table class="table table-bordered table-dark table-hover">
+                            <thead>
+                                <tr><th>Username</th></tr>
+                            </thead>
+                            <tbody id="unassignedList" ondrop="dropToUnassigned(event)" ondragover="allowDrop(event)">
+                                @if (placeholderTeamMembers.Any())
+                                {
+                                    @foreach (var tp in placeholderTeamMembers)
+                                    {
+                                        <tr class="draggable-row" draggable="true" ondragstart="dragStart(event)" data-player-id="@tp.Id">
+                                            <td>@tp.User.Username</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr id="noUnassignedRow">
+                                        <td class="text-muted">No unassigned players.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Teams Column -->
+                    <div class="assignment-column">
+                        <div class="column-header">
+                            Teams
+                            <span class="badge bg-success ms-2" id="teamCount">@existingTeams.Count()</span>
+                        </div>
+                        <div id="teamsContainer">
+                            @{
+                                int teamIndex = 0;
+                            }
+                            @foreach (var team in existingTeams)
+                            {
+                                teamIndex++;
+                                var teamMembers = teamPlayers.Where(tp => tp.TeamId == team.Id).ToList();
+
+                                <div id="teamCard_@teamIndex" class="team-card">
+                                    <div class="team-header">
+                                        <input type="text"
+                                               class="form-control"
+                                               value="@team.Name"
+                                               oninput="validateTeamNames()"
+                                               placeholder="Team Name" />
+                                        <button type="button"
+                                                class="remove-team-btn"
+                                                onclick="removeTeamContainer('teamCard_@teamIndex')"
+                                                title="Remove Team">&times;</button>
+                                    </div>
+                                    <div class="team-list" ondrop="dropPlayer(event)" ondragover="allowDrop(event)">
+                                        @if (teamMembers.Any())
+                                        {
+                                            @foreach (var tp in teamMembers)
+                                            {
+                                                <div class="draggable-player" draggable="true" ondragstart="dragStart(event)" data-player-id="@tp.Id">
+                                                    @tp.User.Username
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p class=>No members assigned.</p>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!existingTeams.Any())
+                        {
+                            <div class="text-center mt-4 team-text">
+                                <i class="fa-solid fa-users fa-3x mb-3"></i>
+                                <p>No teams created yet. Click "Add Team" to create your first team.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <small>
+                            <i class="fa-solid fa-lightbulb me-1"></i>
+                            Tip: You can create up to @maxTeams teams for this match type.
+                        </small>
+                    </div>
+                    <button id="startTeamMatchBtn" class="btn btn-action" onclick="start(@match.Id)" disabled>
+                        <i class="fa-solid fa-play me-2"></i>Start Match
+                    </button>
+                    <form method="post" asp-action="Delete" asp-controller="Match" asp-route-id="@match.Id" style="display: inline-block;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger-custom">
+                            <i class="fa-solid fa-trash-can me-2"></i>Delete Room
+                        </button>
+                    </form>
+                </div>
+
+                <div id="assignmentWarning" class="warningMessage mt-3" style="display:none;">
+                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                    <span id="warningText">You must assign all players to a team before saving.</span>
+                </div>
+            </div>
+        } else if (match.Mode == "team" && match.Stage == -1 && match.HostId == loggedUser.Id && match.Tournament != null) {
+            <button id="startTeamMatchBtn" class="btn btn-action" onclick="startTMatch(@match.Id)">
+                        <i class="fa-solid fa-play me-2"></i>Start Match
+            </button>
+        }
+
+        <div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;">
+            <span id="generalWarningMessageText"></span>
+        </div>
+    </div>
+</div>
+    <script>
+        let teamCount = 0;
+        let maxTeams = 0; 
+
+        window.addEventListener('DOMContentLoaded', function() {
+            const initialTeamCountInput = document.getElementById('initialTeamCount');
+            const maxTeamsInput = document.getElementById('maxTeamsAllowed');
+            
+            if (initialTeamCountInput) {
+                teamCount = parseInt(initialTeamCountInput.value) || 0;
+            }
+            
+            if (maxTeamsInput) {
+                maxTeams = parseInt(maxTeamsInput.value) || 4;
+            }
+            
+            updateCountBadges();
+            
+            function updateCountBadges() {
+                const unassignedCountBadge = document.getElementById('unassignedCount');
+                const teamCountBadge = document.getElementById('teamCount');
+                
+                if (unassignedCountBadge) {
+                    unassignedCountBadge.innerText = countUnassigned();
+                }
+                
+                if (teamCountBadge) {
+                    const teamCards = document.querySelectorAll('#teamsContainer .team-card');
+                    teamCountBadge.innerText = teamCards.length;
+                }
+            }
+            
+            const originalValidateTeamNames = window.validateTeamNames;
+            window.validateTeamNames = function() {
+                if (originalValidateTeamNames) {
+                    originalValidateTeamNames.call(this);
+                }
+                updateCountBadges();
+            };
+            
+            const originalDropPlayer = window.dropPlayer;
+            window.dropPlayer = function(ev) {
+                if (originalDropPlayer) {
+                    originalDropPlayer.call(this, ev);
+                }
+                updateCountBadges();
+            };
+            
+            const originalDropToUnassigned = window.dropToUnassigned;
+            window.dropToUnassigned = function(ev) {
+                if (originalDropToUnassigned) {
+                    originalDropToUnassigned.call(this, ev);
+                }
+                updateCountBadges();
+            };
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            teamCount = parseInt(document.getElementById('initialTeamCount')?.value || '0');
+            maxTeams = parseInt(document.getElementById('maxTeamsAllowed')?.value || '4');
+            
+            validateTeamNames();
+            ensureUnassignedPlaceholder();
+            
+            document.querySelectorAll("#teamsContainer .team-list").forEach(el => {
+                ensureTeamPlaceholder(el);
+            });
+        });
+
+        function countUnassigned() {
+            return document.querySelectorAll("#unassignedList .draggable-row").length;
+        }
+
+        function validateTeamNames() {
+            const inputs = document.querySelectorAll("#teamsContainer .team-header input");
+            const warning = document.getElementById("assignmentWarning");
+            const saveBtn = document.getElementById("saveTeamsBtn");
+            const startBtn = document.getElementById("startTeamMatchBtn");
+
+            if (inputs.length === 0) {
+                warning.style.display = "block";
+                warning.innerText = "You must create at least one team.";
+                saveBtn.setAttribute("disabled", "disabled");
+                startBtn.setAttribute("disabled", "disabled");
+                return;
+            }
+
+            const names = Array.from(inputs).map(inp => inp.value.trim());
+            const nameFrequency = {};
+            
+            names.forEach(name => {
+                if (name !== "") {
+                    nameFrequency[name] = (nameFrequency[name] || 0) + 1;
+                }
+            });
+
+            let allFilled = true;
+            let hasDuplicate = false;
+
+            inputs.forEach(inp => {
+                const val = inp.value.trim();
+                inp.classList.remove("is-invalid", "is-valid");
+
+                if (!val) {
+                    allFilled = false;
+                    inp.classList.add("is-invalid");
+                } else if (nameFrequency[val] > 1) {
+                    hasDuplicate = true;
+                    inp.classList.add("is-invalid");
+                } else {
+                    inp.classList.add("is-valid");
+                }
+            });
+
+            const unassignedCount = countUnassigned();
+            
+            if (!allFilled) {
+                showWarning("All teams must have a name.");
+                disableButtons();
+            } else if (hasDuplicate) {
+                showWarning("Team names must be unique.");
+                disableButtons();
+            } else if (unassignedCount > 0) {
+                showWarning("You must assign all players to a team.");
+                saveBtn.removeAttribute("disabled");
+                startBtn.setAttribute("disabled", "disabled");
+            } else {
+                hideWarning();
+                enableButtons();
+            }
+        }
+
+        function showWarning(message) {
+            const warning = document.getElementById("assignmentWarning");
+            warning.style.display = "block";
+            warning.innerText = message;
+        }
+
+        function hideWarning() {
+            const warning = document.getElementById("assignmentWarning");
+            warning.style.display = "none";
+        }
+
+        function disableButtons() {
+            document.getElementById("saveTeamsBtn").setAttribute("disabled", "disabled");
+            document.getElementById("startTeamMatchBtn").setAttribute("disabled", "disabled");
+        }
+
+        function enableButtons() {
+            document.getElementById("saveTeamsBtn").removeAttribute("disabled");
+            document.getElementById("startTeamMatchBtn").removeAttribute("disabled");
+        }
+
+        function addTeamContainer() {
+            if (teamCount >= maxTeams) {
+                showTemporaryPopup(`You have reached the maximum number of teams (${maxTeams}). Please remove some teams and refresh the page.`, true);
+                return;
+            }
+
+            ("#team-text").hide();
+            
+            teamCount++;
+            const containerId = "teamCard_" + teamCount;
+            
+            const teamCard = document.createElement('div');
+            teamCard.id = containerId;
+            teamCard.className = 'team-card';
+            teamCard.innerHTML = `
+                <div class="team-header">
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Team Name"
+                        oninput="validateTeamNames()"
+                    />
+                    <button
+                        type="button"
+                        class="remove-team-btn"
+                        onclick="removeTeamContainer('${containerId}')"
+                        title="Remove Team"
+                    >&times;</button>
+                </div>
+                <div class="team-list"
+                    ondrop="dropPlayer(event)"
+                    ondragover="allowDrop(event)">
+                    <p class="text-muted">No members assigned.</p>
+                </div>
+            `;
+            
+            document.getElementById("teamsContainer").appendChild(teamCard);
+            validateTeamNames();
+        }
+
+        function removeTeamContainer(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const teamList = container.querySelector(".team-list");
+            const unassignedList = document.getElementById("unassignedList");
+            
+            const noUnassignedRow = document.getElementById("noUnassignedRow");
+            if (noUnassignedRow) {
+                noUnassignedRow.remove();
+            }
+            
+            const playerDivs = teamList.querySelectorAll(".draggable-player");
+            playerDivs.forEach(div => {
+                const playerId = div.dataset.playerId;
+                const username = div.innerText.trim();
+                
+                const tr = document.createElement("tr");
+                tr.className = "draggable-row";
+                tr.draggable = true;
+                tr.ondragstart = dragStart;
+                tr.setAttribute("data-player-id", playerId);
+                tr.innerHTML = `<td>${username}</td>`;
+                
+                unassignedList.appendChild(tr);
+            });
+
+            container.remove();
+            validateTeamNames();
+            ensureUnassignedPlaceholder();
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function dragStart(ev) {
+            ev.dataTransfer.setData("text/plain", ev.target.dataset.playerId);
+        }
+
+        function dropPlayer(ev) {
+            ev.preventDefault();
+            const playerId = ev.dataTransfer.getData("text/plain");
+            
+            if (!ev.currentTarget.classList.contains("team-list")) return;
+            
+            const rowElem = document.querySelector(`.draggable-row[data-player-id='${playerId}']`);
+            const divElem = document.querySelector(`.draggable-player[data-player-id='${playerId}']`);
+
+            let username = "";
+            
+            if (rowElem) {
+                username = rowElem.cells[0].innerText.trim();
+                rowElem.remove();
+                ensureUnassignedPlaceholder();
+            } else if (divElem) {
+                username = divElem.innerText.trim();
+                const sourceList = divElem.parentElement;
+                divElem.remove();
+                ensureTeamPlaceholder(sourceList);
+            } else {
+                return;
+            }
+
+            const placeholder = ev.currentTarget.querySelector(".text-muted");
+            if (placeholder) {
+                placeholder.remove();
+            }
+
+            const playerDiv = document.createElement("div");
+            playerDiv.className = "draggable-player";
+            playerDiv.setAttribute("data-player-id", playerId);
+            playerDiv.draggable = true;
+            playerDiv.ondragstart = dragStart;
+            playerDiv.innerText = username;
+            
+            ev.currentTarget.appendChild(playerDiv);
+            validateTeamNames();
+        }
+
+        function dropToUnassigned(ev) {
+            ev.preventDefault();
+            const playerId = ev.dataTransfer.getData("text/plain");
+            const divElem = document.querySelector(`.draggable-player[data-player-id='${playerId}']`);
+            
+            if (!divElem) return;
+            
+            const username = divElem.innerText.trim();
+            const sourceList = divElem.parentElement;
+            
+            divElem.remove();
+            ensureTeamPlaceholder(sourceList);
+
+            const noUnassignedRow = document.getElementById("noUnassignedRow");
+            if (noUnassignedRow) {
+                noUnassignedRow.remove();
+            }
+
+            const tr = document.createElement("tr");
+            tr.className = "draggable-row";
+            tr.draggable = true;
+            tr.ondragstart = dragStart;
+            tr.setAttribute("data-player-id", playerId);
+            tr.innerHTML = `<td>${username}</td>`;
+            
+            document.getElementById("unassignedList").appendChild(tr);
+            validateTeamNames();
+        }
+
+        function ensureUnassignedPlaceholder() {
+            const unassignedList = document.getElementById("unassignedList");
+            const draggableRows = unassignedList.querySelectorAll(".draggable-row");
+            const noUnassignedRow = document.getElementById("noUnassignedRow");
+            
+            if (draggableRows.length === 0) {
+                if (!noUnassignedRow) {
+                    const tr = document.createElement("tr");
+                    tr.id = "noUnassignedRow";
+                    tr.innerHTML = `<td class="text-muted">No unassigned players.</td>`;
+                    unassignedList.appendChild(tr);
+                }
+            } else {
+                if (noUnassignedRow) {
+                    noUnassignedRow.remove();
+                }
+            }
+        }
+
+        function ensureTeamPlaceholder(teamListElem) {
+            if (!teamListElem) return;
+            
+            const playerDivs = teamListElem.querySelectorAll(".draggable-player");
+            const placeholder = teamListElem.querySelector(".text-muted");
+            
+            if (playerDivs.length === 0) {
+                if (!placeholder) {
+                    const p = document.createElement("p");
+                    p.innerText = "No members assigned.";
+                    teamListElem.appendChild(p);
+                }
+            } else {
+                if (placeholder) {
+                    placeholder.remove();
+                }
+            }
+        }
+
+        function saveTeams(matchId) {
+            const warning = document.getElementById("assignmentWarning");
+            const containers = document.querySelectorAll("#teamsContainer .team-card");
+
+            if (containers.length === 0) {
+                showWarning("You must create at least one team.");
+                return Promise.reject();
+            }
+
+            const teamAssignments = {};
+            const teamNames = [];
+            const seenNames = new Set();
+
+            for (let container of containers) {
+                const teamInput = container.querySelector(".team-header input");
+                const teamName = teamInput.value.trim();
+
+                if (!teamName) {
+                    showWarning("All teams must have a name.");
+                    teamInput.focus();
+                    return Promise.reject();
+                }
+                if (seenNames.has(teamName)) {
+                    showWarning("Team names must be unique.");
+                    teamInput.focus();
+                    return Promise.reject();
+                }
+
+                seenNames.add(teamName);
+                teamNames.push(teamName);
+
+                const playerDivs = container.querySelectorAll(".draggable-player");
+                playerDivs.forEach(div => {
+                    const playerId = parseInt(div.dataset.playerId, 10);
+                    teamAssignments[playerId] = teamName;
+                });
+            }
+
+            const formData = new FormData();
+            formData.append("roomId", matchId);
+            Object.keys(teamAssignments).forEach(playerId => {
+                formData.append(`teamAssignments[${playerId}]`, teamAssignments[playerId]);
+            });
+            teamNames.forEach((name, index) => {
+                formData.append(`teamNames[${index}]`, name);
+            });
+
+            return fetch("/Match/SaveChanges", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showTemporaryPopup("Teams saved successfully.", false);
+                    validateTeamNames();
+                    return data;
+                } else {
+                    showWarning(data.message || "Failed to save teams.");
+                    return Promise.reject();
+                }
+            })
+            .catch(err => {
+                console.error("Error saving teams:", err);
+                showWarning("Server error. Could not save teams.");
+                return Promise.reject();
+            });
+        }
+
+
+        function showTemporaryPopup(message, isError = true) {
+            const popupContainer = document.getElementById("generalWarningMessageContainer");
+            const popupText = document.getElementById("generalWarningMessageText");
+            
+            if (!popupContainer || !popupText) return;
+            
+            popupText.innerText = message;
+            
+            if (isError) {
+                popupContainer.className = "alert alert-danger alert-fixed";
+            } else {
+                popupContainer.className = "alert alert-success alert-fixed";
+            }
+            
+            popupContainer.style.display = "block";
+            
+            setTimeout(() => {
+                popupContainer.style.display = "none";
+                popupText.innerText = "";
+            }, 5000);
+        }
+
+        function start(id) {
+            const matchMode = "@match.Mode"; 
+
+            if (matchMode === "team") {
+                saveTeams(id)
+                .then(data => {
+                    return $.ajax({
+                        url: "/Match/Start",
+                        type: "POST",
+                        data: { id: id }
+                    });
+                })
+                .then(response => {
+                    if (response && response.success) {
+                        window.location.reload();
+                    } else {
+                        showTemporaryPopup((response && response.message) || "Failed to start the match.", true);
+                    }
+                })
+                .catch(_ => {
+                });
+            } else {
+                $.ajax({
+                    url: "/Match/Start",
+                    type: "POST",
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.reload();
+                        } else {
+                            showTemporaryPopup(response.message || "Failed to start the match.", true);
+                        }
+                    },
+                    error: function() {
+                        showTemporaryPopup("Server error. Could not start the match.", true);
+                    }
+                });
+            }
+        }
+
+        function startTMatch(id){
+            $.ajax({
+                    url: "/Match/Start",
+                    type: "POST",
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.reload();
+                        } else {
+                            showTemporaryPopup(response.message || "Failed to start the match.", true);
+                        }
+                    },
+                    error: function() {
+                        showTemporaryPopup("Server error. Could not start the match.", true);
+                    }
+                });
+            }
+
+
+        function join(matchId) {
+            $("#generalWarningMessageContainer").hide();
+            $.ajax({
+                type: "POST",
+                url: "/Match/Join/" + matchId,
+                success: function (response) {
+                    if (response.success) {
+                        window.location.reload();
+                    } else {
+                        showTemporaryPopup(response.message || "Failed to join the room.", true);
+                    }
+                },
+                error: function () {
+                    showTemporaryPopup("Server error. Could not join the room.", true);
+                }
+            });
+        }
+
+        function leave(matchId) {
+            $.ajax({
+                type: "POST",
+                url: "/Match/Leave/" + matchId,
+                success: function () {
+                    window.location.reload();
+                },
+                error: function () {
+                    showTemporaryPopup("Server error. Could not leave the room.", true);
+                }
+            });
+        }
+
+        function endMatch(matchId) {
+            $.ajax({
+                url: "/Match/End",
+                type: "POST",
+                data: { id: matchId },
+                success: function (response) {
+                    if(response.success){
+                        window.location.reload();
+                    } else {
+                        showTemporaryPopup(response.message || "Failed to end the match", true)
+                    }
+                },
+                error: function () {
+                    alert("Server error. Could not end the match.");
+                }
+            });
+        }
+
+        function addPoint(matchId, participantId) {
+            $.ajax({
+                url: "/Match/AddPoint",
+                type: "POST",
+                data: { matchId: matchId, participantId: participantId },
+                success: function () {
+                    window.location.reload();
+                },
+                error: function () {
+                    alert("Server error. Could not add a point.");
+                }
+            });
+        }
+
+        function removePoint(matchId, participantId) {
+            $.ajax({
+                url: "/Match/RemovePoint",
+                type: "POST",
+                data: { id: matchId, participantId: participantId },
+                success: function () {
+                    window.location.reload();
+                },
+                error: function () {
+                    alert("Server error. Could not remove a point.");
+                }
+            });
+        }
+
+        function showTemporaryPopup(message, isError = true) {
+            const popupContainer = $("#generalWarningMessageContainer");
+            const popupText = $("#generalWarningMessageText");
+            popupText.text(message);
+
+            if (isError) {
+                popupContainer.removeClass("alert-success").addClass("alert-danger");
+            } else {
+                popupContainer.removeClass("alert-danger").addClass("alert-success");
+            }
+
+            popupContainer.fadeIn(300);
+            setTimeout(() => {
+                popupContainer.fadeOut(500, function () {
+                    $(this).find("#generalWarningMessageText").text("");
+                });
+            }, 5000);
+        }
+
+        const matchMode = "@match.Mode";
+
+        document.addEventListener("DOMContentLoaded", function () {
+            if (matchMode === "team" && @match.Stage === -1 && @match.HostId === @loggedUser.Id) {
+                validateTeamNames();
+                ensureUnassignedPlaceholder();
+                document.querySelectorAll("#teamsContainer .team-list").forEach(el => {
+                    ensureTeamPlaceholder(el);
+                });
+            }
+        });
+    </script>

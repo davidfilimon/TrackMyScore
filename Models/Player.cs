@@ -7,21 +7,19 @@ namespace TrackMyScore.Models
     {
  
         public int Id { get; set; }
+        
         [Required]
         public int UserId { get; set; }
         public User User { get; set; }
-        
-        [Required]
-        public int TournamentId{ get; set; }
-        public Tournament Tournament { get; set; }
-        [Required]
-        public bool Eliminated { get; set; }
-        
-        public int? TeamId { get; set; }
-        public Team? Team { get; set; }
 
         [Required]
-        public int RespectPoints { get; set; }
+        public int MatchId { get; set; }
+        public Match Match { get; set; }
+
+        public int Score { get; set; } = 0;
+        public int Reward { get; set; } = 1;
+        public bool Eliminated { get; set; } = false;        
+
         public Player()
         {
             

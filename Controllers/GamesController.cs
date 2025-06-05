@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TrackMyScore.Database;
 using TrackMyScore.Models;
@@ -131,6 +132,11 @@ namespace TrackMyScore.Controllers
         {
             var game = _context.Games.FirstOrDefault(g => g.Id == id);
 
+            if (game == null || game.Deleted)
+            {
+                return RedirectToAction("List", "Game");
+            }
+
             return View(game);
         }
 
@@ -144,38 +150,43 @@ namespace TrackMyScore.Controllers
                 return Json(new { success = false, message = "Game not found." });
             }
 
-            var rooms = await _context.Rooms
+            if (await AlreadyPlayed(game))
+            {
+                game.Deleted = true;
+            }
+            else
+            {
+                var favoriteUsers = await _context.FavoriteGames
+                .Where(t => t.Game == game)
+                .ToListAsync();
+
+                foreach (var favoriteUser in favoriteUsers)
+                {
+                    _context.FavoriteGames.Remove(favoriteUser);
+                }
+                
+
+                _context.Games.Remove(game);
+                await _context.SaveChangesAsync();   
+            }
+            
+            return RedirectToAction("List", "Games");
+
+        }
+
+        private async Task<bool> AlreadyPlayed(Game game) // method to check if there are already matches played with this game in order to fully remove them or disable them
+        {
+            var rooms = await _context.Matches
                 .Where(r => r.Game == game)
                 .ToListAsync();
 
             if (rooms.Any())
             {
-                return Json(new { success = false, message = "There are already rooms played with this game." });
+                return true;
             }
 
-            var tournaments = await _context.Tournaments
-                .Where(t => t.Game == game)
-                .ToListAsync();
+            return false;
 
-            if (tournaments.Any())
-            {
-                return Json(new { success = false, message = "There are already tournaments played with this game." });
-            }
-
-            var favoriteUsers = await _context.FavoriteGames
-                .Where(t => t.Game == game)
-                .ToListAsync();
-
-            foreach (var favoriteUser in favoriteUsers)
-            {
-                _context.FavoriteGames.Remove(favoriteUser);
-            }
-
-            _context.Games.Remove(game);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("List", "Games");
-            
         }
 
     }
