@@ -67,29 +67,42 @@
     }
     .info-grid { display: grid; gap: calc(var(--spacing)*1); }
     .info-item {
-      display: flex; align-items: center; gap: calc(var(--spacing)/2);
-      background: var(--primary); padding: calc(var(--spacing));
-      border-radius: 6px;
+        display: flex; align-items: center; gap: calc(var(--spacing)/2);
+        background: var(--primary); padding: calc(var(--spacing));
+        border-radius: 6px;
     }
-    .info-item i { color: var(--accent-gold); }
+    .info-item i {
+        color: var(--accent-gold); 
+    }
 
     .winner-banner {
-      margin: calc(var(--spacing)*2) 0;
-      padding: calc(var(--spacing));
-      background: rgba(212,175,55,.2);
-      border-radius: 6px;
-      display: flex; align-items:center; gap: .5rem;
-      color: var(--accent-gold);
+        margin: calc(var(--spacing)*2) 0;
+        padding: calc(var(--spacing));
+        background: rgba(212,175,55,.2);
+        border-radius: 6px;
+        display: flex; align-items:center; gap: .5rem;
+        color: var(--accent-gold);
     }
 
     .tournament-actions {
-      margin-top: calc(var(--spacing)*2);
-      display: flex; flex-wrap: wrap; gap: calc(var(--spacing));
+        margin-top: calc(var(--spacing)*2);
+        display: flex; flex-wrap: wrap; gap: calc(var(--spacing));
     }
     .tournament-actions .btn {
-      flex: 1;
-      min-width: 120px;
+        flex: 1;
+        min-width: 120px;
     }
+
+    .match-competitor { 
+        padding: 4px; 
+    }
+    .match-competitor.winner { 
+        background: var(--accent-gold-light); 
+        color: var(--primary-dark); 
+        font-weight: bold; 
+        border-radius: 4px;
+    }
+
 
     .participants-card h2 {
       color: var(--accent-gold);
@@ -100,30 +113,30 @@
 
     .participants-list,
     .teams-list {
-    max-height: 300px;
-    overflow-y: auto; 
-    padding-right: 4px;
+      max-height: 300px;
+      overflow-y: auto; 
+      padding-right: 4px;
     }
 
     .participant-card {
-    background: var(--card-bg);
-    border-radius: 8px;
-    padding: calc(var(--spacing) * 1);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    gap: calc(var(--spacing) / 2);
-    color: var(--text-light);
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: calc(var(--spacing) * 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing) / 2);
+      color: var(--text-light);
     }
 
     .participant-card i {
-    font-size: 1.2rem;
-    color: var(--accent-gold);
+      font-size: 1.2rem;
+      color: var(--accent-gold);
     }
 
     .participant-item,
     .team-item {
-    margin-bottom: var(--spacing);
+      margin-bottom: var(--spacing);
     }
 
     .team-header {
@@ -305,6 +318,7 @@
                 <div class="info-item"><i class="fa-solid fa-trophy"></i><span>Reward: @tour.Reward</span></div>
                 <div class="info-item"><i class="fa-solid fa-gamepad"></i><span>@(matches.FirstOrDefault()?.Game?.Title ?? "N/A")</span></div>
                 <div class="info-item"><i class="fa-solid fa-calendar"></i><span>@tour.StartDate</span></div>
+                <div class="info-item"><i class="fa-solid fa-location-dot"></i><span>@tour.Location</span></div>
                 @if(matches.FirstOrDefault()?.Mode == "team"){
                     <div class="info-item"><i class="fa-solid fa-users"></i><span>@(matches.FirstOrDefault()?.Game?.MaxPlayers ?? 0) players per team</span></div>
                 }
@@ -347,13 +361,13 @@
                 @if(tour.IsActive)
                 {
                     var currentStageMatches = matches.Where(m => m.Tournament == tour && m.Stage == tour.Stage).ToList();
-                    if (currentStageMatches.Count == 1 && tour.Stage > 0)
+                    if (currentStageMatches.Count == 1 && tour.Stage > 1)
                     {
                         <button class="btn btn-primary" onclick="endTournament()">
                             <i class="fa-solid fa-flag-checkered"></i> End Tournament
                         </button>
                     }
-                    else
+                    @if(currentStageMatches.All(m => m.Stage > 0))
                     {
                         <button class="btn btn-primary" onclick="endStage(@tour.Id)">
                             <i class="fa-solid fa-forward"></i> End Stage
@@ -370,7 +384,7 @@
             {
                 <h2><i class="fa-solid fa-users"></i> Participants</h2>
                 <div class="participants-list">
-                    @foreach(var p in singlePlayers)
+                    @foreach(var p in singlePlayers.DistinctBy(u => u.UserId))
                     {
                         @if (p != null && p.User != null){
                         <div class="participant-card">
@@ -392,9 +406,13 @@
                                 <i class="fa-solid fa-users"></i><h3>@t.Name</h3>
                             </div>
                             <div class="team-members">
-                                @foreach(var p in teamPlayers.Where(x=>x.TeamId==t.Id))
+                                @foreach ( var p in teamPlayers
+                                   .Where(tp => tp.TeamId == t.Id)
+                                   .Select(tp => tp.User)
+                                   .GroupBy(u => u.Id)
+                                   .Select(g => g.First()) )
                                 {
-                                    <div class="team-member"><i class="fa-solid fa-user"></i><span>@p.User.Username</span></div>
+                                    <div class="team-member"><i class="fa-solid fa-user"></i><span>@p.Username</span></div>
                                 }
                             </div>
                         </div>
@@ -413,12 +431,12 @@
             }
             else
             {
-                <div class="winner-pending">Tournament is still played out.</div>
+                <div class="winner-pending">Tournament is still played out or did not begin.</div>
             }
         </div>
     </div>
 
-    @if(tour.IsActive || !string.IsNullOrEmpty(tournamentWinner) || matches.Any())
+    @if((tour.IsActive || !string.IsNullOrEmpty(tournamentWinner) || matches.Any()) && tour.Stage > 0)
     {
     <div class="bracket-section">
     <h2 class="bracket-title">Tournament Bracket</h2>
@@ -432,47 +450,108 @@
     </div>
     
     <div class="bracket-container">
-        @for (int rnd = 1; rnd <= totalRounds; rnd++)
+  @for (int rnd = 1; rnd <= totalRounds; rnd++)
+  {
+      // pick matches for this column
+      var roundMatches = matches
+          .Where(r => (r.Stage > 0 && r.Stage == rnd)
+                   || (rnd == tour.Stage && r.Stage <= 0))
+          .OrderBy(r => r.Id)
+          .ToList();
+
+      for (int idx = 0; idx < roundMatches.Count; idx++)
+      {
+          var room = roundMatches[idx];
+          var stat = room.Stage switch {
+            -1 => "waiting",
+             0 => "ongoing",
+            _  => "completed"
+          };
+
+          string singleWinnerName = "";
+          string teamWinnerTeamName  = "";
+          if (room.Stage > 0) {
+            if (room.Mode == "single") {
+              singleWinnerName = singlePlayers
+                  .FirstOrDefault(p => p.Match.Id == room.Id && !p.Eliminated)?.User.Username ?? "";
+            }
+            else {
+              teamWinnerTeamName = teamPlayers
+                  .FirstOrDefault(tp => tp.MatchId == room.Id && !tp.Eliminated)?.Team.Name ?? "";
+            }
+          }
+
+          // grid positioning
+          int row = idx * (1 << rnd) + (1 << (rnd - 1));
+          int col = rnd;
+  <div class="match-wrapper" style="grid-column:@col; grid-row:@row">
+    <div class="match-card @stat">
+      <div class="match-header">
+        <a asp-action="CurrentMatch"
+           asp-controller="Match"
+           asp-route-id="@room.Id">@room.Name</a>
+      </div>
+      <div class="match-info">
+        @* list the two competitors *@
+        @if (room.Mode == "single")
         {
-            var roundMatches = matches
-                .Where(r =>
-                    (r.Stage > 0 && r.Stage == rnd)
-                    || (r.Stage <= 0 && tour.Stage == rnd)
-                )
-                .OrderBy(r => r.Id)
+            // pull exactly two players in this match
+            var playersInMatch = singlePlayers
+                .Where(p => p.Match.Id == room.Id)
+                .OrderBy(p => p.Id)
                 .ToList();
 
-            for (int idx = 0; idx < roundMatches.Count; idx++)
-            {
-                var room = roundMatches[idx];
-                var stat = room.Stage == -1 ? "waiting"
-                             : room.Stage == 0   ? "ongoing"
-                                                 : "completed";
-                int row = idx * (1 << rnd) + (1 << (rnd - 1));
-                int col = rnd;
+            int maxScore = room.Stage > 0 && playersInMatch.Any()
+                ? playersInMatch.Max(p => p.Score)
+                : int.MinValue;
 
-                <div class="match-wrapper" style="grid-column: @col; grid-row: @row;">
-                    <div class="match-card @stat">
-                        <div class="match-header">
-                            <a asp-action="CurrentMatch" asp-controller="Match" asp-route-id="@room.Id">
-                                @room.Name
-                            </a>
-                        </div>
-                        <div class="match-info">
-                            <div class="match-status">
-                                @(room.Stage == -1 ? "Waiting"
-                                  : room.Stage == 0   ? "In Progress"
-                                                      : "Completed")
-                            </div>
-                        </div>
-                    </div>
+            foreach (var p in playersInMatch)
+            {
+                var isWinner = room.Stage > 0 && p.Score == maxScore;
+                <div class="match-competitor @(isWinner ? "winner" : "")">
+                  @p.User.Username
+                  @if (isWinner) { <i class="fa-solid fa-trophy"></i> }
                 </div>
             }
         }
+        else
+        {
+            // pull exactly two distinct teams
+            var teamsInMatch = teamPlayers
+                .Where(tp => tp.MatchId == room.Id)
+                .GroupBy(tp => tp.Team)
+                .Select(g => new {
+                    Team = g.Key,
+                    Members = g.Select(x => x.User.Username).ToList()
+                })
+                .OrderBy(t => t.Team.Id)
+                .ToList();
+            foreach (var t in teamsInMatch)
+            {
+                var isWinner = teamWinnerTeamName == t.Team.Name;
+                <div class="match-competitor @(isWinner ? "winner" : "")">
+                  <strong>@t.Team.Name</strong>
+                  <small>(@string.Join(", ", t.Members))</small>
+                  @if (isWinner) { <i class="fa-solid fa-trophy"></i> }
+                </div>
+            }
+        }
+
+        <div class="match-status">
+          @(room.Stage == -1 ? "Waiting"
+            : room.Stage == 0   ? "In Progress"
+                                : "Completed")
+        </div>
+      </div>
     </div>
+  </div>
+      }
+  }
 </div>
 
-    }
+
+</div>
+}
 </div>
 
 <div class="modal fade" id="joinModal" tabindex="-1">
@@ -497,7 +576,7 @@
             else
             {
                 <div class="modal-body">
-                    <form id="joinFormTeam" onsubmit="event.preventDefault(); joinTournamentTeam(@tour.Id,$('#code').val(),$('#teammates').val(),$('#teamName').val());">
+                    <form id="joinFormTeam" onsubmit="event.preventDefault(); tryJoinTeam();">
                         <div class="mb-3">
                             <label class="form-label">Tournament Code</label>
                             <input type="text" id="code" class="form-control" required />
@@ -687,5 +766,31 @@
             popupContainer.style.display = "none";
             popupText.innerText = "";
         }, 5000);
+    }
+
+    var existingTeams = [
+        @foreach(var t in Model.Teams) {
+        @: "@t.Name",
+        }
+    ].map(function(s){ return s.trim().toLowerCase(); });
+
+    function tryJoinTeam() {
+    var teamName = $('#teamName').val().trim();
+    if (!teamName) {
+        showTemporaryPopup("Please enter a team name.", true);
+        return;
+    }
+    // check duplicate (case-insensitive)
+    if (existingTeams.indexOf(teamName.toLowerCase()) !== -1) {
+        showTemporaryPopup("A team with that name has already joined.", true);
+        return;
+    }
+    // proceed if everything is fine
+    joinTournamentTeam(
+        @tour.Id,
+        $('#code').val(),
+        $('#teammates').val(),
+        teamName
+    );
     }
 </script>

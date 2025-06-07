@@ -169,6 +169,59 @@ namespace TrackMyScore.Controllers
                     }
                 }
             }
+            
+            int tournamentsWon = 0;
+
+            foreach (var tourn in tournaments)
+            {
+                var finalMatches = await _context.Matches
+                    .Where(m => m.TournamentId == tourn.Id && m.Stage == tourn.Stage)
+                    .ToListAsync();
+
+                var finalMatch = finalMatches.FirstOrDefault();
+                string winnerName = "";
+
+                if (finalMatch != null)
+                {
+                    if (finalMatch.Mode == "single")
+                    {
+                        var winnerPlayer = await _context.Players
+                            .Include(p => p.User)
+                            .Where(p => p.MatchId == finalMatch.Id && !p.Eliminated)
+                            .Select(p => p.User.Username)
+                            .FirstOrDefaultAsync();
+                        winnerName = winnerPlayer ?? "";
+                    }
+                    else // team mode
+                    {
+                        var winnerTeam = await _context.TeamPlayers
+                            .Include(tp => tp.Team)
+                            .Where(tp => tp.MatchId == finalMatch.Id && !tp.Eliminated)
+                            .Select(tp => tp.Team.Name)
+                            .FirstOrDefaultAsync();
+                        winnerName = winnerTeam ?? "";
+                    }
+                }
+
+                tournamentWinners[tourn.Id] = winnerName;
+
+                if (finalMatch.Mode == "single")
+                {
+                    if (winnerName == profileUser.Username)
+                        tournamentsWon++;
+                }
+                else
+                {
+                    var winningTeamPlayers = await _context.TeamPlayers
+                        .Include(tp => tp.User)
+                        .Include(tp => tp.Team)
+                        .Where(tp => tp.MatchId == finalMatch.Id && tp.Team.Name == winnerName)
+                        .ToListAsync();
+
+                    if (winningTeamPlayers.Any(tp => tp.UserId == profileUser.Id))
+                        tournamentsWon++;
+                }
+            }
 
             var model = new UserGamesModel
             {
@@ -181,7 +234,7 @@ namespace TrackMyScore.Controllers
                 TotalMatchesPlayed = totalMatchesPlayed,
                 MatchesWon = matchesWon,
                 TotalTournamentsPlayed = tournaments.Count,
-                TournamentsWon = 0
+                TournamentsWon = tournamentsWon
             };
 
             return View(model);
