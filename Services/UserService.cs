@@ -17,7 +17,7 @@ namespace TrackMyScore.Services
         }
 
         public async Task<User?> GetCurrentUserAsync()
-        {
+        { // getting the logged user method
             var email = _contextAccessor.HttpContext?.Session.GetString("email");
 
             if (email == null)
@@ -29,7 +29,7 @@ namespace TrackMyScore.Services
         }
 
         public async Task<bool> IsGameFavorite(int id)
-        {
+        { // check if the game is already in the favorites list
             var user = await GetCurrentUserAsync();
 
             if (user == null)
@@ -45,18 +45,20 @@ namespace TrackMyScore.Services
         }
 
         public bool IsAdmin(string email)
-        {
+        { // check if the user is an admin
             if (email == null) return false;
 
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
 
-            if (user.isAdmin && user != null) return true;
+            if (user == null) return false;
+
+            if (user.isAdmin) return true;
 
             return false;
         }
 
         public async Task<bool> IsAuthor(string email, int gameId)
-        {
+        { // check if the logged user is the author
 
             var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
 

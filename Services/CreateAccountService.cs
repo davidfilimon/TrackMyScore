@@ -17,22 +17,22 @@ namespace TrackMyScore.Services
         }
 
         public async Task<(bool success, string message)> Register(string username, string email, string password)
-        {
+        { // registering the account
             var existingUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
             if (!_validationService.invalidEmail(email) || !_validationService.invalidPassword(password))
             {
-                return (false, "Invalid email or password. Password must be at least 8 characters long.");
+                return (false, "Invalid email or password. Password must be at least 8 characters long."); // invalid password check
             }
 
             if (existingUsername != null)
             {
-                return (false, "Another account is already using this username.");
+                return (false, "Another account is already using this username."); // username existence check
             }
 
             var existingEmail = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if(existingEmail != null)
+            if(existingEmail != null) // email existence check
             {
                 return (false, "Another account is already registered with that email address.");
             }
@@ -44,9 +44,9 @@ namespace TrackMyScore.Services
                 Password = encrypt(password),
                 AccountCreationDate = DateOnly.FromDateTime(DateTime.Today),
                 RespectPoints = 0
-            };
+            }; // user creation
 
-            _context.Add(newUser);
+            _context.Users.Add(newUser);
 
             await _context.SaveChangesAsync();
 
@@ -55,7 +55,7 @@ namespace TrackMyScore.Services
         }
 
         private static string encrypt(string password)
-        {
+        { // password encryption method
             try
             {
                 byte[] encData_byte = new byte[password.Length];

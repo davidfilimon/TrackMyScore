@@ -20,8 +20,8 @@ namespace TrackMyScore.Controllers
         }
 
         public async Task<IActionResult> Dashboard()
-        {
-            string email = HttpContext.Session.GetString("email");
+        { // admin dashboard for statistics
+            string email = HttpContext.Session.GetString("email"); // admin validations
 
             if (email.IsNullOrEmpty())
             {
@@ -35,7 +35,7 @@ namespace TrackMyScore.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var model = await _stats.GetStatsAsync();
+            var model = await _stats.GetStatsAsync(); // getting the stats
 
             return View(model);
         }
@@ -48,8 +48,8 @@ namespace TrackMyScore.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Add(string name, string description, int maxPlayers, string difficulty)
-        {
-            string email = HttpContext.Session.GetString("email");
+        { // adding a game as an admin
+            string email = HttpContext.Session.GetString("email"); // getting the current user
 
             if (email.IsNullOrEmpty())
             {
@@ -63,13 +63,13 @@ namespace TrackMyScore.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers == 0)
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers <= 0) // field validations
             {
                 ViewData["Error"] = "All fields are required to register a game.";
                 return View();
             }
 
-            var game = new Game
+            var game = new Game // adding the game to the db
             {
                 Title = name,
                 Description = description,
@@ -87,8 +87,8 @@ namespace TrackMyScore.Controllers
 
         [HttpPost]
         public async Task<IActionResult> ToggleOfficial(int id)
-        {
-            string email = HttpContext.Session.GetString("email");
+        { // changing the game status
+            string email = HttpContext.Session.GetString("email"); // getting the current user
 
             if (email.IsNullOrEmpty())
             {
@@ -102,7 +102,7 @@ namespace TrackMyScore.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == id);
+            var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == id); // getting the current game
 
             if(game != null)
             {
@@ -116,9 +116,9 @@ namespace TrackMyScore.Controllers
                     game.IsOfficial = false;
                     await _context.SaveChangesAsync();
                 }
-            }
+            } // toggle the game's official status
          
-            return RedirectToAction("Details", "Games", new { id });
+            return Json(new {success = true, message = "Successfully changed the game's status."});
 
         }
     }

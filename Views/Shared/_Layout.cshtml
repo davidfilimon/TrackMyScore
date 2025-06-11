@@ -12,14 +12,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TrackMyScore</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> <style>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
         :root {
             --horizontal-padding: 1rem !important;
             --navbar-height: 70px !important;
         }
 
-        *{
+        * {
             font-family: Arial;
         }
 
@@ -67,11 +67,11 @@
         #navbarToggler {
             border-color: rgba(255, 255, 255, 0.5);
         }
+
         #navbarToggler .navbar-toggler-icon {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28181, 255, 225, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
             background-color: transparent !important;
         }
-
 
         #mainNavbar .navbar-nav .nav-link {
             color: #B5FFE1 !important;
@@ -87,11 +87,11 @@
 
         #mainNavbar .navbar-nav .nav-item .nav-link i {
             margin-right: 5px !important;
-            color: #B5FFE1 !important; 
+            color: #B5FFE1 !important;
         }
 
         #mainNavbar .navbar-nav .nav-item .nav-link:hover i {
-            color: #00241B !important; 
+            color: #00241B !important;
         }
 
         #mainSearchInput {
@@ -112,52 +112,76 @@
         #mainSearchIcon {
             color: #FFFFFF !important;
         }
-        
+
         #mainSearchButton:hover #mainSearchIcon {
             color: #65B891 !important;
         }
 
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            position: relative;
+        }
 
-        #profileIconLink i {
+        .avatar-image {
+            background-color: #D4AF37 !important; /* Added !important */
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #B5FFE1;
+        }
+
+        .avatar-text {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            color: #00241B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 1px solid #B5FFE1;
+        }
+
+        #profileName {
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+
+        #profileIconLink:hover #profileName {
+            color: #00241B !important;
+        }
+
+        #profileIconLink {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        #profileIconLink,
+        #logoutIconLink,
+        #loginIconLink {
             color: #FFFFFF !important;
             transition: color 0.3s ease;
         }
 
-        #profileIconLink:hover i {
-            color: #00241B !important;
-        }
-
-        #profileIconLink:hover {
-            background-color: #65B891;
-            cursor: pointer;
-        }
-
-        #logoutIconLink i {
-            color: #FFFFFF !important;
-            transition: color 0.3s ease;
-        }
-        
-        #logoutIconLink:hover i {
-            color: #00241B !important;
-        }
-
-        #logoutIconLink:hover {
-            background-color: #65B891;
-            cursor: pointer;
-        }
-
-        #loginIconLink i {
-            color: #FFFFFF !important;
-            transition: color 0.3s ease;
-        }
-        
-        #loginIconLink:hover i {
-            color: #00241B !important;
-        }
-
+        #profileIconLink:hover,
+        #logoutIconLink:hover,
         #loginIconLink:hover {
             background-color: #65B891;
             cursor: pointer;
+        }
+
+        /* Specific styles for logout and login links to center the icon */
+        #logoutIconLink,
+        #loginIconLink {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #mainNavbar > .container-fluid {
@@ -192,7 +216,7 @@
             #profileNavItem,
             #logoutNavItem,
             #loginNavItem {
-                margin: 0 !important;
+                margin: 10 !important;
                 width: 100%;
             }
 
@@ -203,7 +227,6 @@
                 justify-content: flex-start;
                 align-items: center;
                 width: 100%;
-                padding: 8px 15px !important;
                 border-radius: 5px;
             }
 
@@ -218,9 +241,21 @@
             #loginIconLink span {
                 display: inline-block;
             }
+
+            #profileIconLink span {
+                display: inline-block !important;
+            }
+
+            .avatar-image,
+            .avatar-text {
+                margin-right: 10px;
+                width: 25px;
+                height: 25px;
+                font-size: 1rem;
+            }
         }
 
-        #mainSearchBarForm{
+        #mainSearchBarForm {
             padding-left: 5px !important;
         }
     </style>
@@ -265,10 +300,24 @@
                     {
                     <li class="nav-item" id="profileNavItem">
                         <a class="nav-link" asp-controller="Account" asp-action="Profile" asp-route-id="@user?.Id" id="profileIconLink">
-                            <i class="fa-solid fa-user"></i> <span>Profile</span>
+                            @if (user?.Picture == 0)
+                            {
+                                <div class="avatar-container">
+                                    <div class="avatar-text">@user.Username[0].ToString().ToUpper()</div>
+                                </div>
+                            }
+                            else if (user != null)
+                            {
+                                <div class="avatar-container">
+                                    <img class="avatar-image"
+                                         src="~/images/avatars/avatar-@(user.Picture).png"
+                                         alt="@user.Username" />
+                                </div>
+                            }
+                            <span id="profileName">@username</span>
                         </a>
                     </li>
-                    <li class="nav-item" id="logoutNavItem">
+                     <li class="nav-item d-flex align-items-center justify-content-center" id="logoutNavItem">
                         <a class="nav-link" asp-controller="Account" asp-action="Logout" id="logoutIconLink">
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </a>

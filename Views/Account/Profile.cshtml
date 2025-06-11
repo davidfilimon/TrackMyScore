@@ -7,6 +7,7 @@
     var tournaments = Model.Tournaments ?? new List<Tournament>();
     int pictureId = Model.User.Picture;
     var matchWinners = Model.MatchWinners ?? new Dictionary<int, string>();
+    var tournamentWinners = Model.TournamentWinners ?? new Dictionary<int, string>();
 }
 @inject FollowerService followerService
 
@@ -377,7 +378,7 @@
       <div id="history" class="tab-pane fade">
         <h3>Match History</h3>
 
-        <div class="d-flex gap-3 mb-3 align-items-center">
+        <div class="d-flex gap-3 mb-3 align-items-center flex-wrap">
           <label class="mb-0">Month:</label>
           <select id="matchMonthFilter" class="form-select w-auto select-filter">
             <option value="">All</option>
@@ -417,7 +418,7 @@
       <div id="tournaments" class="tab-pane fade">
         <h3>Tournament History</h3>
 
-        <div class="d-flex gap-3 mb-3 align-items-center">
+        <div class="d-flex gap-3 mb-3 align-items-center flex-wrap">
           <label class="mb-0">Month:</label>
           <select id="tournMonthFilter" class="form-select w-auto select-filter">
             <option value="">All</option>
@@ -441,7 +442,7 @@
                  data-month="@dt.Month" data-year="@dt.Year">
               <div class="info">
                 <strong>@t.Name</strong><br/>
-                @dt.ToString("yyyy-MM-dd") - Winner:
+                @dt.ToString("yyyy-MM-dd") - Winner: @tournamentWinners.GetValueOrDefault(t.Id, "N/A")
               </div>
               <a asp-controller="Tournament" asp-action="CurrentTournament" asp-route-id="@t.Id"
                   class="btn details-btn">View</a>

@@ -20,7 +20,7 @@ namespace TrackMyScore.Services
         {
             User user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if (user == null || decrypt(user.Password) != password)
+            if (user == null || decrypt(user.Password) != password) // check if user's passwords match at login
             {
                 return null;
             }
@@ -30,7 +30,7 @@ namespace TrackMyScore.Services
 
         public bool PasswordMatch(User user, string oldPassword)
         {
-            if (user == null || decrypt(user.Password) != oldPassword)
+            if (user == null || decrypt(user.Password) != oldPassword) // check if the passwords match when changing the account's password
             {
                 return false;
             }
@@ -39,7 +39,7 @@ namespace TrackMyScore.Services
         }
 
         public bool ChangePassword(User user, string password)
-        {
+        { // change the password
 
             if (user == null)
             {
@@ -52,7 +52,7 @@ namespace TrackMyScore.Services
             return true; 
         }
 
-        private static string decrypt(string encoded)
+        private static string decrypt(string encoded) // password decryption method from utf-8
         {
             UTF8Encoding encoder = new UTF8Encoding();
             Decoder utf8Decode = encoder.GetDecoder();
@@ -65,7 +65,7 @@ namespace TrackMyScore.Services
         }
 
         private static string encrypt(string password)
-        {
+        { // password encryption method to utf-8
             try
             {
                 byte[] encData_byte = new byte[password.Length];

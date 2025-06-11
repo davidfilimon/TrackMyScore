@@ -78,7 +78,7 @@ namespace TrackMyScore.Controllers
 
         }
 
-        public async Task<IActionResult> ToggleFavorite(int id)
+        public async Task<IActionResult> ToggleFavorite(int id) // method for toggling favorite games
         {
             int userId = int.Parse(Request.Cookies["userId"]);
 
@@ -128,7 +128,7 @@ namespace TrackMyScore.Controllers
 
         [HttpGet]
 
-        public IActionResult Details(int id)
+        public IActionResult Details(int id) // method to access details of a game
         {
             var game = _context.Games.FirstOrDefault(g => g.Id == id);
 
@@ -141,7 +141,7 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id) // method for deleting a game
         {
             var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == id);
 
@@ -154,7 +154,7 @@ namespace TrackMyScore.Controllers
             {
                 game.Deleted = true;
             }
-            else
+            else // if the game is already played only check the status of deleted instead of deleting all the data
             {
                 var favoriteUsers = await _context.FavoriteGames
                 .Where(t => t.Game == game)
@@ -174,7 +174,7 @@ namespace TrackMyScore.Controllers
 
         }
 
-        private async Task<bool> AlreadyPlayed(Game game) // method to check if there are already matches played with this game in order to fully remove them or disable them
+        private async Task<bool> AlreadyPlayed(Game game) // method to check if there are already matches played with this game in order to fully remove them or just disable them
         {
             var rooms = await _context.Matches
                 .Where(r => r.Game == game)

@@ -19,6 +19,8 @@ builder.Services.AddScoped<CreateAccountService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<StatsService>();
 
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp")); // configuring mail settings for password resets
+
 
 builder.Services.AddHttpContextAccessor();
 

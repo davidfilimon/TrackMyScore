@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TrackMyScore.Database;
 
 public class DashboardStats
-{
+{ // initialize the stats
     public int TotalUsers { get; set; }
     public int UsersLastDay { get; set; }
     public int UsersLastWeek { get; set; }
@@ -36,19 +36,19 @@ public class StatsService
 
         return new DashboardStats
         {
-            // USERS
+            // users
             TotalUsers = await _db.Users.CountAsync(),
             UsersLastDay = await _db.Users.CountAsync(u => u.AccountCreationDate >= DateOnly.FromDateTime(today)),
             UsersLastWeek = await _db.Users.CountAsync(u => u.AccountCreationDate >= DateOnly.FromDateTime(weekAgo)),
             UsersLastMonth = await _db.Users.CountAsync(u => u.AccountCreationDate >= DateOnly.FromDateTime(monthAgo)),
 
-            // // MATCHES
+            // matches
             TotalMatches = await _db.Matches.CountAsync(),
             MatchesLastDay = await _db.Matches.CountAsync(m => m.StartDate >= today),
             MatchesLastWeek = await _db.Matches.CountAsync(m => m.StartDate >= weekAgo),
             MatchesLastMonth = await _db.Matches.CountAsync(m => m.StartDate >= monthAgo),
 
-            // TOURNAMENTS
+            // tournaments
             TotalTournaments = await _db.Tournaments.CountAsync(),
             TournamentsLastDay = await _db.Tournaments.CountAsync(t => t.StartDate >= today),
             TournamentsLastWeek = await _db.Tournaments.CountAsync(t => t.StartDate >= weekAgo),
