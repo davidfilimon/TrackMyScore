@@ -6,10 +6,9 @@ namespace TrackMyScore.Models
     public class Tournament
     {
         public int Id { get; set; }
-
+        
         [Required]
         public string Name { get; set; }
-
         [Required]
         public int RoomCount { get; set; }
         [Required]

@@ -17,29 +17,40 @@
         :root {
             --horizontal-padding: 1rem !important;
             --navbar-height: 70px !important;
+            --footer-height: 80px;
+            --header-footer-bg: #001A12;
+            --primary-dark-text: #003628;
+            --accent-green: #B5FFE1;
+            --accent-gold: #D4AF37;
+            --text-light: #F0F0F0;
+            --text-muted: #A0A0A0;
+            --hover-green: #65B891;
         }
 
         * {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
         }
 
         body {
             background-color: #FFFFFF;
-            color: #00241B;
+            color: var(--primary-dark-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         #mainNavbar {
-            background-color: #00241B;
+            background-color: var(--header-footer-bg);
         }
 
         #mainNavbar .navbar-brand {
-            color: #B5FFE1 !important;
+            color: var(--accent-green) !important;
             font-size: 1.2rem !important;
             font-weight: bold !important;
             text-decoration: none !important;
             padding: 8px 15px !important;
             border-radius: 5px !important;
-            background-color: #00241B !important;
+            background-color: var(--header-footer-bg) !important;
             transition: none !important;
             font-family: Arial, sans-serif !important;
             white-space: nowrap !important;
@@ -49,19 +60,19 @@
         }
 
         #mainNavbar .navbar-brand:hover {
-            background-color: #00241B !important;
-            color: #B5FFE1 !important;
+            background-color: var(--header-footer-bg) !important;
+            color: var(--text-light) !important;
         }
 
         #trackMyScoreBrand {
-            color: #FFFFFF !important;
-            font-family: Arial;
+            color: var(--text-light) !important;
+            font-family: Arial, sans-serif;
         }
 
         #trackMyScoreBrand:hover {
-            color: #B5FFE1 !important;
+            color: var(--accent-green) !important;
             background-color: transparent !important;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
         }
 
         #navbarToggler {
@@ -74,24 +85,24 @@
         }
 
         #mainNavbar .navbar-nav .nav-link {
-            color: #B5FFE1 !important;
+            color: var(--accent-green) !important;
             border-radius: 5px !important;
             padding: 8px 15px !important;
             transition: all 0.3s ease;
         }
 
         #mainNavbar .navbar-nav .nav-link:hover {
-            background-color: #65B891 !important;
-            color: #00241B !important;
+            background-color: var(--hover-green) !important;
+            color: var(--primary-dark-text) !important;
         }
 
         #mainNavbar .navbar-nav .nav-item .nav-link i {
             margin-right: 5px !important;
-            color: #B5FFE1 !important;
+            color: var(--accent-green) !important;
         }
 
         #mainNavbar .navbar-nav .nav-item .nav-link:hover i {
-            color: #00241B !important;
+            color: var(--primary-dark-text) !important;
         }
 
         #mainSearchInput {
@@ -110,11 +121,11 @@
         }
 
         #mainSearchIcon {
-            color: #FFFFFF !important;
+            color: var(--accent-green) !important;
         }
 
         #mainSearchButton:hover #mainSearchIcon {
-            color: #65B891 !important;
+            color: var(--text-light) !important;
         }
 
         .avatar-container {
@@ -126,34 +137,34 @@
         }
 
         .avatar-image {
-            background-color: #D4AF37 !important; /* Added !important */
+            background-color: var(--accent-gold) !important;
             width: 30px;
             height: 30px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1px solid #B5FFE1;
+            border: 1px solid var(--accent-green);
         }
 
         .avatar-text {
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            color: #00241B;
+            color: var(--primary-dark-text);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             font-size: 1.2rem;
-            border: 1px solid #B5FFE1;
+            border: 1px solid var(--accent-green);
         }
 
         #profileName {
-            color: #FFFFFF;
+            color: var(--text-light);
             font-weight: bold;
         }
 
         #profileIconLink:hover #profileName {
-            color: #00241B !important;
+            color: var(--primary-dark-text) !important;
         }
 
         #profileIconLink {
@@ -165,18 +176,17 @@
         #profileIconLink,
         #logoutIconLink,
         #loginIconLink {
-            color: #FFFFFF !important;
+            color: var(--accent-green) !important;
             transition: color 0.3s ease;
         }
 
         #profileIconLink:hover,
         #logoutIconLink:hover,
         #loginIconLink:hover {
-            background-color: #65B891;
+            background-color: var(--hover-green);
             cursor: pointer;
         }
 
-        /* Specific styles for logout and login links to center the icon */
         #logoutIconLink,
         #loginIconLink {
             display: flex;
@@ -200,6 +210,8 @@
             padding-left: var(--horizontal-padding) !important;
             padding-right: var(--horizontal-padding) !important;
             padding-top: calc(var(--navbar-height) + 1rem) !important;
+            padding-bottom: calc(var(--footer-height) + 1rem);
+            flex-grow: 1;
         }
 
         @@media (max-width: 991.98px) {
@@ -258,6 +270,181 @@
         #mainSearchBarForm {
             padding-left: 5px !important;
         }
+
+        .site-footer {
+            background-color: var(--header-footer-bg);
+            color: var(--accent-green);
+            height: var(--footer-height);
+            padding: 0.5rem 0;
+            font-size: 0.8rem;
+            margin-top: auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .site-footer a {
+            color: var(--accent-green);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .site-footer a:hover {
+            color: var(--text-light);
+        }
+
+        .footer-brand {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .footer-brand i {
+            margin-right: 5px;
+            font-size: 1.1rem;
+        }
+
+        .site-footer h6 {
+            display: none;
+        }
+
+        .site-footer .list-unstyled {
+            display: flex;
+            justify-content: center;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .site-footer .list-unstyled li {
+            margin: 0 0.5rem;
+            margin-bottom: 0;
+        }
+
+        .site-footer .list-unstyled li a {
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .site-footer .small {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .site-footer .social-icons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 0;
+        }
+
+        .site-footer .social-icons a {
+            font-size: 1rem;
+            margin: 0 4px;
+            color: var(--accent-green);
+        }
+
+        .site-footer .social-icons a:hover {
+            color: var(--text-light);
+        }
+
+        .site-footer hr {
+            display: none;
+        }
+
+        .site-footer .container {
+            max-width: 1200px;
+            padding-left: var(--horizontal-padding);
+            padding-right: var(--horizontal-padding);
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+        
+        .site-footer .row {
+            width: 100%;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .site-footer .col-md-4 {
+            flex-shrink: 0;
+            flex-basis: auto;
+        }
+
+        .site-footer .col-12 {
+            text-align: center;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        @@media (max-width: 767.98px) {
+            .site-footer .container {
+                flex-direction: column;
+                height: auto;
+                padding: 0.5rem var(--horizontal-padding);
+            }
+
+            .site-footer {
+                height: auto;
+                padding: 0.5rem 0;
+            }
+
+            .site-footer .row.gy-4 {
+                row-gap: 0.5rem !important;
+            }
+
+            .site-footer .col-md-4 {
+                width: 100%;
+                text-align: center !important;
+                margin-bottom: 0.2rem;
+            }
+
+            .site-footer .footer-brand {
+                margin-bottom: 0.2rem;
+            }
+
+            .site-footer .list-unstyled {
+                flex-direction: column;
+                margin-bottom: 0.2rem;
+            }
+
+            .site-footer .list-unstyled li {
+                margin: 0;
+            }
+            .site-footer .social-icons {
+                margin-top: 0.2rem;
+                margin-bottom: 0.2rem;
+            }
+
+            .site-footer .col-12 {
+                margin-top: 0.2rem;
+            }
+        }
+
+        @@media (min-width: 768px) {
+            .footer-brand {
+                justify-content: flex-start;
+            }
+
+            .site-footer .text-md-start {
+                text-align: left !important;
+            }
+
+            .site-footer .text-md-end {
+                text-align: right !important;
+            }
+            .site-footer .col-md-4.text-md-center {
+                text-align: center !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -310,14 +497,14 @@
                             {
                                 <div class="avatar-container">
                                     <img class="avatar-image"
-                                         src="~/images/avatars/avatar-@(user.Picture).png"
-                                         alt="@user.Username" />
+                                            src="~/images/avatars/avatar-@(user.Picture).png"
+                                            alt="@user.Username" />
                                 </div>
                             }
                             <span id="profileName">@username</span>
                         </a>
                     </li>
-                     <li class="nav-item d-flex align-items-center justify-content-center" id="logoutNavItem">
+                    <li class="nav-item d-flex align-items-center justify-content-center" id="logoutNavItem">
                         <a class="nav-link" asp-controller="Account" asp-action="Logout" id="logoutIconLink">
                             <i class="fa-solid fa-right-from-bracket"></i>
                         </a>
@@ -341,6 +528,39 @@
             @RenderBody()
         </main>
     </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-md-4 text-center text-md-start">
+                    <a asp-controller="Home" asp-action="Index" class="footer-brand">
+                        <i class="fa-solid fa-gamepad"></i> TrackMyScore
+                    </a>
+                    <p class="small mb-0 mt-2">Version 1.3.0</p>
+                </div>
+
+                <div class="col-md-4 text-center text-md-center">
+                    <div class="social-icons mt-3">
+                        <a href="mailto:filimon.david97@gmail.com" class="me-3">
+                            <i class="fa-solid fa-envelope"></i>
+                        </a>
+                        <a href="https://github.com/davidfilimon/trackmyscore" target="_blank" class="me-3">
+                            <i class="fa-brands fa-github"></i>
+                        </a>
+                        <a href="https://linkedin.com/in/filimon-david-1477972a4/" target="_blank" class="me-3">
+                            <i class="fa-brands fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 mb-3 border-secondary" />
+            <div class="row">
+                <div class="col-12 text-center small">
+                    &copy; @DateTime.Now.Year TrackMyScore
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

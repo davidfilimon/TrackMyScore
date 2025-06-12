@@ -5,43 +5,79 @@
 }
 <title>@ViewData["Title"] - TrackMyScore</title>
 <style>
-    .custom-card {
-        background-color: #00241B;
-        border: none;
-        color: white;
-        border-radius: 10px;
-        margin: 20px;
-        padding: 20px;
+    /* Profile page color variables */
+    :root {
+        --primary-dark: #1A3C2A;
+        --primary: #2A5940;
+        --primary-light: #3B7A5A;
+        --accent-gold: #D4AF37;
+        --accent-gold-light: #F0D875;
+        --card-bg: #234134;
+        --text-light: #E8F5E9;
+        --text-muted: #A7C0A7;
+        --spacing: 8px;
     }
 
-        .custom-card .card-header {
-            background-color: #00241B;
-            border-radius: 10px 10px 0 0;
-        }
+    body {
+        background: var(--primary-dark);
+        color: var(--text-light);
+        font-family: 'Segoe UI', sans-serif;
+    }
 
-        .custom-card .list-group-item {
-            background-color: #4E878C;
-            color: #00241B;
-            border: none;
-            border-radius: 5px;
-            margin: 5px 0;
-            font-weight: bold;
-        }
-
-            .custom-card .list-group-item:hover {
-                background-color: #B5FFE1;
-                cursor: pointer;
-                font-weight: bold;
-            }
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 0 var(--spacing);
+    }
 
     .welcome-alert {
-        background-color: #B5FFE1;
-        color: #00241B;
+        background-color: var(--accent-gold-light);
+        color: var(--primary-dark);
         border: none;
         border-radius: 10px;
         margin-bottom: 20px;
         padding: 15px;
     }
+
+    .custom-card {
+        background: var(--card-bg);
+        border: none;
+        color: var(--text-light);
+        border-radius: 12px;
+        margin: 20px 0;
+        padding: calc(var(--spacing) * 3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .custom-card .card-header {
+        background: var(--card-bg);
+        border-radius: 12px 12px 0 0;
+        padding-bottom: calc(var(--spacing) * 2);
+    }
+    .custom-card .card-header h5 {
+        color: var(--accent-gold);
+        margin: 0;
+    }
+
+    .custom-card .card-body p {
+        color: var(--text-light);
+        margin-bottom: calc(var(--spacing) * 2);
+    }
+
+    .custom-card .list-group-item {
+        background: var(--primary);
+        color: var(--text-light);
+        border: none;
+        border-radius: 8px;
+        margin: calc(var(--spacing) / 2) 0;
+        font-weight: 600;
+        transition: all .3s;
+    }
+    .custom-card .list-group-item:hover {
+        background: var(--primary-light);
+        cursor: pointer;
+        color: var(--text-light);
+    }
+
 </style>
 
 <div class="container mt-5">
@@ -52,9 +88,9 @@
         </div>
     }
 
-    <div class="card custom-card shadow-lg mt-4">
+    <div class="card custom-card shadow-lg">
         <div class="card-header">
-            <h5 class="mb-0">📰 What's new?</h5>
+            <h5>📰 What's new?</h5>
         </div>
         <div class="card-body">
             <p>Stay up to date with the latest updates!</p>
@@ -66,9 +102,9 @@
         </div>
     </div>
 
-    <div class="card custom-card shadow-lg mt-4">
+    <div class="card custom-card shadow-lg">
         <div class="card-header">
-            <h5 class="mb-0">📰 Previous Update</h5>
+            <h5>📰 Previous Update</h5>
         </div>
         <div class="card-body">
             <p>April update!</p>
