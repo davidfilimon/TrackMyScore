@@ -31,6 +31,11 @@ namespace TrackMyScore.Controllers
         public async Task<IActionResult> Profile(int? id) // method for accessing a profile
         {
             var loggedUser = await GetLoggedUserAsync(); // searching for logged user;
+
+            if (loggedUser == null)
+            {
+                return RedirectToAction("Login", "Account"); // if the user is not logged return to login page
+            }
             
             ViewData["loggedUserId"] = loggedUser.Id; // send the id to the view through a viewdata
 
