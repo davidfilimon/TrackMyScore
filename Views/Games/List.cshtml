@@ -1,8 +1,10 @@
 ﻿@using TrackMyScore.Services
-@model List<Game>
+@model GamesViewModel
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Game List";
+    List<Game> allGames = Model.AllGames ?? new();
+    List<Game> recommendedGames = Model.RecommendedGames ?? new();
 }
 @inject UserService userService
 
@@ -193,6 +195,57 @@
         </div>
     </div>
 
+    @* Recommended Games Section *@
+    <div class="game-section mb-4">
+        <h3>Recommended Games for You</h3>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Max Players</th>
+                        <th>Difficulty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recommendedGamesTableBody">
+                    @if (recommendedGames.Any())
+                    {
+                        @foreach (var game in recommendedGames)
+                        {
+                            <tr class="game-row" data-title="@game.Title.ToLower()">
+                                <td>@game.Title</td>
+                                <td>@game.MaxPlayers</td>
+                                <td>@game.Difficulty</td>
+                                <td>
+                                    <a onclick="toggleFavorite(@game.Id, this)" class="d-inline-block align-middle">
+                                        @if (!await userService.IsGameFavorite(@game.Id))
+                                        {
+                                            <i class="fa-solid fa-heart heart-icons"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-regular fa-heart heart-icons"></i>
+                                        }
+                                    </a>
+                                    <a class="btn btn-details d-inline-block align-middle" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
+                                        Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="no-games-message">No recommendations available at the moment. Add some favorites to get started!</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="game-section mb-4">
         <h3>Official Games</h3>
         <div class="table-responsive">
@@ -206,9 +259,9 @@
                     </tr>
                 </thead>
                 <tbody id="officialGamesTableBody">
-                    @if (Model.Any(g => g.IsOfficial))
+                    @if (allGames.Any(g => g.IsOfficial))
                     {
-                        @foreach (var game in Model.Where(g => g.IsOfficial))
+                        @foreach (var game in allGames.Where(g => g.IsOfficial))
                         {
                             <tr class="game-row" data-title="@game.Title.ToLower()">
                                 <td>@game.Title</td>
@@ -257,9 +310,9 @@
                     </tr>
                 </thead>
                 <tbody id="unofficialGamesTableBody">
-                    @if (Model.Any(g => !g.IsOfficial))
+                    @if (allGames.Any(g => !g.IsOfficial))
                     {
-                        @foreach (var game in Model.Where(g => !g.IsOfficial))
+                        @foreach (var game in allGames.Where(g => !g.IsOfficial))
                         {
                             <tr class="game-row" data-title="@game.Title.ToLower()">
                                 <td>@game.Title</td>
@@ -299,52 +352,52 @@
     </div>
 </div>
 
-    <script>
-        // Toggling favorite game
-        async function toggleFavorite(gameId, element) {
-            console.log(`Toggling favorite for game ID: ${gameId}`);
-            try {
-                const response = await fetch(`/Games/ToggleFavorite/${gameId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (response.ok) {
-                    const icon = element.querySelector('i');
-                    if (icon.classList.contains('fa-solid')) {
-                        icon.classList.remove('fa-solid');
-                        icon.classList.add('fa-regular');
-                    } else {
-                        icon.classList.remove('fa-regular');
-                        icon.classList.add('fa-solid');
-                    }
-                } else {
-                    console.error('Failed to toggle favorite status.');
-                    alert('Could not update favorite status. Please try again.');
+<script>
+    // Toggling favorite game
+    async function toggleFavorite(gameId, element) {
+        console.log(`Toggling favorite for game ID: ${gameId}`);
+        try {
+            const response = await fetch(`/Games/ToggleFavorite/${gameId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 }
-            } catch (error) {
-                console.error('Error toggling favorite:', error);
-                alert('An error occurred. Please try again.');
+            });
+
+            if (response.ok) {
+                const icon = element.querySelector('i');
+                if (icon.classList.contains('fa-solid')) {
+                    icon.classList.remove('fa-solid');
+                    icon.classList.add('fa-regular');
+                } else {
+                    icon.classList.remove('fa-regular');
+                    icon.classList.add('fa-solid');
+                }
+            } else {
+                console.error('Failed to toggle favorite status.');
+                alert('Could not update favorite status. Please try again.');
             }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            alert('An error occurred. Please try again.');
         }
-        // Game search function
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('gameSearch');
+    }
+    // Game search function
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('gameSearch');
 
-            searchInput.addEventListener('keyup', function () {
-                const searchTerm = searchInput.value.toLowerCase();
-                const gameRows = document.querySelectorAll('.game-row');
+        searchInput.addEventListener('keyup', function () {
+            const searchTerm = searchInput.value.toLowerCase();
+            const gameRows = document.querySelectorAll('.game-row');
 
-                gameRows.forEach(row => {
-                    const title = row.getAttribute('data-title');
-                    if (title.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+            gameRows.forEach(row => {
+                const title = row.getAttribute('data-title');
+                if (title.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
             });
         });
-    </script>
+    });
+</script>

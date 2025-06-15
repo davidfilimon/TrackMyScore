@@ -24,16 +24,7 @@ D:\TrackMyScore\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Design.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.Relational.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.EntityFrameworkCore.SqlServer.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Caching.Abstractions.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Caching.Memory.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.DependencyInjection.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.DependencyModel.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Logging.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Options.dll
-D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Extensions.Primitives.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Identity.Client.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.Identity.Client.Extensions.Msal.dll
 D:\TrackMyScore\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
@@ -210,7 +201,6 @@ D:\TrackMyScore\obj\Debug\net9.0\compressed\tolfei2cog-mlv21k5csn.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\p57wwk86kw-4337bjm2p6.gz
 D:\TrackMyScore\obj\Debug\net9.0\compressed\k042jzg5kd-4337bjm2p6.gz
 D:\TrackMyScore\obj\Debug\net9.0\staticwebassets.build.json
-D:\TrackMyScore\obj\Debug\net9.0\staticwebassets.build.json.cache
 D:\TrackMyScore\obj\Debug\net9.0\staticwebassets.development.json
 D:\TrackMyScore\obj\Debug\net9.0\staticwebassets.build.endpoints.json
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyS.6328CC8E.Up2Date
@@ -219,3 +209,9 @@ D:\TrackMyScore\obj\Debug\net9.0\refint\TrackMyScore.dll
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyScore.pdb
 D:\TrackMyScore\obj\Debug\net9.0\TrackMyScore.genruntimeconfig.cache
 D:\TrackMyScore\obj\Debug\net9.0\ref\TrackMyScore.dll
+D:\TrackMyScore\obj\Debug\net9.0\staticwebassets\msbuild.TrackMyScore.Microsoft.AspNetCore.StaticWebAssets.props
+D:\TrackMyScore\obj\Debug\net9.0\staticwebassets\msbuild.TrackMyScore.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+D:\TrackMyScore\obj\Debug\net9.0\staticwebassets\msbuild.build.TrackMyScore.props
+D:\TrackMyScore\obj\Debug\net9.0\staticwebassets\msbuild.buildMultiTargeting.TrackMyScore.props
+D:\TrackMyScore\obj\Debug\net9.0\staticwebassets\msbuild.buildTransitive.TrackMyScore.props
+D:\TrackMyScore\obj\Debug\net9.0\staticwebassets.pack.json
