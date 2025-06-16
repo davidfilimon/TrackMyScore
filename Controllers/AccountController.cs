@@ -50,19 +50,23 @@ namespace TrackMyScore.Controllers
             ViewData["UserId"] = profileUser.Id; // send the profile user id to the view
 
             var games = await _context.FavoriteGames
-                .Where(g => g.User == profileUser || g.Game.Author == profileUser)
+                .Where(g => (g.User == profileUser || g.Game.Author == profileUser) && !g.Game.IsOfficial && !g.Game.Deleted)
                 .Select(g => g.Game)
                 .ToListAsync()
                 ?? new List<Game>(); // search for the list of either favorite games or published games
 
             var singleMatches = await _context.Players
-                .Where(p => p.User.Id == profileUser.Id)
+                .Include(p => p.User)
+                .Include(p => p.Match)
+                .Where(p => p.User.Id == profileUser.Id && p.Match.Stage == -2)
                 .Select(p => p.Match)
                 .ToListAsync()
                 ?? new List<Match>(); // search for single matches that the user took part in
 
             var teamMatches = await _context.TeamPlayers
-                .Where(p => p.User.Id == profileUser.Id)
+                .Include(p => p.User)
+                .Include(p => p.Match)
+                .Where(p => p.User.Id == profileUser.Id && p.Match.Stage == -2)
                 .Select(p => p.Match)
                 .ToListAsync()
                 ?? new List<Match>(); // search for team matches that the user took part in
@@ -296,7 +300,7 @@ namespace TrackMyScore.Controllers
 
             if (user == null)
             {
-                ViewData["LoginError"] = "Email or password error";
+                ViewData["LoginError"] = "Email or password error.";
                 return View();
             }
 

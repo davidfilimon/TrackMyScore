@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,21 +23,18 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var email = Request.Cookies["email"];
+            var user = await GetLoggedUserAsync();
 
             List<Game> favoriteGames = new();
 
-            if (!email.IsNullOrEmpty()) {
-
-                int userId = _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == email).Id;
-
-                favoriteGames = await RecommendedGames(userId);
-
+            if (user != null)
+            {
+                favoriteGames = await RecommendedGames(user.Id);
             }
-
+            
             var games = await _context.Games
                 .Include(g => g.Author)
+                .Where(g => !g.Deleted)
                 .ToListAsync();
 
             var model = new GamesViewModel
@@ -55,7 +54,7 @@ namespace TrackMyScore.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddGame(string name, string description, int maxPlayers, string difficulty)
+        public async Task<IActionResult> AddGame(string name, string description, int maxPlayers, string difficulty)
         {
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers == 0)
@@ -71,6 +70,20 @@ namespace TrackMyScore.Controllers
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
+            }
+
+            var gameExists = await _context.Games.AnyAsync(u => u.Author == user && u.Title == name);
+
+            if (gameExists)
+            {
+                ViewData["Error"] = "You already have added a game with the same name to your library. Please choose another one and try again.";
+                return View();
+            }
+
+            if (maxPlayers > 32 || maxPlayers < 2)
+            {
+                ViewData["Error"] = "Invalid player number. Please either lower or higher the player count.";
+                return View();
             }
 
             var game = new Game
@@ -212,67 +225,81 @@ namespace TrackMyScore.Controllers
         // method for selecting recommended games list
         public async Task<List<Game>> RecommendedGames(int userId)
         {
-            var currentUserFavoriteGameIds = await _context.FavoriteGames
+            var favoritesList = await _context.FavoriteGames
                 .Where(fg => fg.UserId == userId && fg.Game.IsOfficial)
                 .Select(fg => fg.GameId)
                 .ToListAsync(); // search for current user's favorite games
 
-            if (!currentUserFavoriteGameIds.Any())
+            if (!favoritesList.Any())
             {
                 return new List<Game>();
             }
 
-            var similarUsers = await _context.FavoriteGames
-                .Where(fg => currentUserFavoriteGameIds.Contains(fg.GameId) && fg.UserId != userId) // serach for similar users where they have the same games as the users
+            var similarPlayers = await _context.FavoriteGames
+                .Where(fg => favoritesList.Contains(fg.GameId) && fg.UserId != userId) // serach for similar users where they have the same games as the users
                 .GroupBy(fg => fg.UserId) // group by user ids
                 .Select(g => new
                 {
                     UserId = g.Key,
-                    SharedFavoriteGamesCount = g.Count()
+                    sharedCount = g.Count()
                 }) // select the number of shared favorite games
-                .OrderByDescending(x => x.SharedFavoriteGamesCount) // order from the most to least 
+                .OrderByDescending(x => x.sharedCount) // order from the most to least 
                 .ToListAsync();
 
-            var similarUserIds = similarUsers
+            var similarPlayerIds = similarPlayers
                 .Select(su => su.UserId)
                 .ToList(); // select the user ids to list
 
-            if (!similarUserIds.Any())
+            if (!similarPlayerIds.Any())
             {
-                return new List<Game>(); 
+                return new List<Game>();
             }
 
-            var recommendedGameCandidates = await _context.FavoriteGames
-                .Include(fg => fg.Game) 
-                .Where(fg => similarUserIds.Contains(fg.UserId) &&
+            var recGames = await _context.FavoriteGames
+                .Include(fg => fg.Game)
+                .Where(fg => similarPlayerIds.Contains(fg.UserId) &&
                             fg.Game.IsOfficial &&
-                            !currentUserFavoriteGameIds.Contains(fg.GameId)) // select the games by the user ids found and if the game is official and not already in the favorites list
+                            !fg.Game.Deleted &&
+                            !favoritesList.Contains(fg.GameId)) // select the games by the user ids found and if the game is official and not already in the favorites list
                 .GroupBy(fg => fg.GameId)
                 .Select(g => new
                 {
                     GameId = g.Key, // select the gameid
                     Game = g.First().Game, // select the game
-                    FavoritedBySimilarUsersCount = g.Count() // select the number of people that has the game as favorite
+                    playerCount = g.Count() // select the number of people that has the game as favorite
                 })
                 .ToListAsync();
 
             var recommendedGames = new List<Game>(); // empty list for favorited games
-            var totalSimilarUsers = similarUserIds.Count; // number of users that have similar games 
+            var totalSimilarPlayers = similarPlayerIds.Count; // number of users that have similar games 
 
-            foreach (var candidate in recommendedGameCandidates)
+            foreach (var g in recGames)
             {
-                if (totalSimilarUsers > 0) // check if the number is more than 0
+                if (totalSimilarPlayers > 0 && g.playerCount >= 3) // check if the number is more than 0
                 {
-                    double percentage = (double)candidate.FavoritedBySimilarUsersCount / totalSimilarUsers * 100; // calculate the percentage
+                    double percentage = (double)g.playerCount / totalSimilarPlayers * 100; // calculate the percentage
 
                     if (percentage >= RECOMMENDATION_PERCENTAGE)
                     {
-                        recommendedGames.Add(candidate.Game); // if the percentage is higher than the preset percentage add it to the list
+                        recommendedGames.Add(g.Game); // if the percentage is higher than the preset percentage add it to the list
                     }
                 }
             }
 
             return recommendedGames.Distinct().ToList(); // return the distinct list of games
+        }
+
+
+        private async Task<User> GetLoggedUserAsync()
+        { // method for getting the logged user
+            string email = HttpContext.Session.GetString("email");
+
+            if (email == null)
+            {
+                return null;
+            }
+
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
     }

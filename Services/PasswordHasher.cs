@@ -18,12 +18,13 @@ namespace TrackMyScore.Services
             using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
             byte[] key       = pbkdf2.GetBytes(KeySize);
 
-            // Store as: iterations.salt.key
+            // store as iterations.salt.key
             return $"{Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(key)}";
         }
 
         public static bool Verify(string password, string storedHash)
         {
+            // split the parts at every dot
             var parts = storedHash.Split('.', 3);
             if (parts.Length != 3) return false;
 

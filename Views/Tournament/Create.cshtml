@@ -39,7 +39,7 @@
             color: var(--text-light);
             min-height: 100vh;
             line-height: 1.5;
-            padding: calc(var(--spacing-unit) * 4);
+            padding-top: calc(var(--spacing-unit) * 4) 0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -319,7 +319,6 @@
 
     </style>
 </head>
-<body>
     <div class="form-container">
         <h1>Create Tournament</h1>
 
@@ -425,8 +424,8 @@
                         altInput.style.color = textLight;
                         altInput.style.border = `1px solid ${inputBorder}`;
                         altInput.style.setProperty('box-shadow', 'none', 'important');
-                        if (!altInput.value) {
-                            altInput.style.color = textMuted; 
+                        if (!altInput.value) { 
+                            altInput.style.color = 'var(--text-muted)'; 
                         }
                     }
                 },
@@ -437,7 +436,6 @@
                 }
             });
 
-            // hour selector
             flatpickr("input[name='startTime']", {
                 enableTime: true,
                 noCalendar: true,
@@ -455,7 +453,7 @@
                         altInput.style.border = `1px solid ${inputBorder}`;
                         altInput.style.setProperty('box-shadow', 'none', 'important');
                         if (!altInput.value) {
-                            altInput.style.color = textMuted;
+                            altInput.style.color = 'var(--text-muted)';
                         }
                     }
                 },
@@ -466,5 +464,5 @@
                 }
             });
         });
+    
     </script>
-</body>

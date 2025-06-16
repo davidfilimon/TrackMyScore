@@ -39,65 +39,109 @@ namespace TrackMyScore.Controllers
             if (user == null)
                 return RedirectToAction("Login", "Account");
 
+            // matches the user hosts
             var hostedMatches = await _context.Matches
                 .Include(m => m.Host)
                 .Include(m => m.Game)
-                .Where(m => m.Host.Id == user.Id && m.Tournament == null
-                 && m.Stage >= -1)
+                .Where(m =>
+                    m.Host.Id == user.Id &&
+                    m.Tournament == null &&
+                    m.Stage >= -1)
                 .ToListAsync();
 
+            // matches the user joined as a single player
             var joinsSingle = await _context.Players
                 .Include(j => j.Match).ThenInclude(m => m.Host)
-                .Where(j => j.Match.Tournament == null
-                            && j.User.Id == user.Id
-                            && j.Match.Host.Id != user.Id
-                            && j.Match.Stage >= -1)
+                .Where(j =>
+                    j.Match.Tournament == null &&
+                    j.User.Id == user.Id &&
+                    j.Match.Host.Id != user.Id &&
+                    j.Match.Stage >= -1)
                 .Select(j => j.Match)
                 .ToListAsync();
 
+            // matches the user joined as part of a team
             var joinsTeam = await _context.TeamPlayers
                 .Include(j => j.Match).ThenInclude(m => m.Host)
-                .Where(j => j.Match.Tournament == null
-                            && j.User.Id == user.Id
-                            && j.Match.Host.Id != user.Id
-                            && j.Match.Stage >= -1)
+                .Where(j =>
+                    j.Match.Tournament == null &&
+                    j.User.Id == user.Id &&
+                    j.Match.Host.Id != user.Id &&
+                    j.Match.Stage >= -1)
                 .Select(j => j.Match)
                 .ToListAsync();
 
+            // unify joinedMatches
             var joinedMatches = joinsSingle
                 .Concat(joinsTeam)
                 .GroupBy(m => m.Id)
                 .Select(g => g.First())
                 .ToList();
 
+            // all the users matches
             var myMatches = hostedMatches
                 .Concat(joinedMatches)
                 .GroupBy(m => m.Id)
                 .Select(g => g.First())
                 .ToList();
 
+            // all other available matches
             var allOthers = await _context.Matches
                 .Include(m => m.Host)
                 .Include(m => m.Game)
-                .Where(m => m.Host.Id != user.Id
-                            && m.Tournament == null && m.Stage >= -1)
+                .Where(m =>
+                    m.Host.Id != user.Id &&
+                    m.Tournament == null &&
+                    m.Stage >= -1)
                 .ToListAsync();
 
             var availableMatches = allOthers
                 .Where(m => myMatches.All(mm => mm.Id != m.Id))
                 .ToList();
 
+            // count solo players per match
+            var playerSingleList = await _context.Players
+                .Where(p => p.Match.Stage >= -1)
+                .GroupBy(p => p.MatchId)
+                .Select(g => new {
+                    MatchId     = g.Key,
+                    PlayerCount = g.Count()
+                })
+                .ToListAsync();
+
+            // count distinct teams per match
+            var teamCountsPerMatch = await _context.TeamPlayers
+                .Where(tp => tp.Match.Stage >= -1)
+                .GroupBy(tp => new { tp.MatchId, tp.TeamId })
+                .Select(g => g.Key.MatchId) // one entry per (MatchId, TeamId)
+                .GroupBy(matchId => matchId) // now group by MatchId
+                .Select(g => new {
+                    MatchId   = g.Key,
+                    TeamCount = g.Count() // number of distinct teams
+                })
+                .ToListAsync();
+
+            var playerCountDict = playerSingleList
+                .Concat(teamCountsPerMatch.Select(t => new {
+                    MatchId     = t.MatchId,
+                    PlayerCount = t.TeamCount
+                }))
+                .GroupBy(x => x.MatchId)
+                .ToDictionary(
+                    g  => g.Key,
+                    g  => (int?) g.Sum(x => x.PlayerCount)
+                );
+
             var model = new MatchListModel
             {
-                HostedMatches = hostedMatches,
-                JoinedMatches = joinedMatches,
-                AvailableMatches = availableMatches
+                HostedMatches    = hostedMatches,
+                JoinedMatches    = joinedMatches,
+                AvailableMatches = availableMatches,
+                PlayerCount      = playerCountDict   // Dictionary<int, int?> 
             };
 
             return View(model);
         }
-
-
 
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -393,6 +437,24 @@ namespace TrackMyScore.Controllers
 
             if (match.Host != user)
                 return Json(new { success = false, message = "You are not the host of this room." });
+
+            if (match.Mode == "single")
+            {
+                var players = await _context.Players
+                    .CountAsync(p => p.MatchId == id);
+
+                if (players < 2) return Json(new { success = false, message = "Not enough players to start." });
+
+            }
+            else
+            {
+                var teams = await _context.TeamPlayers
+                    .Where(tp => tp.MatchId == id)
+                    .Select(tp => tp.TeamId)
+                    .Distinct()
+                    .CountAsync();
+                if (teams < 2) return Json(new { success = false, message = "Not enough teams to start." });
+            }
 
             match.Stage = 0;
             match.StartDate = DateTime.Now;

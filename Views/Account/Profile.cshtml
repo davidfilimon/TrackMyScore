@@ -396,23 +396,28 @@
         </div>
 
         <div class="games-list">
-          @foreach (var m in matches.Where(x => x != null && x.Game != null && x.StartDate != null && x.Stage == -2)) {
+        @foreach (var m in matches
+                          .Where(m => m != null && m.Stage == -2))
+        {
             var dt = m.StartDate;
             <div class="card-item match-item"
-                 data-month="@dt.Month" data-year="@dt.Year">
+                data-month="@dt.Month" data-year="@dt.Year">
               <div class="info">
-                <strong>@m.Name</strong><br/>
-                @m.Game.Title - @dt.ToString("yyyy-MM-dd")<br/>
-                Winner: @matchWinners.GetValueOrDefault(m.Id, "N/A")
+                <strong>@m.Name</strong>
+                @m.Game?.Title <br/> @dt.ToString("yyyy-MM-dd")<br/>
+                Winner: @Model.MatchWinners.GetValueOrDefault(m.Id, "N/A")
               </div>
-              <a asp-controller="Match" asp-action="CurrentMatch" asp-route-id="@m.Id"
-                  class="btn details-btn">View</a>
+              <a asp-controller="Match"
+                asp-action="CurrentMatch"
+                asp-route-id="@m.Id"
+                class="btn details-btn">View</a>
             </div>
-          }
-          @if (!matches.Any(x => x != null && x.Game != null && x.StartDate != null && x.Stage == -2)) {
-            <p>No matches yet.</p>
-          }
-        </div>
+        }
+        @if (!Model.Matches.Any(m => m != null && m.Stage == -2))
+        {
+          <p>No matches yet.</p>
+        }
+      </div>
       </div>
 
       <div id="tournaments" class="tab-pane fade">
@@ -436,7 +441,7 @@
         </div>
 
         <div class="tournaments-list">
-          @foreach (var t in tournaments.Where(t => t != null && t.StartDate != null)) {
+          @foreach (var t in tournaments.Where(t => t != null)) {
             var dt = t.StartDate;
             <div class="card-item tourn-item"
                  data-month="@dt.Month" data-year="@dt.Year">
@@ -448,7 +453,7 @@
                   class="btn details-btn">View</a>
             </div>
           }
-          @if (!tournaments.Any(t => t != null && t.StartDate != null)) {
+          @if (!tournaments.Any(t => t != null)) {
             <p>No tournaments.</p>
           }
         </div>

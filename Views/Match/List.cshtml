@@ -245,206 +245,176 @@
 </style>
 
 <body>
-    <div class="container-fluid">
-        <div class="header-section">
-            <h1>Active Rooms</h1>
-
-            <div class="search-bar">
-                <input
-                    type="text"
-                    id="rSearch"
-                    class="form-control search-input"
-                    placeholder="Search rooms by name..."
-                    autocomplete="off"
-                />
-            </div>
-
-            <a class="btn btn-create-room"
-               asp-controller="Match"
-               asp-action="Create">
-                <i class="fa-solid fa-plus me-2"></i> Create Room
-            </a>
-        </div>
-
-        <div class="room-section mb-4">
-            <h3>Available Rooms to Join</h3>
-            <div class="horizontal-scroll" id="availableScroll">
-                @if (available.Any())
-                {
-                    @foreach (var room in available)
-                    {
-                        <div class="room-card-wrapper">
-                            <div class="room-card">
-                                <div class="room-card-title">@room.Name</div>
-                                <div class="room-info">
-                                    <strong>Host:</strong> @room.Host.Username
-                                </div>
-                                <div class="room-info">
-                                    <strong>Game:</strong> @room.Game.Title
-                                </div>
-                                <div class="room-info">
-                                    <strong>Description:</strong> @room.Game.Description
-                                </div>
-                                <div class="room-status @(room.Stage == -1 ? "status-waiting"
-                                                    : room.Stage == 0   ? "status-ongoing"
-                                                                        : "status-ended")">
-                                    @if (room.Stage == -1)
-                                    {
-                                        <i class="fa-solid fa-clock me-1"> Waiting for host to start</i>
-                                    }
-                                    else if (room.Stage == 0)
-                                    {
-                                        <i class="fa-solid fa-play me-1"> Ongoing match</i> 
-                                    }
-                                    else
-                                    {
-                                        <i class="fa-solid fa-flag-checkered me-1"> Match ended</i>
-                                    }
-                                </div>
-                                <a class="btn btn-view-details mt-3"
-                                   asp-controller="Match"
-                                   asp-action="CurrentMatch"
-                                   asp-route-id="@room.Id">
-                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
-                                </a>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="col-12">
-                        <div class="no-rooms-message">
-                            No rooms available to join.
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="room-section">
-            <h3>Your Hosted or Joined Rooms</h3>
-            <div class="horizontal-scroll" id="yourScroll">
-                @if (hosted.Any() || joined.Any())
-                {
-                    @foreach (var room in hosted)
-                    {
-                        <div class="room-card-wrapper">
-                            <div class="room-card">
-                                <div class="room-card-title">@room.Name</div>
-                                <div class="room-info">
-                                    <strong>Host (You):</strong> @room.Host.Username
-                                </div>
-                                <div class="room-info">
-                                    <strong>Game:</strong> @room.Game.Title
-                                </div>
-                                <div class="room-info">
-                                    <strong>Description:</strong> @room.Game.Description
-                                </div>
-                                <div class="room-status @(room.Stage == -1 ? "status-waiting"
-                                                    : room.Stage == 0   ? "status-ongoing"
-                                                                        : "status-ended")">
-                                    @if (room.Stage == -1)
-                                    {
-                                        <i class="fa-solid fa-clock me-1"> Waiting for you to start</i>
-                                    }
-                                    else if (room.Stage == 0)
-                                    {
-                                        <i class="fa-solid fa-play me-1"> Ongoing match</i>
-                                    }
-                                    else
-                                    {
-                                        <i class="fa-solid fa-flag-checkered me-1"> Match ended</i>
-                                    }
-                                </div>
-                                <a class="btn btn-view-details mt-3"
-                                   asp-controller="Match"
-                                   asp-action="CurrentMatch"
-                                   asp-route-id="@room.Id">
-                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
-                                </a>
-                            </div>
-                        </div>
-                    }
-                    @foreach (var room in joinedOnly)
-                    {
-                        <div class="room-card-wrapper">
-                            <div class="room-card">
-                                <div class="room-card-title">@room.Name</div>
-                                <div class="room-info">
-                                    <strong>Host:</strong> @room.Host.Username
-                                </div>
-                                <div class="room-info">
-                                    <strong>Game:</strong> @room.Game.Title
-                                </div>
-                                <div class="room-info">
-                                    <strong>Description:</strong> @room.Game.Description
-                                </div>
-                                <div class="room-status @(room.Stage == -1 ? "status-waiting"
-                                                    : room.Stage == 0   ? "status-ongoing"
-                                                                        : "status-ended")">
-                                    @if (room.Stage == -1)
-                                    {
-                                        <i class="fa-solid fa-clock me-1"> Waiting for host to start</i>
-                                    }
-                                    else if (room.Stage == 0)
-                                    {
-                                        <i class="fa-solid fa-play me-1"> Ongoing match</i>
-                                    }
-                                    else
-                                    {
-                                        <i class="fa-solid fa-flag-checkered me-1"> Match ended</i> 
-                                    }
-                                </div>
-                                <a class="btn btn-view-details mt-3"
-                                   asp-controller="Match"
-                                   asp-action="CurrentMatch"
-                                   asp-route-id="@room.Id">
-                                    <i class="fa-solid fa-arrow-right me-2"></i> View Details
-                                </a>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="col-12">
-                        <div class="no-rooms-message">
-                            You haven't joined or hosted any active rooms.
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
+  <div class="container-fluid">
+    <div class="header-section">
+      <h1>Active Rooms</h1>
+      <div class="search-bar">
+        <input type="text" id="rSearch" class="form-control search-input" placeholder="Search rooms by name…" />
+      </div>
+      <a class="btn btn-create-room" asp-controller="Match" asp-action="Create">
+        <i class="fa-solid fa-plus me-2"></i> Create Room
+      </a>
     </div>
 
-    <script>
-            document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('rSearch');
+    <div class="room-section mb-4">
+      <h3>Available Rooms to Join</h3>
+      <div class="horizontal-scroll" id="availableScroll">
+        @if (available.Any())
+        {
+          foreach (var room in available)
+          {
+            var count = Model.PlayerCount.ContainsKey(room.Id)
+                        ? Model.PlayerCount[room.Id] ?? 0
+                        : 0;
+            <div class="room-card-wrapper">
+              <div class="room-card">
+                <div class="room-card-title">@room.Name</div>
+                <div class="room-info">
+                  <strong>Host:</strong> @room.Host.Username
+                </div>
+                <div class="room-info">
+                  <strong>Game:</strong> @room.Game.Title
+                </div>
+                @if(room.Mode == "single"){
+                    <div class="room-info">
+                        <strong>Mode: Free-for-All</strong>
+                    </div>
+                } else {
+                    <div class="room-info">
+                        <strong>Mode: Teams</strong>
+                    </div>
+                }
+                <div class="room-info">
+                @if(room.Mode == "single"){
+                    <strong>Players: @count / @room.Game.MaxPlayers</strong> 
+                } else {
+                    <strong>Teams: @count / @room.Game.MaxPlayers</strong> 
+                }
+                </div>
+                <div class="room-status @(room.Stage == -1 ? "status-waiting"
+                                    : room.Stage == 0   ? "status-ongoing"
+                                                        : "status-ended")">
+                  @if (room.Stage == -1)
+                  {
+                    <i class="fa-solid fa-clock me-1"> Waiting for host to start</i>
+                  }
+                  else if (room.Stage == 0)
+                  {
+                    <i class="fa-solid fa-play me-1"> Ongoing match</i>
+                  }
+                  else
+                  {
+                    <i class="fa-solid fa-flag-checkered me-1"> Match ended</i>
+                  }
+                </div>
+                <a class="btn btn-view-details mt-3"
+                   asp-controller="Match"
+                   asp-action="CurrentMatch"
+                   asp-route-id="@room.Id">
+                  <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                </a>
+              </div>
+            </div>
+          }
+        }
+        else
+        {
+          <div class="no-rooms-message justify-content-between">No rooms available to join.</div>
+        }
+      </div>
+    </div>
 
-            searchInput.addEventListener('keyup', function () {
-                const term = searchInput.value.trim().toLowerCase();
+    <div class="room-section">
+      <h3>Your Hosted or Joined Rooms</h3>
+      <div class="horizontal-scroll" id="yourScroll">
+        @if (hosted.Any() || joinedOnly.Any())
+        {
+          foreach (var room in hosted.Concat(joinedOnly))
+          {
+            var count = Model.PlayerCount.ContainsKey(room.Id)
+                        ? Model.PlayerCount[room.Id] ?? 0
+                        : 0;
+            <div class="room-card-wrapper">
+              <div class="room-card">
+                <div class="room-card-title">@room.Name</div>
+                <div class="room-info">
+                  <strong>Host:</strong>
+                  @(hosted.Any(h => h.Id == room.Id) ? "You" : room.Host.Username)
+                </div>
+                <div class="room-info">
+                  <strong>Game:</strong> @room.Game.Title
+                </div>
+                @if(room.Mode == "single"){
+                    <div class="room-info">
+                        <strong>Mode: Free-for-All</strong>
+                    </div>
+                } else {
+                    <div class="room-info">
+                        <strong>Mode: Teams</strong>
+                    </div>
+                }
+                <div class="room-info">
+                @if(room.Mode == "single"){
+                    <strong>Players: @count / @room.Game.MaxPlayers</strong> 
+                } else {
+                    <strong>Teams: @count / @room.Game.MaxPlayers</strong> 
+                }
+                </div>
+                <div class="room-status @(room.Stage == -1 ? "status-waiting"
+                                    : room.Stage == 0   ? "status-ongoing"
+                                                        : "status-ended")">
+                  @if (room.Stage == -1)
+                  {
+                    <i class="fa-solid fa-clock me-1"> Waiting to start</i>
+                  }
+                  else if (room.Stage == 0)
+                  {
+                    <i class="fa-solid fa-play me-1"> Ongoing match</i>
+                  }
+                  else
+                  {
+                    <i class="fa-solid fa-flag-checkered me-1"> Match ended</i>
+                  }
+                </div>
+                <a class="btn btn-view-details mt-3"
+                   asp-controller="Match"
+                   asp-action="CurrentMatch"
+                   asp-route-id="@room.Id">
+                  <i class="fa-solid fa-arrow-right me-2"></i> View Details
+                </a>
+              </div>
+            </div>
+          }
+        }
+        else
+        {
+          <div class="no-rooms-message justify-content-between">
+            You haven't joined or hosted any active rooms.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 
-                document.querySelectorAll('#availableScroll .room-card-wrapper').forEach(wrapper => {
-                    const titleEl = wrapper.querySelector('.room-card-title');
-                    if (!titleEl) return;
-                    const titleText = titleEl.textContent.trim().toLowerCase();
-                    wrapper.style.display = titleText.includes(term) ? '' : 'none';
-                });
-
-                document.querySelectorAll('#yourScroll .room-card-wrapper').forEach(wrapper => {
-                    const titleEl = wrapper.querySelector('.room-card-title');
-                    if (!titleEl) return;
-                    const titleText = titleEl.textContent.trim().toLowerCase();
-                    wrapper.style.display = titleText.includes(term) ? '' : 'none';
-                });
-            });
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const input = document.getElementById('rSearch');
+      input.addEventListener('keyup', () => {
+        const term = input.value.trim().toLowerCase();
+        ['availableScroll','yourScroll'].forEach(id => {
+          document.querySelectorAll(`#${id} .room-card-wrapper`)
+                  .forEach(w => {
+            var t = w.querySelector('.room-card-title')?.textContent.toLowerCase() ?? "";
+            w.style.display = t.includes(term) ? "" : "none";
+          });
         });
-    </script>
+      });
+    });
+    
+  </script>
 
-    <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-        crossorigin="anonymous"
-    ></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+  ></script>
 </body>
 </html>

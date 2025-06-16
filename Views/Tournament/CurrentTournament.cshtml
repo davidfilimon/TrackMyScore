@@ -561,10 +561,11 @@
                 <h5 class="modal-title">Join Tournament</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            @if(matches.FirstOrDefault()?.Mode=="single")
+
+            @if (matches.FirstOrDefault()?.Mode == "single")
             {
                 <div class="modal-body">
-                    <form id="joinFormSingle" onsubmit="event.preventDefault(); joinTournamentSingle(@tour.Id,$('#code').val());">
+                    <form id="joinFormSingle" onsubmit="event.preventDefault(); joinTournamentSingle(@tour.Id, $('#code').val());">
                         <div class="mb-3">
                             <label class="form-label">Tournament Code</label>
                             <input type="text" id="code" class="form-control" required />
@@ -586,15 +587,27 @@
                             <input type="text" id="teamName" class="form-control" required />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Teammates</label>
-                            @if(Model.MutualFollowers?.Any()==true)
+                            <label class="form-label">Select Teammates</label>
+
+                            @if (Model.MutualFollowers?.Any() == true)
                             {
-                                <select id="teammates" class="form-select" multiple required>
-                                    @foreach(var u in Model.MutualFollowers)
+                                <div class="form-check">
+                                    @foreach (var u in Model.MutualFollowers)
                                     {
-                                        <option value="@u.Id">@u.Username</option>
+                                        <div class="mb-1">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="teammates"
+                                                value="@u.Id"
+                                                id="teammate_@u.Id" />
+                                            <label
+                                                class="form-check-label"
+                                                for="teammate_@u.Id">@u.Username</label>
+                                        </div>
                                     }
-                                </select>
+                                </div>
+
                                 <button type="submit" class="btn btn-primary mt-3">Create Team</button>
                             }
                             else
@@ -602,7 +615,7 @@
                                 <div class="alert alert-warning">
                                     No mutual followers available.
                                 </div>
-                                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                             }
                         </div>
                     </form>
@@ -775,22 +788,30 @@
     ].map(function(s){ return s.trim().toLowerCase(); });
 
     function tryJoinTeam() {
-    var teamName = $('#teamName').val().trim();
-    if (!teamName) {
-        showTemporaryPopup("Please enter a team name.", true);
-        return;
-    }
-    // check duplicate (case-insensitive)
-    if (existingTeams.indexOf(teamName.toLowerCase()) !== -1) {
-        showTemporaryPopup("A team with that name has already joined.", true);
-        return;
-    }
-    // proceed if everything is fine
-    joinTournamentTeam(
-        @tour.Id,
-        $('#code').val(),
-        $('#teammates').val(),
-        teamName
-    );
+        var teamName    = $('#teamName').val().trim();
+        var code        = $('#code').val().trim();
+        var teammateIds = $('input[name="teammates"]:checked')
+                              .map(function() { return this.value; })
+                              .get();
+
+        if (!teamName) {
+            showTemporaryPopup("Please enter a team name.", true);
+            return;
+        }
+        if (existingTeams.indexOf(teamName.toLowerCase()) !== -1) {
+            showTemporaryPopup("A team with that name has already joined.", true);
+            return;
+        }
+        if (teammateIds.length === 0) {
+            showTemporaryPopup("Please select at least one teammate.", true);
+            return;
+        }
+
+        joinTournamentTeam(
+            @tour.Id,
+            code,
+            teammateIds,
+            teamName
+        );
     }
 </script>
