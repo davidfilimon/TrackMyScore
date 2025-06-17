@@ -4,7 +4,7 @@
     int loggedUser = (int)ViewData["loggedUserId"];
     var customGames = Model.CustomGames ?? new List<Game>();
     var matches = Model.Matches ?? new List<Match>();
-    var tournaments = Model.Tournaments ?? new List<Tournament>();
+    var tournaments = Model.Tournaments.Distinct() ?? new List<Tournament>();
     int pictureId = Model.User.Picture;
     var matchWinners = Model.MatchWinners ?? new Dictionary<int, string>();
     var tournamentWinners = Model.TournamentWinners ?? new Dictionary<int, string>();

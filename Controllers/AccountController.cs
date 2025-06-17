@@ -79,6 +79,7 @@ namespace TrackMyScore.Controllers
                     .ThenInclude(p => p.Tournament)
                 .Where(p => p.User.Id == profileUser.Id && p.Match.Tournament.IsActive == false && p.Match.Tournament.Stage > 1)
                 .Select(p => p.Match.Tournament)
+                .Distinct()
                 .ToListAsync()
                 ?? new List<Tournament>(); // search for single tournaments that the user took part in
 
@@ -88,6 +89,7 @@ namespace TrackMyScore.Controllers
                 .Include(p => p.Team)
                 .Where(p => p.User.Id == profileUser.Id && p.Match.Tournament.IsActive == false && p.Match.Tournament.Stage > 1)
                 .Select(p => p.Match.Tournament)
+                .Distinct()
                 .ToListAsync()
                 ?? new List<Tournament>(); // search for team tournaments that the user took part in
 

@@ -236,6 +236,7 @@
         overflow-x: auto;
         gap: 1rem;
         padding-bottom: 1rem;
+        justify-content: center;
         scroll-snap-type: x mandatory;
     }
 
@@ -263,6 +264,7 @@
         {
           foreach (var room in available)
           {
+            if(room.Stage == -1){
             var count = Model.PlayerCount.ContainsKey(room.Id)
                         ? Model.PlayerCount[room.Id] ?? 0
                         : 0;
@@ -315,11 +317,12 @@
                 </a>
               </div>
             </div>
+            }
           }
         }
         else
         {
-          <div class="no-rooms-message justify-content-between">No rooms available to join.</div>
+          <div class="no-rooms-message">No rooms available to join.</div>
         }
       </div>
     </div>
@@ -388,7 +391,7 @@
         }
         else
         {
-          <div class="no-rooms-message justify-content-between">
+          <div class="no-rooms-message justify-content-center">
             You haven't joined or hosted any active rooms.
           </div>
         }

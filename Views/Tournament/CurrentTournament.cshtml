@@ -304,6 +304,16 @@
       min-width: 300px !important;
       max-width: 80% !important;
     }
+
+    .game-name{
+        text-decoration: none;
+        color: inherit;
+        font-weight: bold;
+    }
+
+    .game-name:hover{
+        color: var(--accent-gold);
+    }
 </style>
 
 <div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;">
@@ -316,9 +326,11 @@
             <h1 class="tournament-title">@tour.Name</h1>
             <div class="info-grid">
                 <div class="info-item"><i class="fa-solid fa-trophy"></i><span>Reward: @tour.Reward</span></div>
-                <div class="info-item"><i class="fa-solid fa-gamepad"></i><span>@(matches.FirstOrDefault()?.Game?.Title ?? "N/A")</span></div>
+                <div class="info-item"><i class="fa-solid fa-gamepad"></i><a class="game-name" asp-controller="Games" asp-action="Details" asp-route-id="@(matches.FirstOrDefault()?.Game.Id)">@(matches.FirstOrDefault()?.Game?.Title ?? "N/A")</a></div>
                 <div class="info-item"><i class="fa-solid fa-calendar"></i><span>@tour.StartDate</span></div>
+                <div class="info-item"><i class="fa-solid fa-font-awesome"></i><span>Mode: @(matches.FirstOrDefault()?.Mode ?? "N/A")</span></div>
                 <div class="info-item"><i class="fa-solid fa-location-dot"></i><span>@tour.Location</span></div>
+                <div class="info-item"><i class="fa-solid fa-users"></i><span>Exact number of players: @(tour.RoomCount*2)</span></div>
                 @if(matches.FirstOrDefault()?.Mode == "team"){
                     <div class="info-item"><i class="fa-solid fa-users"></i><span>@(matches.FirstOrDefault()?.Game?.MaxPlayers ?? 0) players per team</span></div>
                 }
@@ -360,14 +372,14 @@
                 }
                 @if(tour.IsActive)
                 {
-                    var currentStageMatches = matches.Where(m => m.Tournament == tour && m.Stage == tour.Stage).ToList();
-                    if (currentStageMatches.Count == 1 && tour.Stage > 1)
+                    var currentStageMatches = matches.Where(m => m.Tournament == tour && m.Stage <= tour.Stage).ToList();
+                    if (currentStageMatches.Where(r => r.Stage == tour.Stage).ToList().Count == 1 && tour.Stage > 1 && !currentStageMatches.Any(r => r.Stage == -1))
                     {
                         <button class="btn btn-primary" onclick="endTournament()">
                             <i class="fa-solid fa-flag-checkered"></i> End Tournament
                         </button>
                     }
-                    @if(currentStageMatches.All(m => m.Stage > 0))
+                    else if(currentStageMatches.All(m => m.Stage > 0))
                     {
                         <button class="btn btn-primary" onclick="endStage(@tour.Id)">
                             <i class="fa-solid fa-forward"></i> End Stage
@@ -441,13 +453,6 @@
     <div class="bracket-section">
     <h2 class="bracket-title">Tournament Bracket</h2>
     <div class="bracket-subtitle">Round @tour.Stage</div>
-
-    <div class="bracket-header-row">
-        @for (int rnd = 1; rnd <= totalRounds; rnd++)
-        {
-            <div class="round-header-label">Round @rnd</div>
-        }
-    </div>
     
     <div class="bracket-container">
   @for (int rnd = 1; rnd <= totalRounds; rnd++)
@@ -653,24 +658,32 @@
     }
 
     function deleteTournament() {
-        if (confirm('Are you sure you want to delete this tournament?')) {
-            $.ajax({
-                url: '/Tournament/Delete',
-                type: 'POST',
-                data: { id: @Model.Tournament.Id },
-                success: function(response) {
-                    if(response.success){
-                        window.location.reload();
-                    } else {
-                        showTemporaryPopup(response.message, true);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error deleting tournament:', error);
-                }
-            });
-        }
+    if (!confirm('Are you sure you want to delete this tournament?')) {
+        return;
     }
+
+    $.ajax({
+        url: '/Tournament/Delete',
+        type: 'POST',
+        headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: { id: @Model.Tournament.Id },
+        success: function(response) {
+        if (response.success) {
+            // go back to list view
+            window.location.href = '/Tournament/List';
+        } else {
+            showTemporaryPopup(response.message, true);
+        }
+        },
+        error: function(xhr, status, error) {
+        console.error('Error deleting tournament:', error);
+        showTemporaryPopup('Unexpected error deleting tournament.', true);
+        }
+    });
+    }
+
 
     function joinTournamentSingle(id, code) {
         $.ajax({

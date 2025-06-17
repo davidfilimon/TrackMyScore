@@ -67,8 +67,8 @@ namespace TrackMyScore.Controllers
       var code = GenerateTournamentCode();
       var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
 
-      var existingCode = await _context.Tournaments.FirstOrDefaultAsync(c => c.Code == code);
-      while (existingCode != null)
+      var existingCode = await _context.Tournaments.FirstOrDefaultAsync(c => c.Code == code && c.IsActive == true);
+      while (existingCode != null) // avoid code duping
       {
         code = GenerateTournamentCode();
         existingCode = await _context.Tournaments.FirstOrDefaultAsync(c => c.Code == code);
@@ -76,7 +76,7 @@ namespace TrackMyScore.Controllers
 
       if (game == null || game.Deleted)
       {
-        return Json(new { success = false, message = "Game not found." });
+        return Json(new { success = false, message = "Game not found." }); // check if the game exists
       }
 
       var tournament = new Tournament // single mode tournament
@@ -712,8 +712,10 @@ namespace TrackMyScore.Controllers
       }
 
       _context.Tournaments.Remove(tournament);
+
       await _context.SaveChangesAsync();
-      return RedirectToAction("List", "Tournament");
+
+      return Json(new { success = true, message = "Successfully deleted the tournament." });
     }
 
     [HttpPost]
