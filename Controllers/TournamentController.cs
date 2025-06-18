@@ -188,15 +188,14 @@ namespace TrackMyScore.Controllers
     [HttpGet]
     public async Task<IActionResult> CurrentTournament(int id)
     {
-        var user = await GetLoggedUserAsync();
-        var mutualFollowers = await GetMutualFollowersAsync(user);
+        
         var tournament = await _context.Tournaments
             .Include(t => t.Host)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (tournament == null)
         {
-            return NotFound();
+            return Json(new { success = false, message = "Tournament not found." });
         }
 
         var matches = await _context.Matches
@@ -208,6 +207,9 @@ namespace TrackMyScore.Controllers
         {
             return Json(new { success = false, message = "There are no matches in this tournament." });
         }
+
+        var user = await GetLoggedUserAsync();
+        var mutualFollowers = await GetMutualFollowersAsync(user);
 
         List<Player> players = new();
         List<TeamPlayer> teamPlayers = new();
@@ -871,8 +873,6 @@ namespace TrackMyScore.Controllers
         }
 
         int nextRoomCount = tournament.RoomCount / (int)Math.Pow(2, tournament.Stage);
-        var templateGameId = roomsInStage[0].GameId;
-        var templateHostId = tournament.Host.Id;
 
         for (int i = 1; i <= nextRoomCount; i++)
         {
@@ -882,8 +882,8 @@ namespace TrackMyScore.Controllers
                 StartDate = tournament.StartDate,
                 Stage = -1,
                 Mode = roomsInStage[0].Mode,
-                HostId = templateHostId,
-                GameId = templateGameId,
+                HostId = roomsInStage[0].GameId,
+                GameId = tournament.Host.Id,
                 TournamentId = tournament.Id
             };
             await _context.Matches.AddAsync(match);

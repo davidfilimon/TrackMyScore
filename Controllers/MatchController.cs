@@ -104,7 +104,7 @@ namespace TrackMyScore.Controllers
                 .Where(p => p.Match.Stage >= -1)
                 .GroupBy(p => p.MatchId)
                 .Select(g => new {
-                    MatchId     = g.Key,
+                    MatchId = g.Key,
                     PlayerCount = g.Count()
                 })
                 .ToListAsync();
@@ -116,28 +116,28 @@ namespace TrackMyScore.Controllers
                 .Select(g => g.Key.MatchId) // one entry per (MatchId, TeamId)
                 .GroupBy(matchId => matchId) // now group by MatchId
                 .Select(g => new {
-                    MatchId   = g.Key,
+                    MatchId = g.Key,
                     TeamCount = g.Count() // number of distinct teams
                 })
                 .ToListAsync();
 
             var playerCountDict = playerSingleList
                 .Concat(teamCountsPerMatch.Select(t => new {
-                    MatchId     = t.MatchId,
+                    MatchId = t.MatchId,
                     PlayerCount = t.TeamCount
                 }))
                 .GroupBy(x => x.MatchId)
                 .ToDictionary(
-                    g  => g.Key,
-                    g  => (int?) g.Sum(x => x.PlayerCount)
+                    g => g.Key,
+                    g => (int?)g.Sum(x => x.PlayerCount)
                 );
 
             var model = new MatchListModel
             {
-                HostedMatches    = hostedMatches,
-                JoinedMatches    = joinedMatches,
+                HostedMatches = hostedMatches,
+                JoinedMatches = joinedMatches,
                 AvailableMatches = availableMatches,
-                PlayerCount      = playerCountDict   // Dictionary<int, int?> 
+                PlayerCount = playerCountDict   // Dictionary<int, int?> 
             };
 
             return View(model);
@@ -277,6 +277,10 @@ namespace TrackMyScore.Controllers
                 return Json(new { success = false, message = "The placeholder team could not be found. As an administrator add the placeholder team in the database." });
             }
 
+            if(await joinedMatchCount(user) > 5){
+                return Json(new { success = false, message = "You are taking part in 5 matches already. End those matches in order to join another one." });
+            }
+
             if (match.Mode == "single")
             {
                 await _context.Players
@@ -364,6 +368,10 @@ namespace TrackMyScore.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            if(await joinedMatchCount(user) > 5){
+                return Json(new { success = false, message = "You are taking part in 5 matches already. End those matches in order to join another one." });
+            } 
+
             var game = await _context.Games.FirstOrDefaultAsync(g => g.Id == gameId);
 
             if (game == null)
@@ -418,7 +426,7 @@ namespace TrackMyScore.Controllers
             }
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("CurrentMatch", "Match", new { match.Id });
+            return Json(new { success = true, message = "Match successfully created." });
 
         }
 
@@ -463,7 +471,7 @@ namespace TrackMyScore.Controllers
 
             return Json(new { success = true, message = "Match successfully started." });
 
-        }     
+        }
 
         [HttpPost]
         public async Task<IActionResult> End(int id)
@@ -763,7 +771,7 @@ namespace TrackMyScore.Controllers
 
             var match = await _context.Matches
                 .FirstOrDefaultAsync(m => m.Id == roomId);
-                
+
             if (match == null || match.HostId != user.Id)
                 return Json(new { success = false, message = "Match not found or not authorized." });
 
@@ -826,8 +834,8 @@ namespace TrackMyScore.Controllers
                     Score = 0
                 };
                 _context.Teams.Add(newTeam);
-                await _context.SaveChangesAsync(); 
-                teamMap[teamName] = newTeam;  
+                await _context.SaveChangesAsync();
+                teamMap[teamName] = newTeam;
             }
 
             foreach (var tp in teamPlayers)
@@ -841,7 +849,7 @@ namespace TrackMyScore.Controllers
             {
                 int teamPlayerId = assignment.Key;
                 string teamName = assignment.Value?.Trim();
-                
+
                 if (string.IsNullOrEmpty(teamName)) continue;
                 if (!teamMap.ContainsKey(teamName)) continue;
 
@@ -856,6 +864,49 @@ namespace TrackMyScore.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Teams and assignments saved successfully." });
+        }
+
+        private async Task<int> joinedMatchCount(User user) {
+            // matches the user joined as a single player
+            var joinsSingle = await _context.Players
+                .Include(j => j.Match).ThenInclude(m => m.Host)
+                .Where(j =>
+                    j.Match.Tournament == null &&
+                    j.User.Id == user.Id &&
+                    j.Match.Host.Id != user.Id &&
+                    j.Match.Stage >= -1)
+                .Select(j => j.Match)
+                .Distinct()
+                .ToListAsync();
+
+            // matches the user joined as part of a team
+            var joinsTeam = await _context.TeamPlayers
+                .Include(j => j.Match).ThenInclude(m => m.Host)
+                .Where(j =>
+                    j.Match.Tournament == null &&
+                    j.User.Id == user.Id &&
+                    j.Match.Host.Id != user.Id &&
+                    j.Match.Stage >= -1)
+                .Select(j => j.Match)
+                .Distinct()
+                .ToListAsync();
+
+            // unify joinedMatches
+            var joinedMatches = joinsSingle
+                .Concat(joinsTeam)
+                .GroupBy(m => m.Id)
+                .Select(g => g.First())
+                .ToList();
+
+            if (joinedMatches.Any())
+            {
+                return joinedMatches.Count;
+            }
+            else
+            {
+                return 0;
+            }
+
         }
     }
 }

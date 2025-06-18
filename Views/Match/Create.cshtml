@@ -265,12 +265,23 @@
             background-color: var(--primary-light);
         }
 
+        .alert-fixed {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            width: auto;
+            min-width: 300px;
+            max-width: 80%;
+        }
+
     </style>
 </head>
 <body>
     <div class="form-container">
         <h2>Create New Room</h2>
-        <form method="post" asp-action="Create" asp-controller="Match">
+        <form method="post" asp-action="Create" asp-controller="Match" id="createRoomForm">
             <div class="form-group">
                 <label for="name">Room Title:</label>
                 <input type="text" id="name" name="name" class="form-control" placeholder="e.g., My Awesome Poker Room" autocomplete="off" required />
@@ -312,8 +323,14 @@
                     </div>
                 </div>
 
-            <button type="submit" class="btn btn-primary-custom" @(Model == null || !Model.Any() ? "disabled" : "")>Create Room</button>
+            <button type="button" class="btn btn-primary-custom" onclick="submitRoomForm()" @(Model == null || !Model.Any() ? "disabled" : "")>
+                Create Room
+            </button>
         </form>
+    </div>
+
+    <div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;"></div>
+            <span id="generalWarningMessageText"></span>
     </div>
 
     <script>
@@ -378,5 +395,59 @@
                 }
             });
         });
+
+        function showTemporaryPopup(message, isError = true) {
+            const popupContainer = document.getElementById("generalWarningMessageContainer");
+            const popupText = document.getElementById("generalWarningMessageText");
+            
+            if (!popupContainer || !popupText) return;
+            
+            popupText.innerText = message;
+            
+            if (isError) {
+                popupContainer.className = "alert alert-danger alert-fixed";
+            } else {
+                popupContainer.className = "alert alert-success alert-fixed";
+            }
+            
+            popupContainer.style.display = "block";
+            
+            setTimeout(() => {
+                popupContainer.style.display = "none";
+                popupText.innerText = "";
+            }, 5000);
+        }
+
+        async function submitRoomForm() {
+        const form = document.getElementById("createRoomForm");
+        const formData = new FormData(form);
+
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = `/Match/CurrentMatch/${result.matchId}`;
+            } else {
+                showTemporaryPopup(result.message || "Room creation failed.", true);
+            }
+        } catch (error) {
+            showTemporaryPopup("Server error. Please try again.", true);
+            console.error(error);
+        }
+    }
     </script>
 </body>
