@@ -235,13 +235,14 @@
         flex-wrap: nowrap;
         overflow-x: auto;
         gap: 1rem;
-        padding-bottom: 1rem;
-        justify-content: center;
+        padding-bottom: 0 1rem 1rem 1rem;
+        justify-content: flex-start;
         scroll-snap-type: x mandatory;
     }
 
-    .horizontal-scroll > .room-card-wrapper {
+    .room-card-wrapper {
         flex: 0 0 300px;
+        scroll-snap-align: start;
     }
 </style>
 
@@ -322,7 +323,7 @@
         }
         else
         {
-          <div class="no-rooms-message">No rooms available to join.</div>
+          <div class="no-rooms-message align-items-center">No rooms available to join.</div>
         }
       </div>
     </div>
@@ -391,7 +392,7 @@
         }
         else
         {
-          <div class="no-rooms-message justify-content-center">
+          <div class="no-rooms-message align-items-center">
             You haven't joined or hosted any active rooms.
           </div>
         }

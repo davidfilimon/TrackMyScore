@@ -327,13 +327,14 @@ namespace TrackMyScore.Controllers
 
       bool participatingTeam = await _context.TeamPlayers
         .Include(m => m.Match)
-        .Where(m => m.Match.TournamentId != tournament.Id && m.Match.Tournament.IsActive == true && m.User == user)
+          .ThenInclude(m => m.Tournament)
+        .Where(m => m.Match.TournamentId != tournament.Id && m.Match.Tournament != null && (m.Match.Tournament.IsActive || (m.Match.Tournament.IsActive == false && m.Match.Stage == -1 )) && m.User == user)
         .AnyAsync();
 
       bool participatingSingle = await _context.Players
         .Include(m => m.Match)
           .ThenInclude(m => m.Tournament)
-        .Where(m => m.Match.Tournament.IsActive == true && m.User == user && m.Match.TournamentId != tournament.Id)
+        .Where(m => m.Match.TournamentId != tournament.Id && m.Match.Tournament != null && (m.Match.Tournament.IsActive || (m.Match.Tournament.IsActive == false && m.Match.Stage == -1 )) && m.User == user)
         .AnyAsync();
 
       if (participatingSingle || participatingTeam) { // add .count method if i want to check in how many tournaments the user is taking part

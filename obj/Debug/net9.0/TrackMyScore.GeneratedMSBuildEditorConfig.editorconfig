@@ -17,101 +17,101 @@ build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = TrackMyScore
 build_property.RootNamespace = TrackMyScore
-build_property.ProjectDir = d:\TrackMyScore\
+build_property.ProjectDir = D:\TrackMyScore\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = d:\TrackMyScore
+build_property.MSBuildProjectDirectory = D:\TrackMyScore
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[d:/TrackMyScore/Views/Account/ForgotPassword.cshtml]
+[D:/TrackMyScore/Views/Account/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Account/Login.cshtml]
+[D:/TrackMyScore/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Account/Profile.cshtml]
+[D:/TrackMyScore/Views/Account/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxQcm9maWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Account/Register.cshtml]
+[D:/TrackMyScore/Views/Account/Register.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Account/Results.cshtml]
+[D:/TrackMyScore/Views/Account/Results.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZXN1bHRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Admin/Add.cshtml]
+[D:/TrackMyScore/Views/Admin/Add.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQWRkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Admin/Dashboard.cshtml]
+[D:/TrackMyScore/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Games/AddGame.cshtml]
+[D:/TrackMyScore/Views/Games/AddGame.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FtZXNcQWRkR2FtZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Games/Details.cshtml]
+[D:/TrackMyScore/Views/Games/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FtZXNcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Games/List.cshtml]
+[D:/TrackMyScore/Views/Games/List.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FtZXNcTGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Home/Index.cshtml]
+[D:/TrackMyScore/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Match/Create.cshtml]
+[D:/TrackMyScore/Views/Match/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWF0Y2hcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Match/CurrentMatch.cshtml]
+[D:/TrackMyScore/Views/Match/CurrentMatch.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWF0Y2hcQ3VycmVudE1hdGNoLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Match/List.cshtml]
+[D:/TrackMyScore/Views/Match/List.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWF0Y2hcTGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Shared/Error.cshtml]
+[D:/TrackMyScore/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/TrackMyScore/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Tournament/Create.cshtml]
+[D:/TrackMyScore/Views/Tournament/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVG91cm5hbWVudFxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Tournament/CurrentTournament.cshtml]
+[D:/TrackMyScore/Views/Tournament/CurrentTournament.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVG91cm5hbWVudFxDdXJyZW50VG91cm5hbWVudC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Tournament/List.cshtml]
+[D:/TrackMyScore/Views/Tournament/List.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVG91cm5hbWVudFxMaXN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/_ViewImports.cshtml]
+[D:/TrackMyScore/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/_ViewStart.cshtml]
+[D:/TrackMyScore/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[d:/TrackMyScore/Views/Shared/_Layout.cshtml]
+[D:/TrackMyScore/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-f87tej6q9m

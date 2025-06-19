@@ -426,7 +426,7 @@ namespace TrackMyScore.Controllers
             }
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Match successfully created." });
+            return Json(new { success = true, message = "Match successfully created.", matchId = match.Id });
 
         }
 
@@ -872,9 +872,7 @@ namespace TrackMyScore.Controllers
                 .Include(j => j.Match).ThenInclude(m => m.Host)
                 .Where(j =>
                     j.Match.Tournament == null &&
-                    j.User.Id == user.Id &&
-                    j.Match.Host.Id != user.Id &&
-                    j.Match.Stage >= -1)
+                    j.User.Id == user.Id)
                 .Select(j => j.Match)
                 .Distinct()
                 .ToListAsync();
@@ -884,9 +882,7 @@ namespace TrackMyScore.Controllers
                 .Include(j => j.Match).ThenInclude(m => m.Host)
                 .Where(j =>
                     j.Match.Tournament == null &&
-                    j.User.Id == user.Id &&
-                    j.Match.Host.Id != user.Id &&
-                    j.Match.Stage >= -1)
+                    j.User.Id == user.Id)
                 .Select(j => j.Match)
                 .Distinct()
                 .ToListAsync();

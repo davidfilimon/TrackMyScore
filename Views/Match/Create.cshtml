@@ -329,7 +329,7 @@
         </form>
     </div>
 
-    <div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;"></div>
+    <div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;">
             <span id="generalWarningMessageText"></span>
     </div>
 
@@ -422,25 +422,16 @@
         const form = document.getElementById("createRoomForm");
         const formData = new FormData(form);
 
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
-
         try {
             const response = await fetch(form.action, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             const result = await response.json();
 
             if (result.success) {
-                window.location.href = `/Match/CurrentMatch/${result.matchId}`;
+                window.location.href = `/Match/CurrentMatch/${result.matchId || ''}`;
             } else {
                 showTemporaryPopup(result.message || "Room creation failed.", true);
             }
@@ -449,5 +440,6 @@
             console.error(error);
         }
     }
+
     </script>
 </body>
