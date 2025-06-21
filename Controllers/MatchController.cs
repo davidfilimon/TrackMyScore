@@ -361,6 +361,11 @@ namespace TrackMyScore.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(string name, string mode, DateOnly startDate, TimeOnly startTime, int gameId)
         {
+
+            if(name.Length > 50){
+                return Json(new { success = false, message = "The match's name is too long, please choose a shorter one." });
+            } 
+
             var user = await GetLoggedUserAsync();
 
             if (user == null)

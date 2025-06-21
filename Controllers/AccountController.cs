@@ -274,6 +274,14 @@ namespace TrackMyScore.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword)
         { // register method through the create account service
+
+
+            if (username.Length > 50)
+            {
+                ViewData["RegisterError"] = "The chosen username is too long, please choose a shorter one.";
+                return View();
+            }
+
             if (password == confirmPassword)
             {
                 var (success, message) = await _createAccountService.Register(username, email, password);

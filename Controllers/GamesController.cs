@@ -53,13 +53,18 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddGame(string name, string description, int maxPlayers, string difficulty)
-        {
+        { // method for adding a game
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description) || string.IsNullOrEmpty(difficulty) || maxPlayers == 0)
             {
                 ViewData["Error"] = "All fields are required to register a game.";
+                return View();
+            }
+
+            if (name.Length > 50)
+            {
+                ViewData["Error"] = "The name of the game is too long, please insert a shorter name.";
                 return View();
             }
 
@@ -114,9 +119,7 @@ namespace TrackMyScore.Controllers
 
         public async Task<IActionResult> ToggleFavorite(int id) // method for toggling favorite games
         {
-            int userId = int.Parse(Request.Cookies["userId"]);
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await GetLoggedUserAsync();
 
             if (user == null)
             {
@@ -131,7 +134,7 @@ namespace TrackMyScore.Controllers
             }
 
             var favoriteGame = await _context.FavoriteGames
-                .FirstOrDefaultAsync(fg => fg.User.Id == userId && fg.Game.Id == game.Id);
+                .FirstOrDefaultAsync(fg => fg.User.Id == user.Id && fg.Game.Id == game.Id);
 
             if (favoriteGame != null)
             {

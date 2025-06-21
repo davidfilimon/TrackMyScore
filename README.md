@@ -2,6 +2,8 @@
 
 Welcome to the **TrackMyScore** web application. This project provides a modern solution for managing multiplayer board games, including user profiles, game rooms, tournaments, and performance statistics.
 
+![Database](poze/bd_en.png)
+
 ---
 
 ## 🏠 Home Page
@@ -23,7 +25,6 @@ Passwords are encrypted using **PBKDF2** with:
 * Secure storage of all encryption components
 
 ![Register](poze/pagina-register.png)
-![Encryption](poze/criptare.png)
 
 ---
 
@@ -78,7 +79,6 @@ Users can:
 * Admins can approve/remove games or make them official
 
 ![Games](poze/lista-jocuri.png)
-![Recommendation Algorithm](poze/recommendation-algorithm.png)
 ![Add Game](poze/creare-joc.png)
 ![Admin Game Details](poze/detalii-joc.png)
 ![User Game Details](poze/detalii-joc-1.png)
@@ -101,7 +101,6 @@ View available and joined matches. Create a match by choosing type (Single or Te
 ![Team Room](poze/camera-echipe.png)
 ![Join Room](poze/join-team.png)
 ![Team Init](poze/initializare-echipe.png)
-![Temp Team](poze/echipa-temporara.png)
 ![Single Match Wait](poze/meci-single.png)
 ![Single Match Active](poze/single-inceput.png)
 ![Team Match Active](poze/activ-team.png)
@@ -126,8 +125,6 @@ Admins or hosts:
 
 ![Tournaments](poze/lista-turnee.png)
 ![Create Tournament](poze/creare-turneu.png)
-![Code Generator](poze/cod-turneu.png)
-![Tournament Algorithm](poze/algoritm-creare-turneu.png)
 ![Details & Join](poze/detalii-turneu.png)
 ![Team Join Form](poze/intrare-echipe.png)
 ![Team Host View](poze/intrare-team.png)
@@ -146,8 +143,6 @@ Admins or hosts:
 * Advancing to the next stage: double points
 * Eliminated players receive their current points
 * Winner gets the accumulated points
-
-![Respect Points Algorithm](poze/algoritm-respect.png)
 
 ---
 

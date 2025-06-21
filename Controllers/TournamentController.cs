@@ -62,6 +62,11 @@ namespace TrackMyScore.Controllers
     public async Task<IActionResult> Create(string name, int roomCount, string reward, string location, DateOnly startDate, TimeOnly startTime, int gameId, string mode)
     { // method for creating tournaments
 
+      if (name.Length > 50 || reward.Length > 50)
+      {
+        return Json(new { success = false, message = "Name or reward length is too long, please choose a shorter one." }); // check if the game exists
+      }
+
       var startDateTime = startDate.ToDateTime(startTime); // converting date and time to datetime
       var host = await GetLoggedUserAsync();
       var code = GenerateTournamentCode();
