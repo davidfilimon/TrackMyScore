@@ -25,6 +25,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <style>
+    <style>
     :root {
       --primary-dark: #1A3C2A;
       --primary:      #2A5940;
@@ -45,6 +46,7 @@
       color: var(--text-light);
       min-height: 100vh;
     }
+
     .tournament-page {
       display: grid;
       grid-template-columns: 280px 1fr 280px;
@@ -72,7 +74,7 @@
         border-radius: 6px;
     }
     .info-item i {
-        color: var(--accent-gold); 
+        color: var(--accent-gold);
     }
 
     .winner-banner {
@@ -93,16 +95,15 @@
         min-width: 120px;
     }
 
-    .match-competitor { 
-        padding: 4px; 
+    .match-competitor {
+        padding: 4px;
     }
-    .match-competitor.winner { 
-        background: var(--accent-gold-light); 
-        color: var(--primary-dark); 
-        font-weight: bold; 
+    .match-competitor.winner {
+        background: var(--accent-gold-light);
+        color: var(--primary-dark);
+        font-weight: bold;
         border-radius: 4px;
     }
-
 
     .participants-card h2 {
       color: var(--accent-gold);
@@ -114,7 +115,7 @@
     .participants-list,
     .teams-list {
       max-height: 300px;
-      overflow-y: auto; 
+      overflow-y: auto;
       padding-right: 4px;
     }
 
@@ -154,7 +155,7 @@
     .bracket-section {
       grid-column:1 / -1;
       margin-top: calc(var(--spacing)*3 + 20px);
-      background-color: var(--card-bg); 
+      background-color: var(--card-bg);
       border-radius: 12px;
       padding: calc(var(--spacing) * 4);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -313,6 +314,69 @@
 
     .game-name:hover{
         color: var(--accent-gold);
+    }
+
+    @@media (max-width: 767.98px) {
+        .tournament-page {
+            grid-template-columns: 1fr;
+            gap: calc(var(--spacing) * 3);
+            padding: var(--spacing);
+        }
+
+        .bracket-section {
+            grid-column: auto;
+            padding: calc(var(--spacing) * 2);
+            margin-top: calc(var(--spacing) * 2);
+        }
+
+        .bracket-header-row {
+            padding: 0 1rem;
+            grid-auto-columns: minmax(200px, max-content); 
+            column-gap: 1rem;
+            overflow-x: auto;
+        }
+
+        .bracket-container {
+            grid-auto-columns: minmax(200px, max-content);
+            column-gap: 1rem;
+            padding: 10px 1rem 1rem;
+        }
+
+        .match-wrapper::before {
+            left: -8px;
+            width: 8px;
+        }
+        .match-wrapper::after {
+            left: -8px;
+        }
+
+        .details-card,
+        .participants-card,
+        .winner-card {
+            padding: calc(var(--spacing) * 2);
+        }
+
+        .tournament-title,
+        .participants-card h2,
+        .winner-card h2 {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing);
+        }
+
+        .info-item {
+            padding: calc(var(--spacing) / 2);
+            font-size: 0.9rem;
+        }
+
+        .tournament-actions .btn {
+            min-width: unset;
+            width: 100%; 
+        }
+
+        .social-icons a {
+            margin: 0 8px;
+            font-size: 1.5rem;
+        }
     }
 </style>
 
