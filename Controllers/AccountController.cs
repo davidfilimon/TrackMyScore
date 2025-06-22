@@ -250,6 +250,7 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> Login()
         {
+            
             var emailCookie = Request.Cookies["email"];
             var usernameCookie = Request.Cookies["username"];
 
