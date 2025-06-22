@@ -202,7 +202,7 @@ namespace TrackMyScore.Controllers
 
         if (tournament == null)
         {
-            return Json(new { success = false, message = "Tournament not found." });
+            return RedirectToAction("List", "Tournament");
         }
 
         var matches = await _context.Matches

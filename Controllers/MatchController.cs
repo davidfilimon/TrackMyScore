@@ -182,7 +182,7 @@ namespace TrackMyScore.Controllers
 
             if (match == null)
             {
-                return Json(new { success = false, message = "Match not found." });
+                return RedirectToAction("List", "Match");
             }
 
             List<TeamPlayer> teamPlayers = new();
