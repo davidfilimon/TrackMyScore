@@ -250,6 +250,17 @@ namespace TrackMyScore.Controllers
         [HttpGet]
         public async Task<IActionResult> Login()
         {
+            var emailCookie = Request.Cookies["email"];
+            var usernameCookie = Request.Cookies["username"];
+
+            if (emailCookie != null && usernameCookie != null)
+            {
+                HttpContext.Session.SetString("username", usernameCookie);
+                HttpContext.Session.SetString("email", emailCookie);
+
+                return RedirectToAction("Index", "Home");
+            }
+
             if (await GetLoggedUserAsync() != null)
             {
                 return RedirectToAction("Index", "Home");
