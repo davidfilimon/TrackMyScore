@@ -50,7 +50,9 @@ namespace TrackMyScore.Controllers
             ViewData["UserId"] = profileUser.Id; // send the profile user id to the view
 
             var games = await _context.FavoriteGames
-                .Where(g => (g.User == profileUser || g.Game.Author == profileUser) && !g.Game.IsOfficial && !g.Game.Deleted)
+                .Include(g => g.Game)
+                    .ThenInclude(g => g.Author)
+                .Where(g => (g.UserId == profileUser.Id || g.Game.AuthorId == profileUser.Id) && !g.Game.IsOfficial && !g.Game.Deleted)
                 .Select(g => g.Game)
                 .ToListAsync()
                 ?? new List<Game>(); // search for the list of either favorite games or published games

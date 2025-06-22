@@ -5,6 +5,7 @@
     ViewData["Title"] = "Game List";
     List<Game> allGames = Model.AllGames ?? new();
     List<Game> recommendedGames = Model.RecommendedGames ?? new();
+    string email = Context.Session.GetString("email");
 }
 @inject UserService userService
 
@@ -333,9 +334,11 @@
                                     <a class="btn btn-details d-inline-block align-middle" asp-action="Details" asp-controller="Games" asp-route-id="@game.Id">
                                         Details
                                     </a>
+                                    @if(await userService.IsAuthor(email, game.Id) || userService.IsAdmin(email)){
                                     <a class="btn btn-danger btn-details ms-2 d-inline-block align-middle" asp-action="Delete" asp-controller="Games" asp-route-id="@game.Id">
                                         Delete
                                     </a>
+                                    }
                                 </td>
                             </tr>
                         }

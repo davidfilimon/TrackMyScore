@@ -399,7 +399,8 @@
     <div id="generalWarningMessageContainer" class="alert alert-danger alert-fixed" style="display:none;">
             <span id="generalWarningMessageText"></span>
     </div>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // tournament mode
         let mode = "single";
@@ -412,6 +413,28 @@
                 mode = tournamentMode;
                 $("#playerNumberDiv").show();
             }
+        }
+
+        function showTemporaryPopup(message, isError = true) {
+            const popupContainer = document.getElementById("generalWarningMessageContainer");
+            const popupText = document.getElementById("generalWarningMessageText");
+            
+            if (!popupContainer || !popupText) return;
+            
+            popupText.innerText = message;
+            
+            if (isError) {
+                popupContainer.className = "alert alert-danger alert-fixed";
+            } else {
+                popupContainer.className = "alert alert-success alert-fixed";
+            }
+            
+            popupContainer.style.display = "block";
+            
+            setTimeout(() => {
+                popupContainer.style.display = "none";
+                popupText.innerText = "";
+            }, 5000);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -475,27 +498,5 @@
                 }
             });
         });
-
-        function showTemporaryPopup(message, isError = true) {
-            const popupContainer = document.getElementById("generalWarningMessageContainer");
-            const popupText = document.getElementById("generalWarningMessageText");
-            
-            if (!popupContainer || !popupText) return;
-            
-            popupText.innerText = message;
-            
-            if (isError) {
-                popupContainer.className = "alert alert-danger alert-fixed";
-            } else {
-                popupContainer.className = "alert alert-success alert-fixed";
-            }
-            
-            popupContainer.style.display = "block";
-            
-            setTimeout(() => {
-                popupContainer.style.display = "none";
-                popupText.innerText = "";
-            }, 5000);
-        }
     
     </script>

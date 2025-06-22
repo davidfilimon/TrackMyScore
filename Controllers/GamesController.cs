@@ -14,6 +14,7 @@ namespace TrackMyScore.Controllers
 
         private AppDbContext _context;
         private const double RECOMMENDATION_PERCENTAGE = 70;
+        private const int GAME_PLAYER_RECOMMENDATION = 3;
 
         public GamesController(AppDbContext context)
         {
@@ -167,7 +168,9 @@ namespace TrackMyScore.Controllers
 
         public IActionResult Details(int id) // method to access details of a game
         {
-            var game = _context.Games.FirstOrDefault(g => g.Id == id);
+            var game = _context.Games
+                .Include(g => g.Author)
+                .FirstOrDefault(g => g.Id == id);
 
             if (game == null || game.Deleted)
             {
@@ -239,7 +242,7 @@ namespace TrackMyScore.Controllers
             }
 
             var similarPlayers = await _context.FavoriteGames
-                .Where(fg => favoritesList.Contains(fg.GameId) && fg.UserId != userId) // serach for similar users where they have the same games as the users
+                .Where(fg => favoritesList.Contains(fg.GameId) && fg.UserId != userId) // search for similar users where they have the same games as the users
                 .GroupBy(fg => fg.UserId) // group by user ids
                 .Select(g => new
                 {
@@ -278,7 +281,7 @@ namespace TrackMyScore.Controllers
 
             foreach (var g in recGames)
             {
-                if (totalSimilarPlayers > 0 && g.playerCount >= 3) // check if the number is more than 0
+                if (totalSimilarPlayers > 0 && g.playerCount >= GAME_PLAYER_RECOMMENDATION) // check if the number is more than 0
                 {
                     double percentage = (double)g.playerCount / totalSimilarPlayers * 100; // calculate the percentage
 
