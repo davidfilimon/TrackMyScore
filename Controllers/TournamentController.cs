@@ -247,34 +247,35 @@ namespace TrackMyScore.Controllers
         }
 
         string tournamentWinner = "";
+        
+        var finalMatches = await _context.Matches
+                    .Where(m => m.TournamentId == tournament.Id && m.Stage == tournament.Stage)
+                    .ToListAsync();
+
+        var finalMatch = finalMatches.FirstOrDefault(); // search for the last match of the tournament
 
         if (tournament.Stage > 1 && tournament.IsActive == false)
         {
-            if (matches[0].Mode == "single")
-            {
-                var winnerPlayer = await _context.Players
-                    .Include(p => p.User)
-                    .Include(p => p.Match)
-                        .ThenInclude(p => p.Tournament)
-                    .Where(p => p.Match.TournamentId == id && !p.Eliminated)
-                    .Select(p => p.User.Username)
-                    .FirstOrDefaultAsync();
+          if (finalMatch != null && finalMatch.Mode == "single")
+          {
+              var winnerPlayer = await _context.Players
+                  .Include(p => p.User)
+                  .Where(p => p.MatchId == finalMatch.Id && !p.Eliminated)
+                  .Select(p => p.User.Username)
+                  .FirstOrDefaultAsync(); // if the tournament is in single mode, take the one winner by selecting it from the last match
+              tournamentWinner = winnerPlayer ?? "";
+          }
+          else if (finalMatch != null && finalMatch.Mode == "team")
+          {
+            var winnerTeam = await _context.TeamPlayers
+                              .Include(tp => tp.Team)
+                              .Where(tp => tp.MatchId == finalMatch.Id && !tp.Eliminated)
+                              .Select(tp => tp.Team.Name)
+                              .FirstOrDefaultAsync(); // select the winning team from the last match of the tournament
 
-                tournamentWinner = winnerPlayer ?? "";
-            }
-            else
-            {
-                var winnerTeam = await _context.TeamPlayers
-                    .Include(tp => tp.Team)
-                    .Include(tp => tp.Match)
-                        .ThenInclude(tp => tp.Tournament)
-                    .Where(tp => tp.Match.TournamentId == id && !tp.Eliminated)
-                    .Select(tp => tp.Team.Name)
-                    .FirstOrDefaultAsync();
-
-                tournamentWinner = winnerTeam ?? "";
-            }
-        }
+            tournamentWinner = winnerTeam ?? "";
+          }
+      }
 
         var model = new TournamentModel
         {

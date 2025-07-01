@@ -877,7 +877,8 @@ namespace TrackMyScore.Controllers
                 .Include(j => j.Match).ThenInclude(m => m.Host)
                 .Where(j =>
                     j.Match.Tournament == null &&
-                    j.User.Id == user.Id)
+                    j.User.Id == user.Id
+                    && j.Match.Stage != -2)
                 .Select(j => j.Match)
                 .Distinct()
                 .ToListAsync();
@@ -887,7 +888,8 @@ namespace TrackMyScore.Controllers
                 .Include(j => j.Match).ThenInclude(m => m.Host)
                 .Where(j =>
                     j.Match.Tournament == null &&
-                    j.User.Id == user.Id)
+                    j.User.Id == user.Id &&
+                    j.Match.Stage != -2)
                 .Select(j => j.Match)
                 .Distinct()
                 .ToListAsync();
