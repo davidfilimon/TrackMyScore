@@ -1,6 +1,6 @@
 ﻿@using TrackMyScore.Services
 @inject UserService userService
-@model Game
+@model GameDetailView
 @{
     ViewData["Title"] = "Game Details";
     string email = Context.Session.GetString("email");
@@ -137,9 +137,9 @@
 <div class="page-container">
     <div class="game-detail-card">
         <h2>
-            @Model.Title
-            <a class="favorite-icon" onclick="toggleFavorite(@Model.Id, this)">
-                @if (!await userService.IsGameFavorite(@Model.Id)) {
+            @Model.Game.Title
+            <a class="favorite-icon" onclick="toggleFavorite(@Model.Game.Id, this)">
+                @if (!await userService.IsGameFavorite(@Model.Game.Id)) {
                     <i class="fa-solid fa-heart"></i>
                 } else {
                     <i class="fa-regular fa-heart"></i>
@@ -149,43 +149,69 @@
 
         <div class="card-content">
             <div class="col-md-4">
-                @if (!Model.IsOfficial) {
+                @if (!Model.Game.IsOfficial) {
                     <div>
                         <div class="field-label">Author:</div>
-                        <div class="field-value">@Model.Author.Username</div>
+                        <div class="field-value">@Model.Game.Author.Username</div>
                     </div>
                 }
                 <div>
                     <div class="field-label">Difficulty:</div>
-                    <div class="field-value">@Model.Difficulty</div>
+                    <div class="field-value">@Model.Game.Difficulty</div>
                 </div>
                 <div>
                     <div class="field-label">Maximum Players:</div>
-                    <div class="field-value">@Model.MaxPlayers</div>
+                    <div class="field-value">@Model.Game.MaxPlayers</div>
                 </div>
             </div>
 
             <div class="col-md-8">
                 <div class="field-label">Description:</div>
                 <div class="description-box">
-                    @Model.Description
+                    @Model.Game.Description
                 </div>
             </div>
         </div>
 
+        @if (Model.TopUsers != null && Model.TopUsers.Any())
+        {
+            <div class="game-detail-card" style="margin-top: 32px;">
+                <h2>Top 5 players</h2>
+                <table class="table table-bordered" style="color: var(--text-light);">
+                    <thead style="color: var(--accent-gold); border-color: var(--accent-gold);">
+                        <tr>
+                            <th>User</th>
+                            <th>Matches Played</th>
+                            <th>Matches Won</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stat in Model.TopUsers)
+                        {
+                            <tr>
+                                <td>@stat.Username</td>
+                                <td>@stat.Played</td>
+                                <td>@stat.Won</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }   
+
         <div class="admin-buttons">
-            @if (await userService.IsAuthor(email, Model.Id) || userService.IsAdmin(email)) {
-                <form asp-controller="Games" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;">
+            @if (await userService.IsAuthor(email, Model.Game.Id) || userService.IsAdmin(email)) {
+                <form asp-controller="Games" asp-action="Delete" asp-route-id="@Model.Game.Id" method="post" style="display:inline;">
                     <button type="submit" class="btn btn-danger-custom">Delete</button>
                 </form>
             }
             @if (userService.IsAdmin(email)) {
-                @if (!Model.IsOfficial) {
-                    <a class="btn-action" onclick="toggleOfficial(@Model.Id, this)">
+                @if (!Model.Game.IsOfficial) {
+                    <a class="btn-action" onclick="toggleOfficial(@Model.Game.Id, this)">
                         Change to official status
                     </a>
                 } else {
-                    <a class="btn-action" onclick="toggleOfficial(@Model.Id, this)">
+                    <a class="btn-action" onclick="toggleOfficial(@Model.Game.Id, this)">
                         Remove official status
                     </a>
                 }

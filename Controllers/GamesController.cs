@@ -165,20 +165,117 @@ namespace TrackMyScore.Controllers
         }
 
         [HttpGet]
-
-        public IActionResult Details(int id) // method to access details of a game
+        public async Task<IActionResult> Details(int id)
         {
-            var game = _context.Games
+            var game = await _context.Games
                 .Include(g => g.Author)
-                .FirstOrDefault(g => g.Id == id);
+                .FirstOrDefaultAsync(g => g.Id == id);             
 
             if (game == null || game.Deleted)
             {
                 return RedirectToAction("List", "Game");
             }
 
-            return View(game);
+            var model = new GameDetailView
+            {
+                Game = game,
+                TopUsers = new List<UserStatViewModel>()
+            };
+
+            if (game.IsOfficial)
+            {
+                var userStats = new Dictionary<int, (string Username, int Played, int Won)>();
+
+                // single matches
+                var singleMatches = await _context.Matches
+                    .Where(m => m.GameId == id && m.Stage == -2 && m.Tournament == null && m.Mode == "single")
+                    .ToListAsync();
+
+                foreach (var match in singleMatches)
+                {
+                    var players = await _context.Players
+                        .Include(p => p.User)
+                        .Where(p => p.MatchId == match.Id)
+                        .ToListAsync();
+
+                    if (!players.Any()) continue;
+
+                    int maxScore = players.Max(p => p.Score);
+                    var winners = players.Where(p => p.Score == maxScore).ToList();
+
+                    foreach (var player in players)
+                    {
+                        int uid = player.User.Id;
+                        if (!userStats.ContainsKey(uid))
+                            userStats[uid] = (player.User.Username, 0, 0);
+
+                        var stats = userStats[uid];
+                        stats.Played++;
+                        if (winners.Any(w => w.User.Id == uid))
+                            stats.Won++;
+                        userStats[uid] = stats;
+                    }
+                }
+
+                // team matches
+                var teamMatches = await _context.Matches
+                    .Where(m => m.GameId == id && m.Stage == -2 && m.Tournament == null && m.Mode == "team")
+                    .ToListAsync();
+
+                foreach (var match in teamMatches)
+                {
+                    var players = await _context.TeamPlayers
+                        .Include(tp => tp.User)
+                        .Include(tp => tp.Team)
+                        .Where(tp => tp.MatchId == match.Id)
+                        .ToListAsync();
+
+                    if (!players.Any()) continue;
+
+                    var teamScores = players
+                        .GroupBy(tp => tp.Team)
+                        .Select(g => new { Team = g.Key, Score = g.Key.Score })
+                        .ToList();
+
+                    int maxScore = teamScores.Max(ts => ts.Score);
+                    var winningTeams = teamScores
+                        .Where(ts => ts.Score == maxScore)
+                        .Select(ts => ts.Team.Id)
+                        .ToList();
+
+                    foreach (var tp in players)
+                    {
+                        int uid = tp.User.Id;
+                        if (!userStats.ContainsKey(uid))
+                            userStats[uid] = (tp.User.Username, 0, 0);
+
+                        var stats = userStats[uid];
+                        stats.Played++;
+                        if (winningTeams.Contains(tp.TeamId))
+                            stats.Won++;
+                        userStats[uid] = stats;
+                    }
+                }
+
+                // prepare top 5
+                model.TopUsers = userStats.Values
+                    .OrderByDescending(u => u.Won)
+                    .ThenByDescending(u => u.Played)
+                    .Take(5)
+                    .Select(u => new UserStatViewModel
+                    {
+                        Username = u.Username,
+                        Played = u.Played,
+                        Won = u.Won
+                    })
+                    .ToList();
+            }
+
+            return View(model);
         }
+
+
+
 
         [HttpPost]
         public async Task<IActionResult> Delete(int id) // method for deleting a game

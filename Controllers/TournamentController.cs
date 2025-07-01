@@ -195,7 +195,6 @@ namespace TrackMyScore.Controllers
     [HttpGet]
     public async Task<IActionResult> CurrentTournament(int id)
     {
-        
         var tournament = await _context.Tournaments
             .Include(t => t.Host)
             .FirstOrDefaultAsync(t => t.Id == id);
@@ -207,7 +206,7 @@ namespace TrackMyScore.Controllers
 
         var matches = await _context.Matches
             .Include(m => m.Game)
-            .Where(m => m.Tournament == tournament)
+            .Where(m => m.TournamentId == tournament.Id)
             .ToListAsync();
 
         if (!matches.Any())
@@ -225,57 +224,62 @@ namespace TrackMyScore.Controllers
         if (matches[0].Mode == "single")
         {
             players = await _context.Players
-            .Include(p => p.Match).ThenInclude(m => m.Tournament)
-            .Include(p => p.User)
-            .Where(p => p.Match.TournamentId == tournament.Id)
-            .ToListAsync();
+                .Include(p => p.Match).ThenInclude(m => m.Tournament)
+                .Include(p => p.User)
+                .Where(p => p.Match.TournamentId == tournament.Id)
+                .ToListAsync();
         }
         else if (matches[0].Mode == "team")
         {
+            // obtain all team players
             teamPlayers = await _context.TeamPlayers
-              .Include(tp => tp.Match).ThenInclude(m => m.Tournament)
-              .Include(tp => tp.User)
-              .Include(tp => tp.Team)
-              .Where(tp => tp.Match.TournamentId == id)
-              .ToListAsync();
-
-            teams = await _context.TeamPlayers
-                .Where(p => p.Match.TournamentId == tournament.Id)
-                .Select(p => p.Team)
-                .Distinct()
+                .Include(tp => tp.Match).ThenInclude(m => m.Tournament)
+                .Include(tp => tp.User)
+                .Include(tp => tp.Team)
+                .Where(tp => tp.Match.TournamentId == id)
                 .ToListAsync();
+
+            // group teams by member ids
+            teams = teamPlayers
+                .GroupBy(tp => string.Join(",", teamPlayers
+                    .Where(x => x.TeamId == tp.TeamId)
+                    .Select(x => x.UserId)
+                    .OrderBy(x => x)))
+                .Select(g => g.First().Team)
+                .ToList();
         }
 
+        // determine the winner
         string tournamentWinner = "";
-        
         var finalMatches = await _context.Matches
-                    .Where(m => m.TournamentId == tournament.Id && m.Stage == tournament.Stage)
-                    .ToListAsync();
+            .Where(m => m.TournamentId == tournament.Id && m.Stage == tournament.Stage)
+            .ToListAsync();
 
-        var finalMatch = finalMatches.FirstOrDefault(); // search for the last match of the tournament
+        var finalMatch = finalMatches.FirstOrDefault();
 
         if (tournament.Stage > 1 && tournament.IsActive == false)
         {
-          if (finalMatch != null && finalMatch.Mode == "single")
-          {
-              var winnerPlayer = await _context.Players
-                  .Include(p => p.User)
-                  .Where(p => p.MatchId == finalMatch.Id && !p.Eliminated)
-                  .Select(p => p.User.Username)
-                  .FirstOrDefaultAsync(); // if the tournament is in single mode, take the one winner by selecting it from the last match
-              tournamentWinner = winnerPlayer ?? "";
-          }
-          else if (finalMatch != null && finalMatch.Mode == "team")
-          {
-            var winnerTeam = await _context.TeamPlayers
-                              .Include(tp => tp.Team)
-                              .Where(tp => tp.MatchId == finalMatch.Id && !tp.Eliminated)
-                              .Select(tp => tp.Team.Name)
-                              .FirstOrDefaultAsync(); // select the winning team from the last match of the tournament
+            if (finalMatch != null && finalMatch.Mode == "single")
+            {
+                var winnerPlayer = await _context.Players
+                    .Include(p => p.User)
+                    .Where(p => p.MatchId == finalMatch.Id && !p.Eliminated)
+                    .Select(p => p.User.Username)
+                    .FirstOrDefaultAsync();
 
-            tournamentWinner = winnerTeam ?? "";
-          }
-      }
+                tournamentWinner = winnerPlayer ?? "";
+            }
+            else if (finalMatch != null && finalMatch.Mode == "team")
+            {
+                var winnerTeam = await _context.TeamPlayers
+                    .Include(tp => tp.Team)
+                    .Where(tp => tp.MatchId == finalMatch.Id && !tp.Eliminated)
+                    .Select(tp => tp.Team.Name)
+                    .FirstOrDefaultAsync();
+
+                tournamentWinner = winnerTeam ?? "";
+            }
+        }
 
         var model = new TournamentModel
         {
@@ -292,6 +296,7 @@ namespace TrackMyScore.Controllers
 
         return View(model);
     }
+
 
     [HttpPost]
     public async Task<IActionResult> JoinSingle(int id, string code)
