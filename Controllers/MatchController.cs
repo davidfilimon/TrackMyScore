@@ -654,14 +654,12 @@ namespace TrackMyScore.Controllers
                 return Json(new { success = false, message = "Match not found." });
 
             if (match.Stage != 0)
-            {
                 return Json(new { success = false, message = "The match is not being played." });
-            }
 
             if (match.Host != user)
-            {
                 return Json(new { success = false, message = "You are not the host of this room." });
-            }
+
+            int newScore = 0;
 
             if (match.Mode == "single")
             {
@@ -670,15 +668,12 @@ namespace TrackMyScore.Controllers
                                 .FirstOrDefaultAsync(p => p.Id == participantId && p.MatchId == match.Id);
 
                 if (player == null)
-                {
                     return Json(new { success = false, message = "Player not found." });
-                }
 
                 if (player.Score < 100)
-                {
                     player.Score += 1;
-                }
 
+                newScore = player.Score;
             }
             else if (match.Mode == "team")
             {
@@ -686,18 +681,17 @@ namespace TrackMyScore.Controllers
                                 .FirstOrDefaultAsync(p => p.Id == participantId);
 
                 if (team == null)
-                {
                     return Json(new { success = false, message = "Team not found." });
-                }
 
                 if (team.Score < 100)
-                {
                     team.Score += 1;
-                }
+
+                newScore = team.Score;
             }
 
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Point added successfully." });
+
+            return Json(new { success = true, message = "Point added successfully.", newScore = newScore, participantId = participantId });
         }
 
         [HttpPost]
@@ -713,14 +707,12 @@ namespace TrackMyScore.Controllers
                 return Json(new { success = false, message = "Match not found." });
 
             if (match.Stage != 0)
-            {
                 return Json(new { success = false, message = "The match is not being played." });
-            }
 
             if (match.Host != user)
-            {
                 return Json(new { success = false, message = "You are not the host of this room." });
-            }
+
+            int newScore = 0;
 
             if (match.Mode == "single")
             {
@@ -729,15 +721,12 @@ namespace TrackMyScore.Controllers
                                 .FirstOrDefaultAsync(p => p.Id == participantId && p.MatchId == match.Id);
 
                 if (player == null)
-                {
                     return Json(new { success = false, message = "Player not found." });
-                }
 
                 if (player.Score > 0)
-                {
                     player.Score -= 1;
-                }
 
+                newScore = player.Score;
             }
             else if (match.Mode == "team")
             {
@@ -745,19 +734,19 @@ namespace TrackMyScore.Controllers
                                 .FirstOrDefaultAsync(p => p.Id == participantId);
 
                 if (team == null)
-                {
                     return Json(new { success = false, message = "Team not found." });
-                }
 
                 if (team.Score > 0)
-                {
                     team.Score -= 1;
-                }
+
+                newScore = team.Score;
             }
 
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Point removed successfully." });
+
+            return Json(new { success = true, message = "Point removed successfully.", newScore = newScore, participantId = participantId });
         }
+
 
         [HttpPost]
         public async Task<IActionResult> SaveChanges(int roomId, Dictionary<int, string> teamAssignments, List<string> teamNames)

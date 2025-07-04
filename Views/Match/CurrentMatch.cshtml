@@ -557,7 +557,7 @@
                         {
                             foreach (var participant in players)
                             {
-                                <tr>
+                                <tr data-participant-id="@participant.Id">
                                     <td>@participant.User.Username</td>
                                     <td class="participant-score">@participant.Score</td>
                                     @if (match.Stage == 0 && match.HostId == loggedUser.Id)
@@ -615,9 +615,9 @@
                                     .Where(tp => tp.TeamId == t.Id)
                                     .Select(tp => tp.User.Username)
                                     .ToList();
-                                <tr>
+                                <tr data-participant-id="@t.Id">
                                     <td>@t.Name</td>
-                                    <td>@teamScore</td>
+                                    <td class="participant-score">@teamScore</td>
                                     <td>
                                         @if (members.Any())
                                         {
@@ -1360,8 +1360,12 @@
                 url: "/Match/AddPoint",
                 type: "POST",
                 data: { matchId: matchId, participantId: participantId },
-                success: function () {
-                    window.location.reload();
+                success: function (response) {
+                    if (response.success) {
+                        updateParticipantScore(response.participantId, response.newScore);
+                    } else {
+                        alert(response.message || "Failed to add a point.");
+                    }
                 },
                 error: function () {
                     alert("Server error. Could not add a point.");
@@ -1374,14 +1378,28 @@
                 url: "/Match/RemovePoint",
                 type: "POST",
                 data: { id: matchId, participantId: participantId },
-                success: function () {
-                    window.location.reload();
+                success: function (response) {
+                    if (response.success) {
+                        updateParticipantScore(response.participantId, response.newScore);
+                    } else {
+                        alert(response.message || "Failed to remove a point.");
+                    }
                 },
                 error: function () {
                     alert("Server error. Could not remove a point.");
                 }
             });
         }
+
+        function updateParticipantScore(participantId, newScore) {
+            var scoreElement = $(`tr[data-participant-id='${participantId}'] .participant-score`);
+            if (scoreElement.length) {
+                scoreElement.text(newScore);
+            } else {
+                console.warn("Score element not found for participantId: " + participantId);
+            }
+        }
+
 
         function showTemporaryPopup(message, isError = true) {
             const popupContainer = $("#generalWarningMessageContainer");
