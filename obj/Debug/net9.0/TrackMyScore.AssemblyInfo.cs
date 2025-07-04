@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TrackMyScore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ec0ac67f87639dc641073c0650b7aae777c86af")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a99c6b795c364380067a9fee995b5d94e8ef0dce")]
 [assembly: System.Reflection.AssemblyProductAttribute("TrackMyScore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TrackMyScore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

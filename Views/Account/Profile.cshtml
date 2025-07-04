@@ -756,6 +756,10 @@
                 .addClass('success')
                 .text(response.message)
                 .show();
+
+              setTimeout(() => {
+                location.reload();
+              }, 1000);
             } else {
               editMessageDiv
                 .removeClass('success')
